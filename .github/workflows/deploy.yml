@@ -1,0 +1,130 @@
+name: 🚀 Deploy RBeverything System
+
+on:
+  push:
+    branches:
+      - main # Production
+      - sandbox # Staging/Sandbox
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy Process
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------
+      # STAGE 1: INSTALL DEPENDENCIES & BUILD ASSETS
+      # ----------------------------------------------------------------
+      - name: 🔨 Install Dependencies & Build Assets
+        run: |
+          composer install --no-dev --optimize-autoloader
+          npm install
+          npm run build
+
+      # ----------------------------------------------------------------
+      # STAGE 2: CREATE ZIP ARCHIVES
+      # ----------------------------------------------------------------
+      - name: 📦 Create Core Archive
+        run: |
+          zip -r /tmp/core.zip . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "node_modules/*" \
+            -x "public/*" \
+            -x ".env" \
+            -x ".env.*" \
+            -x "*.zip"
+
+      - name: 📦 Create Public Archive
+        run: |
+          cd public
+          zip -r /tmp/public.zip .
+
+      # ----------------------------------------------------------------
+      # STAGE 3: UPLOAD VIA LFTP (2 files instead of ~15,000+)
+      # ----------------------------------------------------------------
+      - name: 📥 Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      # ── SANDBOX ─────────────────────────────────────────────────────
+      - name: 📂 Upload Archives (Staging)
+        if: github.ref == 'refs/heads/sandbox'
+        run: |
+          lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_SERVER }}" <<EOF
+          set ssl:verify-certificate no
+          set net:timeout 60
+          set net:max-retries 3
+          set net:reconnect-interval-base 5
+          # Upload the unzip script FIRST so the server has it ready
+          put public/deploy-unzip.php -o /public_html/staging.web.rbeverything.com/deploy-unzip.php
+          # Then upload the zip archives
+          put /tmp/core.zip -o /projects/sandbox/core.zip
+          put /tmp/public.zip -o /public_html/staging.web.rbeverything.com/public.zip
+          bye
+          EOF
+
+      # ── PRODUCTION ──────────────────────────────────────────────────
+      - name: 📂 Upload Archives (Production)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_SERVER }}" <<EOF
+          set ssl:verify-certificate no
+          set net:timeout 60
+          set net:max-retries 3
+          set net:reconnect-interval-base 5
+          # Upload the unzip script FIRST so the server has it ready
+          put public/deploy-unzip.php -o /public_html/deploy-unzip.php
+          # Then upload the zip archives
+          put /tmp/core.zip -o /projects/production/core.zip
+          put /tmp/public.zip -o /public_html/public.zip
+          bye
+          EOF
+
+      # ----------------------------------------------------------------
+      # STAGE 4: TRIGGER SERVER-SIDE UNZIP
+      # ----------------------------------------------------------------
+      - name: 📦 Trigger Unzip (Staging)
+        if: github.ref == 'refs/heads/sandbox'
+        run: |
+          echo "🔓 Triggering unzip at staging..."
+          RESPONSE=$(curl -G -s --connect-timeout 30 --max-time 120 --retry 2 --retry-delay 5 \
+            --data-urlencode "key=${{ secrets.DEPLOY_UNZIP_KEY }}" \
+            -w "\n%{http_code}" \
+            "https://staging.web.rbeverything.com/deploy-unzip.php")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "Response ($HTTP_CODE): $BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Unzip failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: 📦 Trigger Unzip (Production)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🔓 Triggering unzip at production..."
+          RESPONSE=$(curl -G -s --connect-timeout 30 --max-time 120 --retry 2 --retry-delay 5 \
+            --data-urlencode "key=${{ secrets.DEPLOY_UNZIP_KEY }}" \
+            -w "\n%{http_code}" \
+            "https://rbeverything.com/deploy-unzip.php")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "Response ($HTTP_CODE): $BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Unzip failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+      # ----------------------------------------------------------------
+      # STAGE 5: FINALIZE (MIGRATE & CACHE)
+      # ----------------------------------------------------------------
+      - name: 🚀 Trigger System Updates (Migrate & Cache)
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+             curl -G -s --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://rbeverything.com/system/deploy/trigger"
+          elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
+             curl -G -s --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://staging.web.rbeverything.com/system/deploy/trigger"
+          fi
