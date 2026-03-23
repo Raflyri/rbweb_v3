@@ -4,10 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\System\EmergencyCommandController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Emergency route to execute commands without SSH
 Route::post('/system/emergency-command', [EmergencyCommandController::class, 'run'])

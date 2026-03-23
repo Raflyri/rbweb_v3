@@ -1,0 +1,97 @@
+{
+    "nav": {
+        "products": "Produk",
+        "services": "Layanan",
+        "blog": "Blog",
+        "about": "Tentang Kami",
+        "cta": "Ayo Berkolaborasi"
+    },
+    "hero": {
+        "badge": "Sistem Aktif · V3 Online",
+        "headline": "Semua yang Anda butuhkan untuk",
+        "phrases": ["Konsultasi IT", "Pengembangan Web", "Implementasi AI", "Arsitektur Sistem", "Keunggulan Digital"],
+        "subtitle": "Mitra teknologi andalan Anda. Kami membangun sistem yang lebih cerdas, produk digital yang lebih berani, dan solusi berbasis AI — semuanya dalam satu atap.",
+        "cta_primary": "Ayo Berkolaborasi",
+        "cta_secondary": "Jelajahi Layanan"
+    },
+    "products": {
+        "label": "Produk",
+        "title": "Alat yang dibangun untuk web modern",
+        "desc": "Micro-tools mandiri yang powerful, dirancang khusus untuk developer dan tim. Presisi. Cepat. Andal.",
+        "liveness": {
+            "tag": "AI · Computer Vision",
+            "name": "Deteksi Liveness Pasif",
+            "desc": "Verifikasi identitas tanpa hambatan. Deteksi biometrik anti-spoofing yang membedakan wajah asli dari foto, video, dan topeng 3D — tanpa interaksi pengguna.",
+            "cta": "Pelajari Lebih Lanjut"
+        },
+        "base64": {
+            "tag": "Enkoder / Dekoder",
+            "name": "Base64 Suite",
+            "desc": "Enkode, dekode, dan validasi string Base64 secara real-time dengan dukungan varian URL-safe.",
+            "placeholder": "Ketik sesuatu untuk dienkode...",
+            "output_label": "Hasil Base64",
+            "cta": "Buka Alat"
+        },
+        "portfolio": {
+            "tag": "Platform",
+            "name": "Platform Portofolio",
+            "desc": "Setiap pengguna mendapatkan halaman /@slug yang dipersonalisasi untuk menampilkan keahlian, pengalaman, dan pencapaian mereka.",
+            "cta": "Buat Halaman Anda"
+        }
+    },
+    "services": {
+        "label": "Apa yang Kami Lakukan",
+        "title": "Layanan yang membuat perbedaan",
+        "desc": "Dari konsep hingga deployment, kami memadukan strategi, rekayasa, dan kreativitas untuk menghasilkan hasil yang berarti.",
+        "cta": "Ayo Berkolaborasi",
+        "items": {
+            "consulting": {"title": "Konsultasi IT", "desc": "Strategi, audit, dan peta jalan teknologi yang disesuaikan dengan tujuan bisnis Anda."},
+            "webdev":     {"title": "Pengembangan Web", "desc": "Aplikasi Laravel full-stack, API, dan frontend yang sempurna secara piksel."},
+            "ai":         {"title": "Integrasi AI", "desc": "Menyematkan model machine learning ke dalam alur kerja dan produk Anda yang sudah ada."},
+            "devops":     {"title": "DevOps & CI/CD", "desc": "Pipeline otomatis, deployment terkontainerisasi, dan rilis tanpa downtime."},
+            "training":   {"title": "Pelatihan Teknis", "desc": "Workshop dan program mentoring untuk meningkatkan kemampuan teknologi tim Anda."},
+            "product":    {"title": "Strategi Produk", "desc": "Mengubah ide menjadi produk digital yang siap pasar dengan validasi problem-solution fit."}
+        },
+        "techstrip_label": "Teknologi yang kami gunakan"
+    },
+    "workflow": {
+        "label": "Cara Kami Bekerja",
+        "title": "Dari ide hingga peluncuran dalam empat langkah",
+        "steps": {
+            "discovery":   {"num": "01", "name": "Discovery", "desc": "Kami mendalami tujuan, pengguna, dan kendala Anda untuk membentuk brief proyek yang jelas."},
+            "design":      {"num": "02", "name": "Desain", "desc": "Wireframe, prototipe, dan sistem UI yang dibangun untuk kecepatan, kejelasan, dan kesenangan."},
+            "development": {"num": "03", "name": "Pengembangan", "desc": "Kode yang tangguh, teruji, dan siap produksi — dikirim secara iteratif dengan transparansi penuh."},
+            "liftoff":     {"num": "04", "name": "Liftoff", "desc": "Deployment, monitoring, dan dukungan berkelanjutan untuk menjaga sistem Anda tetap berjalan."}
+        }
+    },
+    "blog": {
+        "label": "Blog",
+        "title": "Artikel terbaru",
+        "view_all": "Lihat semua artikel →"
+    },
+    "about": {
+        "label": "Tentang RBeverything",
+        "title": "Kami percaya teknologi seharusnya terasa mudah",
+        "desc": "RBeverything adalah studio teknologi yang bersemangat membangun produk yang tidak hanya powerful tetapi juga menyenangkan digunakan. Dari developer solo hingga perusahaan berkembang, kami membantu organisasi memanfaatkan alat yang tepat di waktu yang tepat.",
+        "stat_products": "Produk diluncurkan",
+        "stat_years": "Tahun pengalaman",
+        "stat_quality": "Komitmen terhadap kualitas"
+    },
+    "footer": {
+        "slogan": "Semua yang Anda butuhkan. Sistem yang lebih cerdas, hasil yang lebih berani — disampaikan dengan presisi dan kepedulian.",
+        "quick_links": "Tautan Cepat",
+        "resources": "Sumber Daya",
+        "contact": "Hubungi Kami",
+        "based": "Berbasis di Indonesia. Melayani klien di seluruh dunia.",
+        "start_project": "Mulai Proyek",
+        "privacy": "Kebijakan Privasi",
+        "terms": "Syarat Penggunaan",
+        "copyright": "Semua hak dilindungi."
+    },
+    "lang": {
+        "en": "EN",
+        "id": "ID",
+        "ms": "MY",
+        "ja": "JA"
+    }
+}

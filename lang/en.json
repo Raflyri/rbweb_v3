@@ -1,0 +1,97 @@
+{
+    "nav": {
+        "products": "Products",
+        "services": "Services",
+        "blog": "Blog",
+        "about": "About Us",
+        "cta": "Let's Collaborate"
+    },
+    "hero": {
+        "badge": "System Online · V3 Active",
+        "headline": "Everything you need for",
+        "phrases": ["IT Consulting", "Web Development", "AI Implementation", "System Architecture", "Digital Excellence"],
+        "subtitle": "Your trusted technology partner. We craft smarter systems, bolder digital products, and AI-powered solutions — all under one roof.",
+        "cta_primary": "Let's Collaborate",
+        "cta_secondary": "Explore Services"
+    },
+    "products": {
+        "label": "Products",
+        "title": "Tools built for the modern web",
+        "desc": "Powerful standalone micro-tools engineered for developers and teams. Precise. Fast. Reliable.",
+        "liveness": {
+            "tag": "AI · Computer Vision",
+            "name": "Passive Liveness Detection",
+            "desc": "Frictionless identity verification. Anti-spoofing biometric detection that distinguishes real faces from photos, videos, and 3D masks — without user interaction.",
+            "cta": "Learn More"
+        },
+        "base64": {
+            "tag": "Encoder / Decoder",
+            "name": "Base64 Suite",
+            "desc": "Encode, decode, and validate Base64 strings in real-time with support for URL-safe variants.",
+            "placeholder": "Type something to encode...",
+            "output_label": "Base64 output",
+            "cta": "Open Tool"
+        },
+        "portfolio": {
+            "tag": "Platform",
+            "name": "Portfolio Platform",
+            "desc": "Every user gets a personalised /@slug page to showcase skills, experience, and achievements.",
+            "cta": "Build Your Page"
+        }
+    },
+    "services": {
+        "label": "What We Do",
+        "title": "Services that move the needle",
+        "desc": "From concept to deployment, we bring strategy, engineering, and creativity together to deliver results that matter.",
+        "cta": "Let's Collaborate",
+        "items": {
+            "consulting": {"title": "IT Consulting", "desc": "Strategy, audits, and technology roadmaps tailored to your business goals."},
+            "webdev":     {"title": "Web Development", "desc": "Full-stack Laravel applications, APIs, and pixel-perfect frontends."},
+            "ai":         {"title": "AI Integration", "desc": "Embedding machine learning models into your existing workflows and products."},
+            "devops":     {"title": "DevOps & CI/CD", "desc": "Automated pipelines, containerised deployments, and zero-downtime releases."},
+            "training":   {"title": "Tech Training", "desc": "Workshops and mentoring programs to upskill your team in modern technologies."},
+            "product":    {"title": "Product Strategy", "desc": "Turning ideas into market-ready digital products with validated problem-solution fit."}
+        },
+        "techstrip_label": "Technologies we work with"
+    },
+    "workflow": {
+        "label": "How We Work",
+        "title": "From idea to launch in four steps",
+        "steps": {
+            "discovery":    {"num": "01", "name": "Discovery", "desc": "We deep-dive into your goals, users, and constraints to shape a crystal-clear project brief."},
+            "design":       {"num": "02", "name": "Design", "desc": "Wireframes, prototypes, and UI systems built for speed, clarity, and delight."},
+            "development":  {"num": "03", "name": "Development", "desc": "Robust, tested, production-ready code — shipped iteratively with full transparency."},
+            "liftoff":      {"num": "04", "name": "Liftoff", "desc": "Deployment, monitoring, and ongoing support to keep your system flying."}
+        }
+    },
+    "blog": {
+        "label": "Blog",
+        "title": "Latest articles",
+        "view_all": "View all articles →"
+    },
+    "about": {
+        "label": "About RBeverything",
+        "title": "We believe technology should feel effortless",
+        "desc": "RBeverything is a technology studio passionate about building products that are not only powerful but delightful to use. From solo developers to growing companies, we help organisations harness the right tools at the right time.",
+        "stat_products": "Products shipped",
+        "stat_years": "Years of experience",
+        "stat_quality": "Commitment to quality"
+    },
+    "footer": {
+        "slogan": "Everything you need. Smarter systems, bolder results — delivered with precision and care.",
+        "quick_links": "Quick Links",
+        "resources": "Resources",
+        "contact": "Get in Touch",
+        "based": "Based in Indonesia. Serving clients worldwide.",
+        "start_project": "Start a Project",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Use",
+        "copyright": "All rights reserved."
+    },
+    "lang": {
+        "en": "EN",
+        "id": "ID",
+        "ms": "MY",
+        "ja": "JA"
+    }
+}

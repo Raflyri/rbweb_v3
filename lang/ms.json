@@ -1,0 +1,97 @@
+{
+    "nav": {
+        "products": "Produk",
+        "services": "Perkhidmatan",
+        "blog": "Blog",
+        "about": "Tentang Kami",
+        "cta": "Mari Berkolaborasi"
+    },
+    "hero": {
+        "badge": "Sistem Dalam Talian · V3 Aktif",
+        "headline": "Semua yang anda perlukan untuk",
+        "phrases": ["Perundingan IT", "Pembangunan Web", "Pelaksanaan AI", "Seni Bina Sistem", "Kecemerlangan Digital"],
+        "subtitle": "Rakan teknologi anda yang dipercayai. Kami membina sistem yang lebih pintar, produk digital yang lebih berani, dan penyelesaian berkuasa AI — semuanya di bawah satu bumbung.",
+        "cta_primary": "Mari Berkolaborasi",
+        "cta_secondary": "Terokai Perkhidmatan"
+    },
+    "products": {
+        "label": "Produk",
+        "title": "Alat untuk web moden",
+        "desc": "Micro-tools berkuasa yang direka untuk pembangun dan pasukan. Tepat. Pantas. Boleh dipercayai.",
+        "liveness": {
+            "tag": "AI · Penglihatan Komputer",
+            "name": "Pengesanan Liveness Pasif",
+            "desc": "Pengesahan identiti tanpa halangan. Pengesanan biometrik anti-penipuan yang membezakan wajah sebenar daripada foto, video, dan topeng 3D — tanpa interaksi pengguna.",
+            "cta": "Ketahui Lebih Lanjut"
+        },
+        "base64": {
+            "tag": "Pengekodan / Penyahkodan",
+            "name": "Base64 Suite",
+            "desc": "Enkod, dekod, dan sahkan rentetan Base64 secara masa nyata dengan sokongan variants URL-selamat.",
+            "placeholder": "Taip sesuatu untuk dikodkan...",
+            "output_label": "Output Base64",
+            "cta": "Buka Alat"
+        },
+        "portfolio": {
+            "tag": "Platform",
+            "name": "Platform Portfolio",
+            "desc": "Setiap pengguna mendapat halaman /@slug yang diperibadikan untuk mempamerkan kemahiran, pengalaman, dan pencapaian.",
+            "cta": "Bina Halaman Anda"
+        }
+    },
+    "services": {
+        "label": "Apa Yang Kami Lakukan",
+        "title": "Perkhidmatan yang membuat perbezaan",
+        "desc": "Dari konsep hingga penggunaan, kami menggabungkan strategi, kejuruteraan, dan kreativiti untuk menyampaikan hasil yang bermakna.",
+        "cta": "Mari Berkolaborasi",
+        "items": {
+            "consulting": {"title": "Perundingan IT", "desc": "Strategi, audit, dan peta jalan teknologi yang disesuaikan dengan matlamat perniagaan anda."},
+            "webdev":     {"title": "Pembangunan Web", "desc": "Aplikasi Laravel penuh, API, dan antara muka pengguna yang sempurna."},
+            "ai":         {"title": "Integrasi AI", "desc": "Membenamkan model pembelajaran mesin ke dalam aliran kerja dan produk sedia ada anda."},
+            "devops":     {"title": "DevOps & CI/CD", "desc": "Saluran automatik, penggunaan berasaskan kontena, dan keluaran tanpa henti."},
+            "training":   {"title": "Latihan Teknikal", "desc": "Bengkel dan program bimbingan untuk meningkatkan kemahiran teknologi pasukan anda."},
+            "product":    {"title": "Strategi Produk", "desc": "Mengubah idea kepada produk digital bersedia pasaran dengan pengesahan kesesuaian masalah-penyelesaian."}
+        },
+        "techstrip_label": "Teknologi yang kami gunakan"
+    },
+    "workflow": {
+        "label": "Cara Kami Bekerja",
+        "title": "Dari idea hingga pelancaran dalam empat langkah",
+        "steps": {
+            "discovery":   {"num": "01", "name": "Penemuan", "desc": "Kami menyelami matlamat, pengguna, dan kekangan anda untuk membentuk ringkasan projek yang jelas."},
+            "design":      {"num": "02", "name": "Reka Bentuk", "desc": "Lakaran, prototaip, dan sistem UI yang dibina untuk kelajuan, kejelasan, dan keseronokan."},
+            "development": {"num": "03", "name": "Pembangunan", "desc": "Kod yang teguh, diuji, dan bersedia pengeluaran — dihantar secara berulang dengan ketelusan penuh."},
+            "liftoff":     {"num": "04", "name": "Pelancaran", "desc": "Penggunaan, pemantauan, dan sokongan berterusan untuk memastikan sistem anda berjalan lancar."}
+        }
+    },
+    "blog": {
+        "label": "Blog",
+        "title": "Artikel terkini",
+        "view_all": "Lihat semua artikel →"
+    },
+    "about": {
+        "label": "Tentang RBeverything",
+        "title": "Kami percaya teknologi harus terasa mudah",
+        "desc": "RBeverything adalah studio teknologi yang bersemangat membina produk yang bukan sahaja berkuasa tetapi menyeronokkan digunakan. Dari pembangun solo hingga syarikat berkembang, kami membantu organisasi memanfaatkan alat yang tepat pada masa yang tepat.",
+        "stat_products": "Produk dihantar",
+        "stat_years": "Tahun pengalaman",
+        "stat_quality": "Komitmen terhadap kualiti"
+    },
+    "footer": {
+        "slogan": "Semua yang anda perlukan. Sistem lebih pintar, hasil lebih berani — disampaikan dengan ketepatan dan keprihatinan.",
+        "quick_links": "Pautan Pantas",
+        "resources": "Sumber",
+        "contact": "Hubungi Kami",
+        "based": "Berpusat di Indonesia. Melayani klien di seluruh dunia.",
+        "start_project": "Mulakan Projek",
+        "privacy": "Dasar Privasi",
+        "terms": "Terma Penggunaan",
+        "copyright": "Hak cipta terpelihara."
+    },
+    "lang": {
+        "en": "EN",
+        "id": "ID",
+        "ms": "MY",
+        "ja": "JA"
+    }
+}
