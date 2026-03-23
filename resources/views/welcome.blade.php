@@ -127,11 +127,13 @@
             <div id="rb-hero-content"
                 style="position:relative;z-index:1;width:100%;max-width:56rem;margin:0 auto;text-align:center;">
 
+                @if(config('app.debug'))
                 {{-- Status badge --}}
                 <div class="rb-hero-badge" data-reveal>
                     <span class="ping-dot" aria-hidden="true"></span>
                     <span data-i18n="hero.badge">System Online · V3 Active</span>
                 </div>
+                @endif
 
                 {{-- Static headline --}}
                 <h1 class="rb-hero-h1" data-reveal data-reveal-delay="1">

@@ -41,7 +41,7 @@ jobs:
       - name: 🌐 Setup Chrome Driver (For Dusk)
         run: |
           google-chrome-stable --version
-          php artisan dusk:chrome-driver --require-system-installation
+          php artisan dusk:chrome-driver
 
       - name: 🚀 Run Server & Execute Dusk + Pest Tests
         env:
