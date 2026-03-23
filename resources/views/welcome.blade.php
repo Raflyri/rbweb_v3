@@ -16,8 +16,8 @@
 
     {{-- ── i18n data injected for client-side switching ── --}}
     <script>
-        window.RB_I18N      = @json($i18n);
-        window.RB_PAGE_DATA = @json($pageData);
+        window.RB_I18N      = {{ Illuminate\Support\Js::from($i18n) }};
+        window.RB_PAGE_DATA = {{ Illuminate\Support\Js::from($pageData) }};
     </script>
 </head>
 
@@ -29,6 +29,7 @@
 <div class="rb-bg" aria-hidden="true">
     <div class="rb-bg-gradient"></div>
     <div class="rb-dot-grid"></div>
+    <div class="rb-binary-overlay"></div>
 </div>
 
 {{-- ═══════════════════════════════════════════════════════════ --}}
@@ -39,7 +40,7 @@
 
         {{-- LOGO --}}
         <a href="/" style="text-decoration:none;flex-shrink:0;" aria-label="RBeverything — Home">
-            <span style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;background:linear-gradient(135deg,#38BDF8,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+            <span style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;background:linear-gradient(135deg,#E53E3E,#C53030);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
                 RBeverything
             </span>
         </a>
@@ -62,7 +63,7 @@
                 <button class="rb-lang-btn" data-lang="ja" aria-label="日本語に切り替え">JA</button>
             </div>
 
-            <a href="mailto:hello@rbeverything.com" class="rb-btn-primary" id="nav-cta" data-i18n="nav.cta">
+            <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-primary" id="nav-cta" data-i18n="nav.cta">
                 Let's Collaborate
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -90,7 +91,7 @@
         <button class="rb-lang-btn" data-lang="ms">MY</button>
         <button class="rb-lang-btn" data-lang="ja">JA</button>
     </div>
-    <a href="mailto:hello@rbeverything.com" class="rb-btn-hero" style="margin-top:1.25rem;width:fit-content;" data-i18n="nav.cta">
+    <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-hero" style="margin-top:1.25rem;width:fit-content;" data-i18n="nav.cta">
         Let's Collaborate
     </a>
 </div>
@@ -126,7 +127,7 @@
 
         {{-- CTAs --}}
         <div class="rb-hero-ctas" data-reveal data-reveal-delay="4">
-            <a href="mailto:hello@rbeverything.com" class="rb-btn-hero" data-i18n="nav.cta">
+            <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-hero" data-i18n="nav.cta">
                 Let's Collaborate
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -302,7 +303,7 @@
                 <p class="rb-section-desc" data-i18n="services.desc">
                     From concept to deployment, we bring strategy, engineering, and creativity together to deliver results that matter.
                 </p>
-                <a href="mailto:hello@rbeverything.com" class="rb-btn-hero" style="margin-top:1.5rem;display:inline-flex;font-size:0.9rem;padding:0.7rem 1.75rem;">
+                <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-hero" style="margin-top:1.5rem;display:inline-flex;font-size:0.9rem;padding:0.7rem 1.75rem;">
                     <span data-i18n="services.cta">Let's Collaborate</span>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:0.4rem;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
@@ -324,7 +325,8 @@
         <div class="rb-services-grid" style="margin-bottom:5rem;">
             @foreach($pageData['services'] as $i => $service)
             <div class="rb-service-tile" data-reveal data-reveal-delay="{{ $i + 1 }}">
-                <div class="rb-service-icon" style="background:{{ $service['color'] }}10;border-color:{{ $service['color'] }}20;">
+                @php $iconStyle = "background:{$service['color']}10;border-color:{$service['color']}20;"; @endphp
+                <div class="rb-service-icon" style="{{ $iconStyle }}">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ $service['color'] }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         {!! $serviceIcons[$service['key']] ?? '' !!}
                     </svg>
@@ -411,7 +413,8 @@
             <div id="rb-carousel-track" class="rb-carousel-track">
                 @foreach($pageData['articles'] as $article)
                 <a href="{{ $article['href'] }}" class="rb-article-card">
-                    <span class="rb-article-category" style="color:{{ $article['category_color'] }};">{{ $article['category'] }}</span>
+                    @php $catStyle = 'color:' . $article['category_color'] . ';'; @endphp
+                    <span class="rb-article-category" style="{{ $catStyle }}">{{ $article['category'] }}</span>
                     <h3 class="rb-article-title">{{ $article['title'] }}</h3>
                     <p style="font-size:0.85rem;color:#64748B;line-height:1.6;flex:1;">{{ $article['excerpt'] }}</p>
                     <span class="rb-article-date">{{ $article['date'] }}</span>

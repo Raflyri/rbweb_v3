@@ -1,0 +1,331 @@
+/*
+ * ================================================================
+ *  RBEVERYTHING — rb-theme.css  v2
+ *  Visual Identity: Deep Ruby / Node-Network / Radial Depth
+ *
+ *  Design goal:
+ *    Mysterious · Sophisticated · Structured · Elegant
+ *    "Expert IT consultant standing above the network."
+ *
+ *  Edit rules:
+ *    • All theme overrides live ONLY in this file.
+ *    • app.css (design system) and scroll-effects.js are untouched.
+ *    • To adjust the accent, change --rb-red and --rb-red-glow here.
+ * ================================================================
+ */
+
+/* ── 1. COLOR TOKENS ──────────────────────────────────────────── */
+:root {
+    /* Base palette */
+    --color-bg:        #000000;
+    --color-bg-soft:   #0a0a0a;
+    --color-text:      #C9D1D9;          /* GitHub-inspired subtle gray */
+    --color-muted:     #586069;
+    --color-border:    rgba(255,255,255,0.055);
+
+    /* Deep Ruby — the ONE accent color */
+    --rb-red:          #DC2626;          /* Tailwind red-600 — deep crimson */
+    --rb-red-dim:      #B91C1C;          /* Tailwind red-700 — used for hover depth */
+    --rb-red-glow:     rgba(185,28,28,0.35);   /* neon glow shadow */
+    --rb-red-subtle:   rgba(220,38,38,0.06);
+    --rb-red-border:   rgba(220,38,38,0.28);
+}
+
+/* ── 2. RADIAL GRADIENT BACKGROUND ───────────────────────────── */
+/*
+ * Center: #0A0A0A (very dark gray) → edges: pure black.
+ * Creates the "floating above the void" depth effect.
+ */
+html, body {
+    background-color: #000000 !important;
+    background-image:
+        radial-gradient(
+            ellipse 120% 80% at 50% 0%,
+            #0d0d0d 0%,
+            #060606 40%,
+            #000000 75%
+        ) !important;
+    background-attachment: fixed !important;
+    color: var(--color-text);
+}
+
+/* Subtle secondary depth layer applied by .rb-bg-gradient */
+.rb-bg-gradient {
+    background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(185,28,28,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 95% 100%,  rgba(40,40,60,0.06)  0%, transparent 60%);
+}
+
+/* ── 3. NODE NETWORK OVERLAY ──────────────────────────────────── */
+/*
+ * Replaces the binary overlay.
+ * A repeating SVG tile of nodes (dots) connected by thin lines.
+ * Opacity 4% — barely visible, adds "above the network" texture.
+ */
+.rb-binary-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3C!-- nodes --%3E%3Ccircle cx='20'  cy='20'  r='2'   fill='%23ffffff'/%3E%3Ccircle cx='110' cy='10'  r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='200' cy='30'  r='2'   fill='%23ffffff'/%3E%3Ccircle cx='50'  cy='110' r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='150' cy='90'  r='2'   fill='%23ffffff'/%3E%3Ccircle cx='210' cy='110' r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='10'  cy='200' r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='110' cy='210' r='2'   fill='%23ffffff'/%3E%3Ccircle cx='200' cy='195' r='1.5' fill='%23ffffff'/%3E%3Ccircle cx='75'  cy='55'  r='1'   fill='%23ffffff'/%3E%3Ccircle cx='165' cy='155' r='1'   fill='%23ffffff'/%3E%3C!-- edges --%3E%3Cline x1='20'  y1='20'  x2='110' y2='10'  stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='110' y1='10'  x2='200' y2='30'  stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='20'  y1='20'  x2='50'  y2='110' stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='110' y1='10'  x2='150' y2='90'  stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='200' y1='30'  x2='210' y2='110' stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='50'  y1='110' x2='150' y2='90'  stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='150' y1='90'  x2='210' y2='110' stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='50'  y1='110' x2='110' y2='210' stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='150' y1='90'  x2='200' y2='195' stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='10'  y1='200' x2='110' y2='210' stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='110' y1='210' x2='200' y2='195' stroke='%23ffffff' stroke-width='0.5'/%3E%3Cline x1='75'  y1='55'  x2='150' y2='90'  stroke='%23ffffff' stroke-width='0.4'/%3E%3Cline x1='165' y1='155' x2='110' y2='210' stroke='%23ffffff' stroke-width='0.4'/%3E%3C/svg%3E");
+    background-size: 220px 220px;
+    opacity: 0.04;          /* 4% — subtle floating-above-the-network feel */
+    animation: none;        /* static — more sophisticated, less distracting */
+    mask-image: none;       /* full coverage (not just hero) */
+    position: fixed;        /* fixed to viewport — pattern doesn't scroll */
+    inset: 0;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
+/* ── 4. TYPEWRITER CURSOR → DEEP RUBY ────────────────────────── */
+.rb-cursor {
+    background: var(--rb-red) !important;
+    box-shadow: 0 0 6px var(--rb-red-glow) !important;
+    width: 2px !important;
+}
+
+/* ── 5. HERO BADGE — MINIMAL RED DOT ─────────────────────────── */
+.rb-hero-badge .ping-dot::before,
+.rb-hero-badge .ping-dot::after {
+    background: var(--rb-red) !important;
+}
+.rb-hero-badge {
+    border-color: rgba(220,38,38,0.15) !important;
+}
+
+/* ── 6. SECTION LABEL ─────────────────────────────────────────── */
+.rb-section-label {
+    color: var(--rb-red) !important;
+}
+
+/* ── 7. NAVIGATION ────────────────────────────────────────────── */
+.rb-nav-link:hover {
+    color: #E2E8F0 !important;          /* near-white — NOT red (reserved) */
+}
+.rb-nav-link::after {
+    background: var(--rb-red) !important;
+    height: 1px !important;
+}
+
+/* Scrolled state: deep dark, almost opaque */
+.rb-nav.scrolled {
+    background: rgba(4,4,4,0.94) !important;
+    border-bottom: 1px solid rgba(220,38,38,0.07) !important;
+}
+
+/* ── 8. CTA BUTTONS ──────────────────────────────────────────── */
+/*
+ * Principle: transparent with a thin ruby border.
+ * Hover: border brightens + neon glow + text becomes near-white.
+ * Red does NOT fill the whole button — keeps elegance.
+ */
+.rb-btn-primary {
+    background: transparent !important;
+    border: 1px solid var(--rb-red-border) !important;
+    color: var(--rb-red) !important;
+    box-shadow: none !important;
+    letter-spacing: 0.01em;
+    transition:
+        border-color 0.4s ease,
+        box-shadow 0.4s ease,
+        color 0.3s ease,
+        transform 0.3s ease !important;
+}
+.rb-btn-primary:hover {
+    border-color: var(--rb-red) !important;
+    color: #F5F5F5 !important;
+    box-shadow: 0 0 12px var(--rb-red-glow), inset 0 0 12px rgba(185,28,28,0.06) !important;
+    transform: translateY(-1px) !important;
+    background: rgba(185,28,28,0.06) !important;
+}
+
+.rb-btn-hero {
+    background: transparent !important;
+    border: 1px solid var(--rb-red-border) !important;
+    color: var(--rb-red) !important;
+    box-shadow: none !important;
+    transition:
+        border-color 0.45s ease,
+        box-shadow 0.45s ease,
+        color 0.3s ease,
+        transform 0.35s ease !important;
+}
+.rb-btn-hero:hover {
+    border-color: var(--rb-red) !important;
+    color: #F5F5F5 !important;
+    box-shadow: 0 0 16px var(--rb-red-glow) !important;
+    transform: translateY(-2px) !important;
+    background: rgba(185,28,28,0.07) !important;
+}
+
+/* Ghost / secondary CTA — stays neutral, only subtle red border on hover */
+.rb-btn-ghost {
+    background: rgba(255,255,255,0.03) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+    color: var(--color-text) !important;
+    transition:
+        border-color 0.4s ease,
+        background 0.4s ease,
+        transform 0.3s ease !important;
+}
+.rb-btn-ghost:hover {
+    border-color: rgba(220,38,38,0.2) !important;
+    background: rgba(220,38,38,0.03) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── 9. PRODUCT CARDS — NEON LINE GLOW ───────────────────────── */
+/*
+ * "Neon Glow Line" principle:
+ *    - Rest: invisible border (matches bg)
+ *    - Hover: 1px crimson border + soft outward glow only
+ *    - No color fills, no large shadow blocks
+ */
+.rb-card {
+    background: rgba(8,8,8,0.85) !important;
+    border: 1px solid rgba(255,255,255,0.055) !important;
+    transition:
+        border-color 0.45s ease,
+        box-shadow 0.45s ease,
+        transform 0.4s ease !important;
+}
+.rb-card:hover {
+    border-color: rgba(220,38,38,0.5) !important;
+    box-shadow:
+        0 0 0 1px rgba(220,38,38,0.08),
+        0 0 18px rgba(185,28,28,0.18),
+        0 4px 32px rgba(0,0,0,0.5) !important;
+    transform: translateY(-5px) !important;
+}
+.rb-card::before {
+    background: radial-gradient(
+        circle at 0% 0%,
+        rgba(185,28,28,0.04),
+        transparent 65%
+    ) !important;
+}
+
+/* ── 10. SERVICE TILES — SUBTLE HOVER ────────────────────────── */
+.rb-service-tile {
+    background: rgba(6,6,6,0.7) !important;
+    border: 1px solid rgba(255,255,255,0.055) !important;
+    transition:
+        border-color 0.4s ease,
+        background 0.4s ease,
+        box-shadow 0.4s ease,
+        transform 0.4s ease !important;
+}
+.rb-service-tile:hover {
+    border-color: rgba(220,38,38,0.3) !important;
+    background: rgba(220,38,38,0.02) !important;
+    box-shadow: 0 0 14px rgba(185,28,28,0.1) !important;
+    transform: translateY(-2px) !important;
+}
+/* Icon: subtle red only on hover — keep it minimal */
+.rb-service-tile:hover .rb-service-icon {
+    background: rgba(185,28,28,0.07) !important;
+    border-color: rgba(220,38,38,0.2) !important;
+}
+.rb-service-tile:hover .rb-service-icon svg {
+    stroke: #DC2626 !important;
+    transition: stroke 0.4s ease;
+}
+
+/* ── 11. BLOG CARDS ──────────────────────────────────────────── */
+.rb-article-card {
+    background: rgba(6,6,6,0.9) !important;
+    border: 1px solid rgba(255,255,255,0.055) !important;
+    transition:
+        border-color 0.4s ease,
+        box-shadow 0.4s ease,
+        transform 0.4s ease !important;
+}
+.rb-article-card:hover {
+    border-color: rgba(220,38,38,0.25) !important;
+    box-shadow: 0 0 14px rgba(185,28,28,0.1) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* ── 12. WORKFLOW ─────────────────────────────────────────────── */
+.rb-workflow-step:not(:last-child)::after {
+    background: repeating-linear-gradient(
+        to right,
+        rgba(220,38,38,0.15) 0px, rgba(220,38,38,0.15) 4px,
+        transparent 4px, transparent 9px
+    ) !important;
+}
+.rb-workflow-step:hover .rb-workflow-icon {
+    background: rgba(185,28,28,0.07) !important;
+    border-color: rgba(220,38,38,0.22) !important;
+}
+.rb-workflow-step:hover .rb-workflow-name {
+    color: #E2E8F0 !important;
+    transition: color 0.35s ease;
+}
+
+/* ── 13. UI CHROME — FOOTER / DIVIDER / MARQUEE ──────────────── */
+.rb-footer {
+    background: rgba(0,0,0,0.7) !important;
+    border-top: 1px solid rgba(220,38,38,0.06) !important;
+}
+.rb-footer-link:hover {
+    color: #E2E8F0 !important;
+}
+.rb-social-link:hover {
+    border-color: rgba(220,38,38,0.3) !important;
+    color: #DC2626 !important;
+    background: rgba(185,28,28,0.05) !important;
+}
+.rb-divider {
+    background: linear-gradient(
+        to right,
+        transparent,
+        rgba(220,38,38,0.1),
+        transparent
+    ) !important;
+}
+.rb-marquee-item:hover {
+    color: #DC2626 !important;
+    border-color: rgba(220,38,38,0.2) !important;
+}
+.rb-carousel-arrow:hover {
+    background: rgba(185,28,28,0.06) !important;
+    border-color: rgba(220,38,38,0.22) !important;
+    color: #DC2626 !important;
+}
+
+/* ── 14. LANGUAGE SWITCHER — ACTIVE STATE ────────────────────── */
+.rb-lang-btn.active {
+    background: rgba(185,28,28,0.14) !important;
+    color: #DC2626 !important;
+    border: 1px solid rgba(220,38,38,0.25) !important;
+}
+.rb-lang-btn:hover {
+    color: #E2E8F0 !important;
+}
+
+/* ── 15. DOT GRID — SOFTER ON TRUE BLACK ─────────────────────── */
+.rb-dot-grid {
+    background-image: radial-gradient(
+        circle,
+        rgba(255,255,255,0.025) 1px,
+        transparent 1px
+    ) !important;
+}
+
+/* ── 16. DEMO WINDOW ─────────────────────────────────────────── */
+.rb-demo-window {
+    background: rgba(5,5,5,0.95) !important;
+    border-color: rgba(255,255,255,0.06) !important;
+}
+
+/* ── 17. GLOBAL TRANSITION BASELINE ─────────────────────────── */
+/*
+ * Every interactive element gets smooth easing.
+ * Uses CSS custom properties so components can override as needed.
+ */
+a, button, [role="button"] {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 0.35s !important;
+}
+
+/* ── 18. LOGO — DEEP RUBY → DARK CRIMSON GRADIENT ───────────── */
+/* Applied inline in Blade via style attribute on the <span> — no override needed. */

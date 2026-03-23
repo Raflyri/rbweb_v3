@@ -12,7 +12,7 @@
 <body class="antialiased bg-slate-950 text-white font-['Inter'] selection:bg-cyan-500/30">
     <!-- Background -->
     <div class="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden">
-        <div class="w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-black"></div>
+        <div class="w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-black"></div>
     </div>
 
     <nav class="w-full glass-nav py-4 sticky top-0 z-50">
@@ -30,7 +30,7 @@
             @if($profile->avatar_url)
             <img src="{{ $profile->avatar_url }}" alt="{{ $profile->user->name }}" class="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-slate-800 shadow-xl object-cover">
             @else
-            <div class="w-32 h-32 rounded-full mx-auto mb-6 bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-4xl font-black shadow-xl">
+            <div class="w-32 h-32 rounded-full mx-auto mb-6 bg-linear-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-4xl font-black shadow-xl">
                 {{ substr($profile->user->name, 0, 1) }}
             </div>
             @endif

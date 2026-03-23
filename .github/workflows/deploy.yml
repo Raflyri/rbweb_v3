@@ -7,8 +7,60 @@ on:
       - sandbox # Staging/Sandbox
 
 jobs:
+  # ----------------------------------------------------------------
+  # JOB 1: RUN AUTOMATED TESTS (PEST & DUSK)
+  # ----------------------------------------------------------------
+  run-tests:
+    name: 🧪 Run Pest & Dusk Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite3, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+
+      - name: 📦 Install Composer Dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: 🛠️ Build NPM Assets
+        run: |
+          npm install
+          npm run build
+
+      - name: 🗄️ Setup Environment & Database
+        run: |
+          cp .env.example .env
+          touch database/database.sqlite
+          php artisan key:generate
+
+      - name: 🌐 Setup Chrome Driver (For Dusk)
+        run: |
+          google-chrome-stable --version
+          php artisan dusk:chrome-driver --require-system-installation
+
+      - name: 🚀 Run Server & Execute Dusk + Pest Tests
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          APP_URL: "http://127.0.0.1:8000"
+        run: |
+          php artisan migrate --force
+          php artisan serve --no-reload &
+          sleep 5 # Tunggu server hidup
+          php artisan test # Jalankan Pest PHP
+          php artisan dusk # Jalankan Browser Test
+
+  # ----------------------------------------------------------------
+  # JOB 2: DEPLOY PROCESS (Hanya jalan jika tes sukses)
+  # ----------------------------------------------------------------
   web-deploy:
     name: 🎉 Deploy Process
+    needs: run-tests
     runs-on: ubuntu-latest
 
     steps:
@@ -59,10 +111,10 @@ jobs:
           set net:max-retries 3
           set net:reconnect-interval-base 5
           # Upload the unzip script FIRST so the server has it ready
-          put public/deploy-unzip.php -o /public_html/staging.web.rbeverything.com/deploy-unzip.php
+          put public/deploy-unzip.php -o /public_html/web-sbox.rbeverything.com/deploy-unzip.php
           # Then upload the zip archives
           put /tmp/core.zip -o /projects/sandbox/core.zip
-          put /tmp/public.zip -o /public_html/staging.web.rbeverything.com/public.zip
+          put /tmp/public.zip -o /public_html/web-sbox.rbeverything.com/public.zip
           bye
           EOF
 
@@ -93,7 +145,7 @@ jobs:
           RESPONSE=$(curl -G -s --connect-timeout 30 --max-time 120 --retry 2 --retry-delay 5 \
             --data-urlencode "key=${{ secrets.DEPLOY_UNZIP_KEY }}" \
             -w "\n%{http_code}" \
-            "https://staging.web.rbeverything.com/deploy-unzip.php")
+            "https://web-sbox.rbeverything.com/deploy-unzip.php")
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -n -1)
           echo "Response ($HTTP_CODE): $BODY"
@@ -124,7 +176,7 @@ jobs:
       - name: 🚀 Trigger System Updates (Migrate & Cache)
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-             curl -G -s --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://rbeverything.com/system/deploy/trigger"
+             curl -G -s --connect-timeout 30 --max-time 120 --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://rbeverything.com/system/deploy/trigger"
           elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
-             curl -G -s --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://staging.web.rbeverything.com/system/deploy/trigger"
+             curl -G -s --connect-timeout 30 --max-time 120 --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://web-sbox.rbeverything.com/system/deploy/trigger"
           fi
