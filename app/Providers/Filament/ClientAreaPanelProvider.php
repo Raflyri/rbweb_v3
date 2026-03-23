@@ -27,6 +27,7 @@ class ClientAreaPanelProvider extends PanelProvider
             ->id('client-area')
             ->path('client-area')
             ->login()
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->colors([
                 'primary' => Color::Amber,
             ])

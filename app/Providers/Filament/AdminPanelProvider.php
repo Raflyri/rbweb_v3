@@ -28,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('rbdashboard')
             ->login()
+            ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
             ])

@@ -20,6 +20,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasRole(['super_admin', 'admin', 'premium', 'regular_user']);
     }
 
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
     /**
      * The attributes that are mass assignable.
      *
