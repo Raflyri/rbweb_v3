@@ -2,9 +2,55 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class ArticleController extends Controller
 {
-    //
+    /**
+     * Display paginated list of published articles with optional search.
+     */
+    public function index(Request $request): View
+    {
+        $locale = app()->getLocale();
+        $search = $request->query('search');
+
+        $articles = Article::published()
+            ->latest('published_at')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title->en', 'like', "%{$search}%")
+                      ->orWhere('title->id', 'like', "%{$search}%")
+                      ->orWhere('content->en', 'like', "%{$search}%")
+                      ->orWhere('content->id', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(9)
+            ->withQueryString();
+
+        return view('blog.index', compact('articles', 'search', 'locale'));
+    }
+
+    /**
+     * Display a single published article by slug.
+     */
+    public function show(string $slug): View
+    {
+        $locale = app()->getLocale();
+
+        $article = Article::published()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        // Get related articles (same status, exclude current, limit 3)
+        $related = Article::published()
+            ->where('id', '!=', $article->id)
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
+        return view('blog.show', compact('article', 'related', 'locale'));
+    }
 }

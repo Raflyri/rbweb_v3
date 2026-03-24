@@ -57,7 +57,7 @@
             <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
                 <a href="#products" class="rb-nav-link" data-i18n="nav.products">Products</a>
                 <a href="#services" class="rb-nav-link" data-i18n="nav.services">Services</a>
-                <a href="#blog" class="rb-nav-link" data-i18n="nav.blog">Blog</a>
+                <a href="/blog" class="rb-nav-link" data-i18n="nav.blog">Blog</a>
                 <a href="#about" class="rb-nav-link" data-i18n="nav.about">About Us</a>
             </nav>
 
@@ -98,7 +98,7 @@
             <a href="#services"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.services">Services</a>
-            <a href="#blog"
+            <a href="/blog"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.blog">Blog</a>
             <a href="#about"
@@ -508,11 +508,18 @@
                     <div id="rb-carousel-track" class="rb-carousel-track">
                         @foreach($pageData['articles'] as $article)
                             <a href="{{ $article['href'] }}" class="rb-article-card">
+                                @if($article['thumbnail'])
+                                    <div style="width:100%;height:180px;border-radius:0.75rem;overflow:hidden;margin-bottom:0.25rem;">
+                                        <img src="{{ $article['thumbnail'] }}" alt="{{ $article['title'] }}"
+                                             style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s ease;"
+                                             onmouseover="this.style.transform='scale(1.05)'"
+                                             onmouseout="this.style.transform='scale(1)'">
+                                    </div>
+                                @endif
                                 @php $catStyle = 'color:' . $article['category_color'] . ';'; @endphp
                                 <span class="rb-article-category" {!! 'style="' . $catStyle . '"' !!}>{{ $article['category'] }}</span>
                                 <h3 class="rb-article-title">{{ $article['title'] }}</h3>
-                                <p style="font-size:0.85rem;color:#64748B;line-height:1.6;flex:1;">{{ $article['excerpt'] }}
-                                </p>
+                                <p style="font-size:0.85rem;color:#64748B;line-height:1.6;flex:1;">{{ $article['excerpt'] }}</p>
                                 <span class="rb-article-date">{{ $article['date'] }}</span>
                             </a>
                         @endforeach
@@ -520,7 +527,7 @@
                 </div>
 
                 <div style="margin-top:2.5rem;text-align:center;" data-reveal data-reveal-delay="2">
-                    <a href="#"
+                    <a href="/blog"
                         style="font-size:0.875rem;font-weight:600;color:#64748B;text-decoration:none;border-bottom:1px solid #1E293B;padding-bottom:2px;transition:color 0.3s,border-color 0.3s;"
                         data-i18n="blog.view_all">View all articles →</a>
                 </div>

@@ -34,7 +34,7 @@ class HomeController extends Controller
         // ── 3. Fetch published articles from DB (locale-aware, EN fallback) ─
         $articles = Article::published()
             ->latest('published_at')
-            ->take(5)
+            ->take(4)
             ->get()
             ->map(function (Article $article) use ($locale) {
                 $title   = $article->getTranslation('title', $locale, true);
@@ -42,11 +42,11 @@ class HomeController extends Controller
 
                 return [
                     'category'       => 'Article',
-                    'category_color' => '#38BDF8',
+                    'category_color' => '#DC2626',
                     'title'          => $title,
                     'excerpt'        => Str::limit(strip_tags($content), 130),
-                    'date'           => $article->published_at?->format('M Y') ?? '',
-                    'href'           => '#', // future: route('articles.show', $article->slug)
+                    'date'           => $article->published_at?->format('M d, Y') ?? '',
+                    'href'           => route('blog.show', $article->slug),
                     'thumbnail'      => $article->thumbnail
                         ? asset('storage/' . $article->thumbnail)
                         : null,
@@ -59,47 +59,38 @@ class HomeController extends Controller
             $articles = [
                 [
                     'category'       => 'Tech Insight',
-                    'category_color' => '#38BDF8',
+                    'category_color' => '#DC2626',
                     'title'          => 'Why Passive Liveness Detection is the Future of Digital KYC',
                     'excerpt'        => 'Exploring how passive anti-spoofing models eliminate friction while dramatically improving security.',
                     'date'           => 'Mar 2026',
-                    'href'           => '#',
+                    'href'           => route('blog.index'),
                     'thumbnail'      => null,
                 ],
                 [
                     'category'       => 'Tutorial',
-                    'category_color' => '#818CF8',
+                    'category_color' => '#DC2626',
                     'title'          => 'Building a Full-Stack SaaS with Laravel 11 + Filament v3',
                     'excerpt'        => 'A deep-dive into architecting multi-tenant applications using the most powerful PHP framework combo.',
                     'date'           => 'Feb 2026',
-                    'href'           => '#',
+                    'href'           => route('blog.index'),
                     'thumbnail'      => null,
                 ],
                 [
                     'category'       => 'DevOps',
-                    'category_color' => '#34D399',
+                    'category_color' => '#DC2626',
                     'title'          => 'Zero-Downtime Deployments on cPanel Shared Hosting',
                     'excerpt'        => 'How we implemented atomic releases with GitHub Actions on a constrained hosting environment.',
                     'date'           => 'Jan 2026',
-                    'href'           => '#',
+                    'href'           => route('blog.index'),
                     'thumbnail'      => null,
                 ],
                 [
                     'category'       => 'AI',
-                    'category_color' => '#A78BFA',
+                    'category_color' => '#DC2626',
                     'title'          => 'Integrating TensorFlow Lite into a Laravel REST API',
                     'excerpt'        => 'Step-by-step walkthrough of exposing a computer vision model through a typed, versioned Laravel API.',
                     'date'           => 'Dec 2025',
-                    'href'           => '#',
-                    'thumbnail'      => null,
-                ],
-                [
-                    'category'       => 'Security',
-                    'category_color' => '#FB7185',
-                    'title'          => 'RBAC Done Right: Role-Based Access Control in Filament v3',
-                    'excerpt'        => 'Designing a dual-dashboard system with strict policy enforcement and Spatie Permission integration.',
-                    'date'           => 'Nov 2025',
-                    'href'           => '#',
+                    'href'           => route('blog.index'),
                     'thumbnail'      => null,
                 ],
             ];
@@ -183,11 +174,11 @@ class HomeController extends Controller
                     ['label_key' => 'nav.products', 'href' => '#products'],
                     ['label_key' => 'nav.services', 'href' => '#services'],
                     ['label_key' => 'nav.about',    'href' => '#about'],
-                    ['label_key' => 'nav.blog',     'href' => '#blog'],
+                    ['label_key' => 'nav.blog',     'href' => '/blog'],
                     ['label'     => 'Admin Panel',  'href' => '/rbdashboard'],
                 ],
                 'resources' => [
-                    ['label_key' => 'blog.title',    'href' => '#blog'],
+                    ['label_key' => 'blog.title',    'href' => '/blog'],
                     ['label'     => 'Documentation', 'href' => '#'],
                     ['label'     => 'FAQ',           'href' => '#'],
                     ['label'     => 'Changelog',     'href' => '#'],
