@@ -4,6 +4,7 @@ namespace App\Filament\ClientArea\Pages\Auth;
 
 use Filament\Auth\Pages\Register as BaseRegister;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Models\Role;
 
 class Register extends BaseRegister
 {
@@ -19,7 +20,9 @@ class Register extends BaseRegister
         /** @var \App\Models\User $user */
         $user = parent::handleRegistration($data);
 
-        // Assign role hanya jika user belum punya role apapun
+        // Pastikan role 'regular_user' ada, lalu assign jika user belum punya role
+        Role::firstOrCreate(['name' => 'regular_user', 'guard_name' => 'web']);
+
         if ($user->roles->isEmpty()) {
             $user->assignRole('regular_user');
         }

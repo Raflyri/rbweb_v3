@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,11 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // ✅ Pastikan semua role ada (tidak ada role 'client')
-        $roles = ['super_admin', 'admin', 'premium', 'regular_user'];
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
-        }
+        // ✅ Seed semua role terlebih dahulu
+        $this->call(RoleSeeder::class);
 
         // User admin
         $admin = User::firstOrCreate(
