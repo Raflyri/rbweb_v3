@@ -23,13 +23,20 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@rbeverything.com'],
             ['name' => 'RB Admin', 'password' => bcrypt('password')]
         );
-        $admin->syncRoles(['super_admin']);
+        // Only assign role if the user doesn't already have it.
+        // Using syncRoles() is forbidden — it would strip any extra roles
+        // granted manually in production.
+        if (! $admin->hasRole('super_admin')) {
+            $admin->assignRole('super_admin');
+        }
 
         // User regular (untuk testing Client Area)
         $regular = User::firstOrCreate(
             ['email' => 'user@rbeverything.com'],
             ['name' => 'Test User', 'password' => bcrypt('password')]
         );
-        $regular->syncRoles(['regular_user']);
+        if (! $regular->hasRole('regular_user')) {
+            $regular->assignRole('regular_user');
+        }
     }
 }

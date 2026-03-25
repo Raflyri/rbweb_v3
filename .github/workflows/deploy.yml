@@ -190,3 +190,47 @@ jobs:
           elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
              curl -G -s --connect-timeout 30 --max-time 120 -H 'Content-Type:' --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://web-sbox.rbeverything.com/system/deploy/trigger"
           fi
+
+      # ----------------------------------------------------------------
+      # STAGE 6: RUN DATABASE SEEDERS (Idempotent — safe to re-run)
+      # ----------------------------------------------------------------
+      - name: 🌱 Run Database Seeders (Production)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🌱 Triggering idempotent database seeding on production..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=db:seed" \
+            -w "\n%{http_code}" \
+            "https://rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 Seeder response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️ Seeder returned HTTP $HTTP_CODE — check logs, but deployment was successful."
+          else
+            echo "✅ Database seeders completed successfully."
+          fi
+          # Non-fatal: seeder failure does not roll back a successful deploy.
+          true
+
+      - name: 🌱 Run Database Seeders (Staging)
+        if: github.ref == 'refs/heads/sandbox'
+        run: |
+          echo "🌱 Triggering idempotent database seeding on sandbox..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=db:seed" \
+            -w "\n%{http_code}" \
+            "https://web-sbox.rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 Seeder response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️ Seeder returned HTTP $HTTP_CODE — check logs, but deployment was successful."
+          else
+            echo "✅ Database seeders completed successfully."
+          fi
+          true

@@ -21,6 +21,7 @@ class EmergencyCommandController extends Controller
         $command = $request->input('command');
         $allowedCommands = [
             'migrate',
+            'db:seed',
             'optimize:clear',
             'storage:link',
             'config:cache',
@@ -34,7 +35,7 @@ class EmergencyCommandController extends Controller
 
         try {
             $parameters = [];
-            if ($command === 'migrate') {
+            if ($command === 'migrate' || $command === 'db:seed') {
                 $parameters = ['--force' => true];
             }
             Artisan::call($command, $parameters);
