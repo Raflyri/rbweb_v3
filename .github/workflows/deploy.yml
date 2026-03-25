@@ -105,12 +105,16 @@ jobs:
       - name: 📂 Upload Archives (Staging)
         if: github.ref == 'refs/heads/sandbox'
         run: |
+          # Write the deploy key to a temp file on the runner
+          echo "${{ secrets.DEPLOY_UNZIP_KEY }}" > /tmp/deploy.key
           lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_SERVER }}" <<EOF
           set ssl:verify-certificate no
           set net:timeout 60
           set net:max-retries 3
           set net:reconnect-interval-base 5
-          # Upload the unzip script FIRST so the server has it ready
+          # Upload the deploy key to the server home directory (outside public_html)
+          put /tmp/deploy.key -o /deploy.key
+          # Upload the unzip script so the server has it ready
           put public/deploy-unzip.php -o /public_html/web-sbox.rbeverything.com/deploy-unzip.php
           # Then upload the zip archives
           put /tmp/core.zip -o /projects/sandbox/core.zip
@@ -122,12 +126,16 @@ jobs:
       - name: 📂 Upload Archives (Production)
         if: github.ref == 'refs/heads/main'
         run: |
+          # Write the deploy key to a temp file on the runner
+          echo "${{ secrets.DEPLOY_UNZIP_KEY }}" > /tmp/deploy.key
           lftp -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_SERVER }}" <<EOF
           set ssl:verify-certificate no
           set net:timeout 60
           set net:max-retries 3
           set net:reconnect-interval-base 5
-          # Upload the unzip script FIRST so the server has it ready
+          # Upload the deploy key to the server home directory (outside public_html)
+          put /tmp/deploy.key -o /deploy.key
+          # Upload the unzip script so the server has it ready
           put public/deploy-unzip.php -o /public_html/deploy-unzip.php
           # Then upload the zip archives
           put /tmp/core.zip -o /projects/production/core.zip
