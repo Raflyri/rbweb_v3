@@ -56,4 +56,8 @@ require $basePath.'/vendor/autoload.php';
 /** @var Application $app */
 $app = require_once $basePath.'/bootstrap/app.php';
 
+// On cPanel, public files are in public_html/ not in {project}/public/
+// Tell Laravel where the real public directory is so Vite, asset(), etc. work correctly.
+$app->usePublicPath(__DIR__);
+
 $app->handleRequest(Request::capture());
