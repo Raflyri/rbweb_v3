@@ -38,17 +38,20 @@ if (!file_exists($baseDir . '/projects')) {
 
 $coreZip = $coreDir . '/core.zip';
 $publicZip = $publicDir . '/public.zip';
-$envFile = $coreDir . '/.env';
 
-// Read DEPLOY_UNZIP_KEY from the server's .env file securely
+// Read DEPLOY_UNZIP_KEY from a persistent key file placed manually on the server once.
+// This avoids a chicken-and-egg problem where the .env doesn't exist before first extraction.
+// To set up: create the file with: echo "your-secret-key" > ~/deploy.key && chmod 600 ~/deploy.key
 $validKey = '';
-if (file_exists($envFile)) {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), 'DEPLOY_UNZIP_KEY=') === 0) {
-            $validKey = trim(substr(trim($line), 17), '"\' ');
-            break;
-        }
+$keyFilePaths = [
+    dirname(dirname($publicDir)) . '/deploy.key',          // e.g. /home/user/deploy.key (via public_html/subdomain)
+    dirname($publicDir) . '/deploy.key',                   // e.g. /home/user/deploy.key (via public_html directly)
+    getenv('HOME') ? getenv('HOME') . '/deploy.key' : '',  // Fallback via HOME env var
+];
+foreach ($keyFilePaths as $keyFilePath) {
+    if ($keyFilePath && file_exists($keyFilePath)) {
+        $validKey = trim(file_get_contents($keyFilePath));
+        break;
     }
 }
 
