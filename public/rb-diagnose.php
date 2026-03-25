@@ -11,7 +11,7 @@ error_reporting(E_ALL);
 header('Content-Type: text/plain; charset=utf-8');
 
 echo "╔══════════════════════════════════════════════════════╗\n";
-echo "║     RBeverything Server Diagnostics v1.0            ║\n";
+echo "║     RBeverything Server Diagnostics v2.0            ║\n";
 echo "╚══════════════════════════════════════════════════════╝\n\n";
 
 // ── Detect environment ──────────────────────────────────────────
@@ -134,7 +134,8 @@ if (file_exists($envFile)) {
     ];
     foreach ($safeKeys as $key) {
         if (preg_match("/^{$key}=(.*)$/m", $envContent, $m)) {
-            echo "  {$key} = {$m[1]}\n";
+            $val = trim($m[1], "\r\n \t");
+            echo "  {$key} = {$val}\n";
         } else {
             echo "  {$key} = (NOT SET)\n";
         }
@@ -147,6 +148,59 @@ if (file_exists($envFile)) {
 }
 echo "\n";
 
+// ── 5.5 .ENV FILE ENCODING CHECK ───────────────────────────────
+echo "═══ 5.5. .ENV FILE ENCODING CHECK ═══\n";
+if (file_exists($envFile)) {
+    $raw = file_get_contents($envFile);
+    $fileSize = strlen($raw);
+    echo "  File size: {$fileSize} bytes\n";
+
+    // Check for BOM (Byte Order Mark)
+    $hasBOM = (substr($raw, 0, 3) === "\xEF\xBB\xBF");
+    echo "  BOM (Byte Order Mark): " . ($hasBOM ? '⚠️ YES — this can break .env parsing!' : '✅ None') . "\n";
+
+    // Check line endings
+    $hasCRLF = (strpos($raw, "\r\n") !== false);
+    $hasLF = (strpos($raw, "\n") !== false);
+    $hasCR = (strpos($raw, "\r") !== false && !$hasCRLF);
+    if ($hasCRLF) {
+        echo "  Line endings: ⚠️ Windows (CRLF / \\r\\n) — can cause issues on Linux!\n";
+    } elseif ($hasCR) {
+        echo "  Line endings: ⚠️ Old Mac (CR / \\r) — will likely break!\n";
+    } elseif ($hasLF) {
+        echo "  Line endings: ✅ Unix (LF / \\n)\n";
+    }
+
+    // Check each DB_ line for invisible characters
+    $lines = explode("\n", $raw);
+    $problemLines = [];
+    foreach ($lines as $i => $line) {
+        $lineNum = $i + 1;
+        // Check for lines starting with DB_
+        if (preg_match('/^(DB_\w+)=(.*)/', $line, $m)) {
+            $key = $m[1];
+            $rawVal = $m[2];
+            $cleanVal = trim($rawVal, "\r\n \t");
+            $hasInvisible = ($rawVal !== $cleanVal);
+            $hexSuffix = '';
+            if ($hasInvisible) {
+                $diff = substr($rawVal, strlen($cleanVal));
+                $hexSuffix = ' [trailing bytes: ' . bin2hex($diff) . ']';
+                $problemLines[] = "  ⚠️  Line {$lineNum}: {$key} has invisible trailing chars{$hexSuffix}\n";
+            }
+        }
+    }
+    if (!empty($problemLines)) {
+        echo "  \n  Invisible character issues found:\n";
+        foreach ($problemLines as $pl) echo $pl;
+    } else {
+        echo "  ✅ No invisible characters detected in DB_ values.\n";
+    }
+} else {
+    echo "  ⚠️ .env not found.\n";
+}
+echo "\n";
+
 // ── 6. DATABASE CONNECTION TEST ────────────────────────────────
 echo "═══ 6. DATABASE CONNECTION TEST ═══\n";
 if (file_exists($envFile)) {
@@ -154,14 +208,22 @@ if (file_exists($envFile)) {
     $dbVars = [];
     foreach (['DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD'] as $key) {
         preg_match("/^{$key}=(.*)$/m", $envContent, $m);
-        $dbVars[$key] = $m[1] ?? '';
+        // CRITICAL: trim \r, \n, spaces from values (Windows CRLF line endings)
+        $dbVars[$key] = isset($m[1]) ? trim($m[1], "\r\n \t") : '';
     }
 
-    $host = $dbVars['DB_HOST'] ?: '127.0.0.1';
+    $host = $dbVars['DB_HOST'] ?: 'localhost';
     $port = $dbVars['DB_PORT'] ?: '3306';
     $db   = $dbVars['DB_DATABASE'];
     $user = $dbVars['DB_USERNAME'];
     $pass = $dbVars['DB_PASSWORD'];
+
+    echo "  Parsed values (trimmed):\n";
+    echo "    DB_HOST     = [{$host}] (" . strlen($host) . " chars)\n";
+    echo "    DB_PORT     = [{$port}]\n";
+    echo "    DB_DATABASE = [{$db}]\n";
+    echo "    DB_USERNAME = [{$user}]\n";
+    echo "    DB_PASSWORD = [" . str_repeat('*', min(strlen($pass), 8)) . "] (" . strlen($pass) . " chars)\n\n";
 
     if (empty($db) || empty($user)) {
         echo "  ⚠️ DB_DATABASE or DB_USERNAME is empty in .env — cannot test connection.\n";
@@ -185,7 +247,7 @@ if (file_exists($envFile)) {
         } catch (PDOException $e) {
             echo "  ❌ Connection FAILED!\n";
             echo "  Error: " . $e->getMessage() . "\n";
-            echo "  DSN: mysql:host={$host};port={$port};dbname={$db}\n";
+            echo "  DSN used: mysql:host={$host};port={$port};dbname={$db}\n";
             echo "  User: {$user}\n";
         }
     }
