@@ -150,9 +150,11 @@ jobs:
         if: github.ref == 'refs/heads/sandbox'
         run: |
           echo "🔓 Triggering unzip at staging..."
-          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 --retry 2 --retry-delay 5 \
+          RESPONSE=$(curl -G -s --connect-timeout 30 --max-time 120 --retry 2 --retry-delay 5 \
+            -H 'Content-Type:' \
+            --data-urlencode "key=${{ secrets.DEPLOY_UNZIP_KEY }}" \
             -w "\n%{http_code}" \
-            "https://web-sbox.rbeverything.com/deploy-unzip.php?key=${{ secrets.DEPLOY_UNZIP_KEY }}")
+            "https://web-sbox.rbeverything.com/deploy-unzip.php")
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -n -1)
           echo "Response ($HTTP_CODE): $BODY"
@@ -165,9 +167,11 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           echo "🔓 Triggering unzip at production..."
-          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 --retry 2 --retry-delay 5 \
+          RESPONSE=$(curl -G -s --connect-timeout 30 --max-time 120 --retry 2 --retry-delay 5 \
+            -H 'Content-Type:' \
+            --data-urlencode "key=${{ secrets.DEPLOY_UNZIP_KEY }}" \
             -w "\n%{http_code}" \
-            "https://rbeverything.com/deploy-unzip.php?key=${{ secrets.DEPLOY_UNZIP_KEY }}")
+            "https://rbeverything.com/deploy-unzip.php")
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -n -1)
           echo "Response ($HTTP_CODE): $BODY"
@@ -182,7 +186,7 @@ jobs:
       - name: 🚀 Trigger System Updates (Migrate & Cache)
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-             curl -s --connect-timeout 30 --max-time 120 "https://rbeverything.com/system/deploy/trigger?key=${{ secrets.DEPLOY_SECRET }}"
+             curl -G -s --connect-timeout 30 --max-time 120 -H 'Content-Type:' --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://rbeverything.com/system/deploy/trigger"
           elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
-             curl -s --connect-timeout 30 --max-time 120 "https://web-sbox.rbeverything.com/system/deploy/trigger?key=${{ secrets.DEPLOY_SECRET }}"
+             curl -G -s --connect-timeout 30 --max-time 120 -H 'Content-Type:' --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://web-sbox.rbeverything.com/system/deploy/trigger"
           fi
