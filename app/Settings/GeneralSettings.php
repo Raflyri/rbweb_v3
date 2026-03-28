@@ -11,6 +11,12 @@ class GeneralSettings extends Settings
     public string $linkedin_link;
     public string $instagram_link;
 
+    /** Public-facing website URL (e.g. https://rbeverything.com) */
+    public string $frontend_url;
+
+    /** When true, a maintenance banner is shown in the client area */
+    public bool $maintenance_mode;
+
     /**
      * Translatable tagline: keys are locale codes ('en','id','ms','ja').
      * Access: $settings->web_tagline[app()->getLocale()] ?? $settings->web_tagline['en']

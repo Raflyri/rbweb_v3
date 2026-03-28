@@ -6,28 +6,50 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, TwoFactorAuthenticatable, LogsActivity;
 
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            // /rbdashboard — hanya super_admin dan admin
+            // /rbdashboard — only super_admin and admin
             return $this->hasAnyRole(['super_admin', 'admin']);
         }
 
         if ($panel->getId() === 'client-area') {
-            // /client-area — semua role valid bisa akses
-            return $this->hasAnyRole(['super_admin', 'admin', 'premium', 'regular_user']);
+            // Admins can preview the client area without email verification
+            if ($this->hasAnyRole(['super_admin', 'admin'])) {
+                return true;
+            }
+
+            // Regular clients must have a valid role AND a verified email
+            return $this->hasAnyRole(['premium', 'regular_user'])
+                && $this->hasVerifiedEmail();
         }
 
         return false;
+    }
+
+    /**
+     * Returns true if this user is an admin/super_admin OR has verified their email.
+     * Used so admin staff are never blocked by the email verification gate.
+     */
+    public function hasVerifiedEmailOrIsAdmin(): bool
+    {
+        if ($this->hasAnyRole(['super_admin', 'admin'])) {
+            return true;
+        }
+
+        return $this->hasVerifiedEmail();
     }
 
     public function profile()
@@ -56,6 +78,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'password',
     ];
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('user');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -64,6 +95,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**

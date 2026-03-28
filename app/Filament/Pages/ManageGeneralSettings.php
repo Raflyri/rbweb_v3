@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Settings\GeneralSettings;
 use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Pages\SettingsPage;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -23,7 +24,7 @@ class ManageGeneralSettings extends SettingsPage
         /** @var \App\Models\User|null $user */
         $user = auth()->user();
 
-        return $user?->hasRole('Super Admin') ?? false;
+        return $user?->hasRole('super_admin') ?? false;
     }
 
     public function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
@@ -100,6 +101,24 @@ class ManageGeneralSettings extends SettingsPage
                                             ->placeholder('デジタル時代のパートナー'),
                                     ]),
                             ]),
+                    ]),
+
+                // ── System Controls ───────────────────────────────────────────
+                Section::make('System Controls')
+                    ->description('Control the public-facing website URL and maintenance mode.')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('frontend_url')
+                            ->label('Frontend URL')
+                            ->url()
+                            ->placeholder('https://rbeverything.com')
+                            ->columnSpanFull()
+                            ->required(),
+
+                        Toggle::make('maintenance_mode')
+                            ->label('Maintenance Mode')
+                            ->helperText('When enabled, a maintenance banner is shown in the client area.')
+                            ->inline(false),
                     ]),
 
             ]);

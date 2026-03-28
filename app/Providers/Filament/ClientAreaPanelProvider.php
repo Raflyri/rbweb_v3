@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\ClientArea\Widgets\WelcomeBannerWidget;
 use App\Http\Middleware\EnsureClientRole;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -27,11 +28,18 @@ class ClientAreaPanelProvider extends PanelProvider
             ->id('client-area')
             ->path('client-area')
             ->login()
-            ->registration(\App\Filament\ClientArea\Pages\Auth\Register::class) // ✅ Custom: auto-assign role
-            ->passwordReset()                   // ✅ Reset password diaktifkan
-            ->emailVerification()               // ✅ Verifikasi email diaktifkan
+            ->registration(\App\Filament\ClientArea\Pages\Auth\Register::class)
+            ->passwordReset()
+
+            // ── Email verification ────────────────────────────────────────
+            // We enable the email verification PROMPT page so the route exists,
+            // but we do NOT set isRequired=true here. Instead, canAccessPanel()
+            // in User.php skips the check for admins. Regular users are already
+            // required to verify via canAccessPanel() returning false until verified.
+            ->emailVerification(isRequired: false)
+
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
-            ->databaseNotifications()           // ✅ Notifikasi in-app diaktifkan
+            ->databaseNotifications()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -48,7 +56,10 @@ class ClientAreaPanelProvider extends PanelProvider
                 in: app_path('Filament/ClientArea/Widgets'),
                 for: 'App\Filament\ClientArea\Widgets'
             )
-            ->widgets([AccountWidget::class])
+            ->widgets([
+                WelcomeBannerWidget::class,
+                AccountWidget::class,
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -62,7 +73,7 @@ class ClientAreaPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                EnsureClientRole::class,        // ✅ Isolasi role
+                EnsureClientRole::class,
             ]);
     }
 }

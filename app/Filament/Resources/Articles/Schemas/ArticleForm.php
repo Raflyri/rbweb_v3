@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Articles\Schemas;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -89,8 +90,12 @@ class ArticleForm
                             ->unique(ignoreRecord: true)
                             ->helperText('Auto-generated from English title. Edit to customise.'),
 
-                        \Filament\Forms\Components\Select::make('status')
-                            ->options(['Draft' => 'Draft', 'Published' => 'Published'])
+                        Select::make('status')
+                            ->options([
+                                'Draft'          => 'Draft',
+                                'Pending Review' => 'Pending Review',
+                                'Published'      => 'Published',
+                            ])
                             ->default('Draft')
                             ->required(),
 

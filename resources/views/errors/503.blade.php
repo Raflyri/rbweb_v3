@@ -50,7 +50,7 @@
     }
 </style>
 
-<script>
+<script id="maintenance-script" data-debug="{{ config('app.debug') ? 'true' : 'false' }}">
     // Show a rotating gear animation on the icon
     (function() {
         var icon = document.querySelector('.rb-err-icon-wrap svg');
@@ -62,19 +62,20 @@
         }
 
         // Real-time clock to show "we're working on it" timeframe
-        @if(!config('app.debug'))
-        var desc = document.querySelector('.rb-err-desc');
-        if (desc) {
-            var clock = document.createElement('span');
-            clock.style.cssText = 'display:block;margin-top:0.5rem;font-family:JetBrains Mono,monospace;font-size:0.78rem;color:rgba(217,119,6,0.65);';
-            function updateClock() {
-                var now = new Date();
-                clock.textContent = 'Current time: ' + now.toUTCString();
+        var isDebug = document.getElementById('maintenance-script').getAttribute('data-debug') === 'true';
+        if (!isDebug) {
+            var desc = document.querySelector('.rb-err-desc');
+            if (desc) {
+                var clock = document.createElement('span');
+                clock.style.cssText = 'display:block;margin-top:0.5rem;font-family:JetBrains Mono,monospace;font-size:0.78rem;color:rgba(217,119,6,0.65);';
+                function updateClock() {
+                    var now = new Date();
+                    clock.textContent = 'Current time: ' + now.toUTCString();
+                }
+                updateClock();
+                setInterval(updateClock, 1000);
+                desc.appendChild(clock);
             }
-            updateClock();
-            setInterval(updateClock, 1000);
-            desc.appendChild(clock);
         }
-        @endif
     })();
 </script>
