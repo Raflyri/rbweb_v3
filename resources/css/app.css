@@ -1064,3 +1064,199 @@ html.lenis { height: auto; }
 @media (max-width: 900px) { .rb-services-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px) { .rb-services-grid { grid-template-columns: 1fr; } }
 
+/* ═══════════════════════════════════════════════════════════════
+   PORTFOLIO PAGE — Design System Extension
+   Classes prefixed with `pf-` to avoid collisions with main site.
+   `glass-card` and `glass-nav` are shared utilities.
+════════════════════════════════════════════════════════════════ */
+
+/* ── Glassmorphism utilities ──────────────────────────────────── */
+.glass-nav {
+    background: rgba(3, 5, 8, 0.72);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+
+.glass-card:hover {
+    border-color: rgba(56, 189, 248, 0.18);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+    transform: translateY(-2px);
+}
+
+/* ── Portfolio fade-in-up entry animation ─────────────────────── */
+@keyframes pf-fade-up {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.pf-fade-up         { animation: pf-fade-up 0.65s cubic-bezier(0.22,1,0.36,1) both; }
+.pf-fade-up-d1      { animation: pf-fade-up 0.65s 0.1s cubic-bezier(0.22,1,0.36,1) both; }
+.pf-fade-up-d2      { animation: pf-fade-up 0.65s 0.2s cubic-bezier(0.22,1,0.36,1) both; }
+.pf-fade-up-d3      { animation: pf-fade-up 0.65s 0.3s cubic-bezier(0.22,1,0.36,1) both; }
+.pf-fade-up-d4      { animation: pf-fade-up 0.65s 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Timeline (Experiences / Education) ──────────────────────── */
+.pf-timeline-item {
+    position: relative;
+    padding-left: 1.75rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.pf-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 0.375rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #38BDF8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.6), 0 0 0 3px rgba(3, 5, 8, 0.9);
+}
+
+/* ── Skill badges ─────────────────────────────────────────────── */
+.pf-skill-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.775rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    background: rgba(56, 189, 248, 0.06);
+    border: 1px solid rgba(56, 189, 248, 0.16);
+    color: #94C5E8;
+    transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.25s;
+    cursor: default;
+}
+
+.pf-skill-badge:hover {
+    background: rgba(56, 189, 248, 0.14);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: #38BDF8;
+    transform: translateY(-1px);
+}
+
+/* ── Section heading inline icon ─────────────────────────────── */
+.pf-section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.625rem;
+    flex-shrink: 0;
+}
+
+/* ── Share / Copy button (floating) ──────────────────────────── */
+.pf-share-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 9999px;
+    background: rgba(14, 165, 233, 0.14);
+    border: 1px solid rgba(14, 165, 233, 0.3);
+    color: #38BDF8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: background 0.3s, border-color 0.3s, transform 0.25s, box-shadow 0.3s;
+    box-shadow: 0 4px 20px rgba(14,165,233,0.15);
+}
+
+.pf-share-btn:hover {
+    background: rgba(14, 165, 233, 0.25);
+    border-color: rgba(14, 165, 233, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(14,165,233,0.28);
+}
+
+.pf-share-btn.copied {
+    background: rgba(52, 211, 153, 0.14);
+    border-color: rgba(52, 211, 153, 0.4);
+    color: #34D399;
+}
+
+/* ── Publication cards ────────────────────────────────────────── */
+.pf-pub-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+
+.pf-pub-card:hover {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+
+/* ── Avatar ring ──────────────────────────────────────────────── */
+.pf-avatar-ring {
+    padding: 3px;
+    background: linear-gradient(135deg, #38BDF8, #818CF8, #C084FC);
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.pf-avatar-inner {
+    width: 7rem;
+    height: 7rem;
+    border-radius: 50%;
+    border: 3px solid var(--color-bg);
+    display: block;
+    object-fit: cover;
+}
+
+.pf-avatar-initials {
+    width: 7rem;
+    height: 7rem;
+    border-radius: 50%;
+    border: 3px solid var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.25rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #0EA5E9, #6366F1);
+    color: #fff;
+}
+
+/* ── Print styles ─────────────────────────────────────────────── */
+@media print {
+    body { background: #fff !important; color: #111 !important; }
+    .glass-nav, .pf-share-btn { display: none !important; }
+    .glass-card {
+        background: #fff !important;
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+    .pf-skill-badge {
+        background: #f3f4f6 !important;
+        color: #374151 !important;
+        border-color: #d1d5db !important;
+    }
+    a { color: inherit !important; text-decoration: none !important; }
+    h1, h2, h3, p, span { color: #111 !important; }
+    .pf-timeline-item::before { background: #2563EB !important; box-shadow: none !important; }
+    main { padding-top: 1rem !important; }
+}
+
