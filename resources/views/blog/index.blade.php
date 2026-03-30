@@ -239,18 +239,18 @@
                             <line x1="16" y1="13" x2="8" y2="13" />
                             <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
-                        <h3 style="font-size:1.25rem;font-weight:700;color:var(--color-text);margin-bottom:0.5rem;">
+                        <h3 style="font-size:1.25rem;font-weight:700;color:var(--color-text);margin-bottom:0.5rem;font-family:var(--font-sans, 'Inter', sans-serif);">
                             @if($search)
-                                No articles found
+                                Artikel Tidak Ditemukan
                             @else
-                                No articles yet
+                                Artikel Belum Tersedia
                             @endif
                         </h3>
-                        <p style="font-size:0.9rem;color:var(--color-muted);max-width:24rem;margin:0 auto;">
+                        <p style="font-size:0.9rem;color:var(--color-muted);max-width:26rem;margin:0 auto;line-height:1.6;">
                             @if($search)
-                                We couldn't find any articles matching "{{ $search }}". Try a different search term.
+                                Kami tidak dapat menemukan artikel yang cocok dengan "{{ $search }}". Silakan coba kata kunci pencarian yang lain.
                             @else
-                                Check back soon — we're working on new content.
+                                Kami sedang menyiapkan berbagai wawasan dan tutorial teknologi terbaru. Silakan kembali lagi nanti.
                             @endif
                         </p>
                     </div>

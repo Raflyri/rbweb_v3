@@ -54,47 +54,6 @@ class HomeController extends Controller
             })
             ->toArray();
 
-        // ── 4. Fallback to static sample articles if DB has none ─────────
-        if (empty($articles)) {
-            $articles = [
-                [
-                    'category'       => 'Tech Insight',
-                    'category_color' => '#DC2626',
-                    'title'          => 'Why Passive Liveness Detection is the Future of Digital KYC',
-                    'excerpt'        => 'Exploring how passive anti-spoofing models eliminate friction while dramatically improving security.',
-                    'date'           => 'Mar 2026',
-                    'href'           => route('blog.index'),
-                    'thumbnail'      => null,
-                ],
-                [
-                    'category'       => 'Tutorial',
-                    'category_color' => '#DC2626',
-                    'title'          => 'Building a Full-Stack SaaS with Laravel 11 + Filament v3',
-                    'excerpt'        => 'A deep-dive into architecting multi-tenant applications using the most powerful PHP framework combo.',
-                    'date'           => 'Feb 2026',
-                    'href'           => route('blog.index'),
-                    'thumbnail'      => null,
-                ],
-                [
-                    'category'       => 'DevOps',
-                    'category_color' => '#DC2626',
-                    'title'          => 'Zero-Downtime Deployments on cPanel Shared Hosting',
-                    'excerpt'        => 'How we implemented atomic releases with GitHub Actions on a constrained hosting environment.',
-                    'date'           => 'Jan 2026',
-                    'href'           => route('blog.index'),
-                    'thumbnail'      => null,
-                ],
-                [
-                    'category'       => 'AI',
-                    'category_color' => '#DC2626',
-                    'title'          => 'Integrating TensorFlow Lite into a Laravel REST API',
-                    'excerpt'        => 'Step-by-step walkthrough of exposing a computer vision model through a typed, versioned Laravel API.',
-                    'date'           => 'Dec 2025',
-                    'href'           => route('blog.index'),
-                    'thumbnail'      => null,
-                ],
-            ];
-        }
 
         // ── 5. Page data (CMS-ready) ──────────────────────────────────────
         $pageData = [

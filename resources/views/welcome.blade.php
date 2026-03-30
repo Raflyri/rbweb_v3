@@ -488,6 +488,7 @@
                         <h2 class="rb-section-title" style="margin-bottom:0;" data-i18n="blog.title">Latest articles
                         </h2>
                     </div>
+                    @if(!empty($pageData['articles']))
                     <div style="display:flex;gap:0.75rem;">
                         <button id="rb-carousel-prev" class="rb-carousel-arrow" aria-label="Previous articles">
                             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -502,8 +503,10 @@
                             </svg>
                         </button>
                     </div>
+                    @endif
                 </div>
 
+                @if(!empty($pageData['articles']))
                 <div class="rb-carousel-outer" data-reveal data-reveal-delay="1">
                     <div id="rb-carousel-track" class="rb-carousel-track">
                         @foreach($pageData['articles'] as $article)
@@ -525,6 +528,21 @@
                         @endforeach
                     </div>
                 </div>
+                @else
+                <div style="text-align:center;padding:5rem 1rem;border:1px dashed rgba(255,255,255,0.08);border-radius:1rem;background:rgba(255,255,255,0.01);" data-reveal data-reveal-delay="1">
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,0.3)"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                         style="margin:0 auto 1.5rem; filter:drop-shadow(0 0 8px rgba(220,38,38,0.2));">
+                        <path d="M4 19.5A2.5 2.5 0 011 17V6a2 2 0 012-2h4l2 3h12a2 2 0 012 2v9a2 2 0 01-2 2H4z" />
+                    </svg>
+                    <h3 style="font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;color:#F1F5F9;margin-bottom:0.75rem;font-family:var(--font-sans, 'Inter', sans-serif);">
+                        Artikel Belum Tersedia
+                    </h3>
+                    <p style="font-size:0.95rem;color:#94A3B8;max-width:26rem;margin:0 auto;line-height:1.6;">
+                        Kami sedang menyiapkan berbagai wawasan dan tutorial teknologi terbaru. Silakan kembali lagi nanti.
+                    </p>
+                </div>
+                @endif
 
                 <div style="margin-top:2.5rem;text-align:center;" data-reveal data-reveal-delay="2">
                     <a href="/blog"
