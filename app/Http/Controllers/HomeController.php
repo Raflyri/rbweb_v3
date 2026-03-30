@@ -165,11 +165,16 @@ class HomeController extends Controller
                 'whatsapp_url'  => $settings->whatsapp_number
                     ? 'https://wa.me/' . preg_replace('/\D/', '', $settings->whatsapp_number)
                     : null,
-                'socials' => [
-                    ['name' => 'GitHub',    'href' => 'https://github.com/rbeverything',                                     'icon' => 'github'],
-                    ['name' => 'LinkedIn',  'href' => ($settings->linkedin_link  ?: 'https://linkedin.com/company/rbeverything'), 'icon' => 'linkedin'],
-                    ['name' => 'Instagram', 'href' => ($settings->instagram_link ?: 'https://instagram.com/rbeverything'),        'icon' => 'instagram'],
-                ],
+
+                // Social links: only include entries where the URL is set.
+                // Null entries are silently omitted — the blade loops this array.
+                'socials' => array_filter([
+                    $settings->linkedin_link  ? ['name' => 'LinkedIn',  'href' => $settings->linkedin_link,  'icon' => 'linkedin']  : null,
+                    $settings->instagram_link ? ['name' => 'Instagram', 'href' => $settings->instagram_link, 'icon' => 'instagram'] : null,
+                    $settings->youtube_link   ? ['name' => 'YouTube',   'href' => $settings->youtube_link,   'icon' => 'youtube']   : null,
+                    $settings->twitter_link   ? ['name' => 'Twitter',   'href' => $settings->twitter_link,   'icon' => 'twitter']   : null,
+                    $settings->github_link    ? ['name' => 'GitHub',    'href' => $settings->github_link,    'icon' => 'github']    : null,
+                ]),
                 'quick_links' => [
                     ['label_key' => 'nav.products', 'href' => '#products'],
                     ['label_key' => 'nav.services', 'href' => '#services'],
@@ -188,6 +193,11 @@ class HomeController extends Controller
 
         ];
 
-        return view('welcome', compact('pageData', 'i18n', 'settings'));
+        // Pass brand assets to the view for logo rendering
+        $siteLogo    = $settings->site_logo    ? asset('storage/' . $settings->site_logo)    : null;
+        $siteFavicon = $settings->site_favicon ? asset('storage/' . $settings->site_favicon) : null;
+        $siteName    = $settings->site_name    ?? config('app.name', 'RBeverything');
+
+        return view('welcome', compact('pageData', 'i18n', 'settings', 'siteLogo', 'siteFavicon', 'siteName'));
     }
 }

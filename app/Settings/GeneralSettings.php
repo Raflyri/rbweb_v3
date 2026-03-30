@@ -6,11 +6,30 @@ use Spatie\LaravelSettings\Settings;
 
 class GeneralSettings extends Settings
 {
-    public string $whatsapp_number;
-    public string $contact_email;
-    public string $linkedin_link;
-    public string $instagram_link;
+    // ── Brand Identity ────────────────────────────────────────────────────────
+    /** Site display name (e.g. "RBeverything") */
+    public string $site_name;
 
+    /** Relative path to uploaded logo (null = use default/text logo) */
+    public ?string $site_logo;
+
+    /** Relative path to uploaded favicon (null = use default favicon) */
+    public ?string $site_favicon;
+
+    // ── Contact ───────────────────────────────────────────────────────────────
+    public string $contact_email;
+
+    /** WhatsApp phone number including country code (e.g. +62 812 3456 7890) */
+    public string $whatsapp_number;
+
+    // ── Social Links (all nullable — omitted links do not render on frontend) ─
+    public ?string $linkedin_link;
+    public ?string $instagram_link;
+    public ?string $youtube_link;
+    public ?string $twitter_link;
+    public ?string $github_link;
+
+    // ── Website Controls ──────────────────────────────────────────────────────
     /** Public-facing website URL (e.g. https://rbeverything.com) */
     public string $frontend_url;
 
