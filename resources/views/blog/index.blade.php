@@ -230,29 +230,38 @@
 
                 @else
                     {{-- EMPTY STATE --}}
-                    <div style="text-align:center;padding:5rem 1rem;" id="blog-empty-state">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,0.15)"
-                             stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-                             style="margin:0 auto 1.5rem;">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                        </svg>
-                        <h3 style="font-size:1.25rem;font-weight:700;color:var(--color-text);margin-bottom:0.5rem;font-family:var(--font-sans, 'Inter', sans-serif);">
-                            @if($search)
-                                Artikel Tidak Ditemukan
-                            @else
-                                Artikel Belum Tersedia
-                            @endif
-                        </h3>
-                        <p style="font-size:0.9rem;color:var(--color-muted);max-width:26rem;margin:0 auto;line-height:1.6;">
-                            @if($search)
-                                Kami tidak dapat menemukan artikel yang cocok dengan "{{ $search }}". Silakan coba kata kunci pencarian yang lain.
-                            @else
-                                Kami sedang menyiapkan berbagai wawasan dan tutorial teknologi terbaru. Silakan kembali lagi nanti.
-                            @endif
-                        </p>
+                    <div class="flex flex-col items-center justify-center py-24 px-4 text-center" id="blog-empty-state">
+                        @if($search)
+                            {{-- Search with no results --}}
+                            <div class="mb-6 rounded-full bg-red-500/10 p-5 border border-red-500/20 shadow-inner">
+                                <svg class="w-14 h-14 text-red-500/70 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m13.5 8.5-5 5"></path><path d="m8.5 8.5 5 5"></path><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-3" style="font-family:var(--font-sans, 'Inter', sans-serif);">
+                                {{ __('No articles found') }}
+                            </h3>
+                            <p class="text-[0.95rem] text-slate-400 max-w-md mx-auto leading-relaxed">
+                                {{ __('We couldn\'t find any articles matching ":search". Try adjusting your search keywords.', ['search' => $search]) }}
+                            </p>
+                            <a href="{{ route('blog.index') }}" class="mt-8 font-semibold text-sm text-red-400 hover:text-red-300 flex items-center justify-center gap-1.5 transition-colors border-b border-transparent hover:border-red-300 pb-0.5">
+                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                                {{ __('Clear search') }}
+                            </a>
+                        @else
+                            {{-- Completely Empty Blog --}}
+                            <div class="mb-6 rounded-full bg-red-500/10 p-5 border border-red-500/20 shadow-inner">
+                                <svg class="w-14 h-14 text-red-500/70 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-3" style="font-family:var(--font-sans, 'Inter', sans-serif);">
+                                {{ __('No articles yet') }}
+                            </h3>
+                            <p class="text-[0.95rem] text-slate-400 max-w-md mx-auto leading-relaxed">
+                                {{ __('We are actively preparing new tech insights and tutorials. Please check back soon!') }}
+                            </p>
+                        @endif
                     </div>
                 @endif
 
