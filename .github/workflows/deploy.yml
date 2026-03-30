@@ -181,18 +181,7 @@ jobs:
           fi
 
       # ----------------------------------------------------------------
-      # STAGE 5: FINALIZE (MIGRATE & CACHE)
-      # ----------------------------------------------------------------
-      - name: 🚀 Trigger System Updates (Migrate & Cache)
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-             curl -G -s --connect-timeout 30 --max-time 120 -H 'Content-Type:' --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://rbeverything.com/system/deploy/trigger"
-          elif [ "${{ github.ref }}" == "refs/heads/sandbox" ]; then
-             curl -G -s --connect-timeout 30 --max-time 120 -H 'Content-Type:' --data-urlencode "key=${{ secrets.DEPLOY_SECRET }}" "https://web-sbox.rbeverything.com/system/deploy/trigger"
-          fi
-
-      # ----------------------------------------------------------------
-      # STAGE 6: RUN DATABASE SEEDERS (Idempotent — safe to re-run)
+      # STAGE 5: RUN DATABASE SEEDERS (Idempotent — safe to re-run)
       # ----------------------------------------------------------------
       - name: 🌱 Run Database Seeders (Production)
         if: github.ref == 'refs/heads/main'

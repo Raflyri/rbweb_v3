@@ -104,6 +104,18 @@ $output = "Deploy Unzip Log\n----------------\n";
 $output .= "Core Arch: " . extractZip($coreZip, $coreDir) . "\n";
 $output .= "Pub  Arch: " . extractZip($publicZip, $publicDir) . "\n";
 
+// Execute migrations directly via CLI to bypass Laravel HTTP Kernel boot issues (like MissingSettings exceptions)
+$output .= "\nSystem Updates Logs\n----------------\n";
+if (file_exists($coreDir . '/artisan')) {
+    $cmdMigrate = 'cd ' . escapeshellarg($coreDir) . ' && php artisan migrate --force 2>&1';
+    $output .= "Migrate Output:\n" . shell_exec($cmdMigrate) . "\n";
+    
+    $cmdCache = 'cd ' . escapeshellarg($coreDir) . ' && php artisan optimize:clear 2>&1';
+    $output .= "Cache Output:\n" . shell_exec($cmdCache) . "\n";
+} else {
+    $output .= "Warning: Artisan not found at {$coreDir}/artisan\n";
+}
+
 echo $output;
 
 // Self-destruct after running for immediate security.
