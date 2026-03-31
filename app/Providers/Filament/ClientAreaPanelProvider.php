@@ -12,6 +12,8 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -31,12 +33,11 @@ class ClientAreaPanelProvider extends PanelProvider
             ->passwordReset()
 
             // ── Email verification ────────────────────────────────────────
-            // isRequired: true (the default) activates Filament's built-in
-            // EnsureEmailIsVerified middleware that redirects unverified users to
-            // /client-area/email-verification/prompt AFTER canAccessPanel() passes.
-            // canAccessPanel() must NOT check hasVerifiedEmail() — doing so causes
-            // a 403 before the redirect can fire.
-            ->emailVerification()
+            // isRequired: false → keeps the /email-verification/verify route registered
+            // (so links in the email still resolve) but removes the enforcement redirect.
+            // Unverified users can now enter the dashboard; a persistent banner widget
+            // and Livewire component handle the nudge to verify.
+            ->emailVerification(isRequired: false)
 
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->databaseNotifications()
@@ -60,6 +61,16 @@ class ClientAreaPanelProvider extends PanelProvider
                 WelcomeBannerWidget::class,
                 AccountWidget::class,
             ])
+
+            // ── Persistent email verification banner ─────────────────────
+            // Injects the Livewire ResendVerificationEmail component at the top
+            // of EVERY authenticated page in this panel (not just the dashboard).
+            // The component itself guards against rendering when already verified.
+            ->renderHook(
+                PanelsRenderHook::CONTENT_START,
+                fn (): View => view('filament.client-area.email-verification-banner'),
+            )
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -112,4 +112,19 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification Expiry
+    |--------------------------------------------------------------------------
+    |
+    | The number of minutes that a verification link is considered valid.
+    | This MUST match the addMinutes() value in VerifyEmailNotification so
+    | that Filament's secondary expiry check and the signed URL lifetime are
+    | in sync. Both are set to 5 minutes for a tight security window.
+    |
+    */
+    'verification' => [
+        'expire' => env('VERIFICATION_EXPIRE', 5),
+    ],
+
 ];
