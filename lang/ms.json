@@ -67,7 +67,9 @@
     "blog": {
         "label": "Blog",
         "title": "Artikel terkini",
-        "view_all": "Lihat semua artikel →"
+        "view_all": "Lihat semua artikel →",
+        "empty_title": "Tiada Artikel Lagi",
+        "empty_desc": "Kami sedang menyediakan pelbagai pandangan dan tutorial teknologi terkini. Sila layari semula nanti."
     },
     "about": {
         "label": "Tentang RBeverything",
@@ -93,5 +95,10 @@
         "id": "ID",
         "ms": "MY",
         "ja": "JA"
-    }
+    },
+    "No articles found": "Artikel Tidak Ditemui",
+    "We couldn't find any articles matching \":search\". Try adjusting your search keywords.": "Kami tidak menemui sebarang artikel yang memadankan \":search\". Sila cuba kata kunci carian yang lain.",
+    "Clear search": "Padam carian",
+    "No articles yet": "Tiada Artikel Lagi",
+    "We are actively preparing new tech insights and tutorials. Please check back soon!": "Kami sedang menyediakan pelbagai pandangan dan tutorial teknologi terkini. Sila layari semula nanti!"
 }

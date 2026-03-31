@@ -12,6 +12,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use App\Notifications\VerifyEmailNotification;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
@@ -31,12 +32,28 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
                 return true;
             }
 
-            // Regular clients must have a valid role AND a verified email
-            return $this->hasAnyRole(['premium', 'regular_user'])
-                && $this->hasVerifiedEmail();
+            // Grant panel entry to any user with a client role, verified OR NOT.
+            // Filament's emailVerification(isRequired: true) middleware handles the
+            // redirect to /client-area/email-verification/prompt for unverified users.
+            // Blocking here (with hasVerifiedEmail()) causes a 403 before the prompt
+            // can ever be shown — that is the bug we are fixing.
+            return $this->hasAnyRole(['premium', 'regular_user']);
         }
 
         return false;
+    }
+
+    /**
+     * Send the email verification notification using our branded template.
+     *
+     * Sent synchronously (notify, not notifyNow) so it respects the user's
+     * notification channels. The VerifyEmailNotification class itself does NOT
+     * implement ShouldQueue, so it is always delivered inline regardless of
+     * the QUEUE_CONNECTION setting — no queue worker needed for email verification.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification);
     }
 
     /**

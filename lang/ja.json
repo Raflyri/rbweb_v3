@@ -67,7 +67,9 @@
     "blog": {
         "label": "ブログ",
         "title": "最新記事",
-        "view_all": "全ての記事を見る →"
+        "view_all": "全ての記事を見る →",
+        "empty_title": "記事はまだありません",
+        "empty_desc": "現在、新しい洞察と技術チュートリアルを準備中です。後でもう一度ご確認ください。"
     },
     "about": {
         "label": "RBeverythingについて",
@@ -93,5 +95,10 @@
         "id": "ID",
         "ms": "MY",
         "ja": "JA"
-    }
+    },
+    "No articles found": "記事が見つかりません",
+    "We couldn't find any articles matching \":search\". Try adjusting your search keywords.": "\":search\" に一致する記事が見つかりませんでした。別の検索語句をお試しください。",
+    "Clear search": "検索をクリア",
+    "No articles yet": "記事はまだありません",
+    "We are actively preparing new tech insights and tutorials. Please check back soon!": "現在、新しい洞察と技術チュートリアルを準備中です。後でもう一度ご確認ください。"
 }

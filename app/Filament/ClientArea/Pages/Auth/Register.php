@@ -3,30 +3,19 @@
 namespace App\Filament\ClientArea\Pages\Auth;
 
 use Filament\Auth\Pages\Register as BaseRegister;
-use Illuminate\Database\Eloquent\Model;
-use Spatie\Permission\Models\Role;
 
+/**
+ * Custom registration page for the Client Area panel.
+ *
+ * Role assignment is handled cleanly by the AssignClientRoleOnRegister listener
+ * (registered in AppServiceProvider), which fires on the Registered event that
+ * Filament dispatches inside the parent handleRegistration() call.
+ * No override of handleRegistration() is needed here.
+ *
+ * This class exists as a hook point for future customization of the
+ * registration form fields (e.g., adding a "company name" field).
+ */
 class Register extends BaseRegister
 {
-    /**
-     * Override handleRegistration untuk menetapkan role 'regular_user' segera
-     * setelah user dibuat — sebelum canAccessPanel dipanggil oleh Filament.
-     * Ini lebih andal dari Event Listener untuk Filament v3.
-     *
-     * @param array<string, mixed> $data
-     */
-    protected function handleRegistration(array $data): Model
-    {
-        /** @var \App\Models\User $user */
-        $user = parent::handleRegistration($data);
-
-        // Pastikan role 'regular_user' ada, lalu assign jika user belum punya role
-        Role::firstOrCreate(['name' => 'regular_user', 'guard_name' => 'web']);
-
-        if ($user->roles->isEmpty()) {
-            $user->assignRole('regular_user');
-        }
-
-        return $user;
-    }
+    //
 }

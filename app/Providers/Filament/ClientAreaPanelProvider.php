@@ -3,7 +3,6 @@
 namespace App\Providers\Filament;
 
 use App\Filament\ClientArea\Widgets\WelcomeBannerWidget;
-use App\Http\Middleware\EnsureClientRole;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -32,11 +31,12 @@ class ClientAreaPanelProvider extends PanelProvider
             ->passwordReset()
 
             // ── Email verification ────────────────────────────────────────
-            // We enable the email verification PROMPT page so the route exists,
-            // but we do NOT set isRequired=true here. Instead, canAccessPanel()
-            // in User.php skips the check for admins. Regular users are already
-            // required to verify via canAccessPanel() returning false until verified.
-            ->emailVerification(isRequired: false)
+            // isRequired: true (the default) activates Filament's built-in
+            // EnsureEmailIsVerified middleware that redirects unverified users to
+            // /client-area/email-verification/prompt AFTER canAccessPanel() passes.
+            // canAccessPanel() must NOT check hasVerifiedEmail() — doing so causes
+            // a 403 before the redirect can fire.
+            ->emailVerification()
 
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->databaseNotifications()
@@ -73,7 +73,10 @@ class ClientAreaPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                EnsureClientRole::class,
+                // EnsureClientRole is intentionally removed: canAccessPanel() is the
+                // correct Filament-idiomatic gate. The custom middleware was duplicating
+                // this check and also ran on the email-verification prompt route, which
+                // caused a secondary redirect loop for newly-registered users.
             ]);
     }
 }

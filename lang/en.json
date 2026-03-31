@@ -67,7 +67,9 @@
     "blog": {
         "label": "Blog",
         "title": "Latest articles",
-        "view_all": "View all articles →"
+        "view_all": "View all articles →",
+        "empty_title": "No Articles Yet",
+        "empty_desc": "We are actively preparing new tech insights and tutorials. Please check back soon!"
     },
     "about": {
         "label": "About RBeverything",
@@ -93,5 +95,10 @@
         "id": "ID",
         "ms": "MY",
         "ja": "JA"
-    }
+    },
+    "No articles found": "No articles found",
+    "We couldn't find any articles matching \":search\". Try adjusting your search keywords.": "We couldn't find any articles matching \":search\". Try adjusting your search keywords.",
+    "Clear search": "Clear search",
+    "No articles yet": "No articles yet",
+    "We are actively preparing new tech insights and tutorials. Please check back soon!": "We are actively preparing new tech insights and tutorials. Please check back soon!"
 }

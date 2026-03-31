@@ -535,10 +535,10 @@
                          style="margin:0 auto 1.5rem; filter:drop-shadow(0 0 8px rgba(220,38,38,0.2));">
                         <path d="M4 19.5A2.5 2.5 0 011 17V6a2 2 0 012-2h4l2 3h12a2 2 0 012 2v9a2 2 0 01-2 2H4z" />
                     </svg>
-                    <h3 style="font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;color:#F1F5F9;margin-bottom:0.75rem;font-family:var(--font-sans, 'Inter', sans-serif);">
+                    <h3 style="font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;color:#F1F5F9;margin-bottom:0.75rem;font-family:var(--font-sans, 'Inter', sans-serif);" data-i18n="blog.empty_title">
                         Artikel Belum Tersedia
                     </h3>
-                    <p style="font-size:0.95rem;color:#94A3B8;max-width:26rem;margin:0 auto;line-height:1.6;">
+                    <p style="font-size:0.95rem;color:#94A3B8;max-width:26rem;margin:0 auto;line-height:1.6;" data-i18n="blog.empty_desc">
                         Kami sedang menyiapkan berbagai wawasan dan tutorial teknologi terbaru. Silakan kembali lagi nanti.
                     </p>
                 </div>
