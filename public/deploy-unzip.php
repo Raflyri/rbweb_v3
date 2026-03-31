@@ -6,7 +6,17 @@
 
 ini_set('max_execution_time', 300);
 ini_set('memory_limit', '256M');
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Catch fatal errors so they are visible instead of silent 500
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        http_response_code(500);
+        echo "\nFATAL ERROR: " . $error['message'] . " in " . $error['file'] . " on line " . $error['line'];
+    }
+});
 
 $host = $_SERVER['HTTP_HOST'] ?? '';
 $isSandbox = (strpos($host, 'sbox') !== false || strpos($host, 'sandbox') !== false);
@@ -85,6 +95,9 @@ if (empty($validKey) || !hash_equals($validKey, $providedKey)) {
 
 // Function to safely extract a zip archive
 function extractZip($zipPath, $extractTo) {
+    if (!class_exists('ZipArchive')) {
+        return "Failed: ZipArchive class not found (extension not installed or enabled).";
+    }
     if (!file_exists($zipPath)) {
         return "Missing: {$zipPath}";
     }
@@ -107,11 +120,15 @@ $output .= "Pub  Arch: " . extractZip($publicZip, $publicDir) . "\n";
 // Execute migrations directly via CLI to bypass Laravel HTTP Kernel boot issues (like MissingSettings exceptions)
 $output .= "\nSystem Updates Logs\n----------------\n";
 if (file_exists($coreDir . '/artisan')) {
-    $cmdMigrate = 'cd ' . escapeshellarg($coreDir) . ' && php artisan migrate --force 2>&1';
-    $output .= "Migrate Output:\n" . shell_exec($cmdMigrate) . "\n";
-    
-    $cmdCache = 'cd ' . escapeshellarg($coreDir) . ' && php artisan optimize:clear 2>&1';
-    $output .= "Cache Output:\n" . shell_exec($cmdCache) . "\n";
+    if (!function_exists('shell_exec') || !is_callable('shell_exec')) {
+        $output .= "Warning: shell_exec is disabled or not callable on this server. Unable to run Artisan commands via CLI.\n";
+    } else {
+        $cmdMigrate = 'cd ' . escapeshellarg($coreDir) . ' && php artisan migrate --force 2>&1';
+        $output .= "Migrate Output:\n" . shell_exec($cmdMigrate) . "\n";
+        
+        $cmdCache = 'cd ' . escapeshellarg($coreDir) . ' && php artisan optimize:clear 2>&1';
+        $output .= "Cache Output:\n" . shell_exec($cmdCache) . "\n";
+    }
 } else {
     $output .= "Warning: Artisan not found at {$coreDir}/artisan\n";
 }
