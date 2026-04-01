@@ -1,0 +1,142 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/ClientArea/**/*';
+@source '../../../../resources/views/filament/client-area/**/*';
+
+@plugin "@tailwindcss/typography";
+
+/* ================================================================
+   Client Area Theme (Light SaaS Aesthetic)
+   Separated from Admin (Dark) & App (Landing)
+================================================================ */
+
+/* Filament panel root scoping */
+.fi-panel-client-area {
+    /* Font */
+    --font-family: 'Inter', system-ui, sans-serif;
+
+    /* Base Colors - Light Theme Default  */
+    --bg-color: #f8fafc;
+    --surface-color: #ffffff;
+    --text-color: #0f172a;
+    --muted-color: #64748b;
+    --border-color: #e2e8f0;
+
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Base override for flat look & removing heavy borders */
+.fi-panel-client-area .fi-ta-header,
+.fi-panel-client-area .fi-main-sidebar,
+.fi-panel-client-area .fi-section,
+.fi-panel-client-area .fi-wi-stats-overview-stat {
+    border-color: var(--border-color) !important;
+    background-color: var(--surface-color) !important;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05) !important;
+    border-radius: 0.75rem !important;
+}
+
+.fi-panel-client-area .fi-main-sidebar {
+    box-shadow: none !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+/* Nav links styling & micro animations */
+.fi-panel-client-area .fi-sidebar-item-button {
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.5rem;
+}
+
+.fi-panel-client-area .fi-sidebar-item-button:hover {
+    background-color: #f1f5f9 !important;
+    transform: translateX(4px);
+}
+
+.fi-panel-client-area .fi-sidebar-item-active .fi-sidebar-item-button {
+    background-color: #e0f2fe !important;
+    color: #0ea5e9 !important;
+}
+
+.fi-panel-client-area .fi-sidebar-item-active .fi-sidebar-item-icon {
+    color: #0ea5e9 !important;
+}
+
+/* Form Styles */
+.fi-panel-client-area input,
+.fi-panel-client-area textarea,
+.fi-panel-client-area select,
+.fi-panel-client-area .fi-fo-rich-editor {
+    border-color: var(--border-color);
+    box-shadow: none !important;
+    border-radius: 0.5rem;
+}
+
+.fi-panel-client-area input:focus,
+.fi-panel-client-area textarea:focus,
+.fi-panel-client-area select:focus {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2) !important;
+}
+
+/* File Upload 16:9 Aspect Ratio Helper */
+.fi-panel-client-area .fi-fo-file-upload-preview {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+/* Translatable tab pill styles */
+.fi-panel-client-area .fi-tabs-tab {
+    padding: 0.5rem 1rem !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s;
+    background: transparent;
+}
+
+.fi-panel-client-area .fi-tabs-tab[aria-selected="true"] {
+    background-color: #0ea5e9 !important;
+    color: white !important;
+}
+
+.fi-panel-client-area .fi-tabs-tab:not([aria-selected="true"]):hover {
+    background-color: #e2e8f0 !important;
+}
+
+/* RichEditor MS Word feel toolbar */
+.fi-panel-client-area .fi-fo-rich-editor-toolbar {
+    background-color: #f8fafc;
+    border-bottom: 1px solid var(--border-color);
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+}
+
+.fi-panel-client-area .fi-fo-rich-editor-content {
+    min-height: 400px;
+    padding: 1.5rem !important;
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+/* Dark Mode Variants */
+@media (prefers-color-scheme: dark) {
+    .fi-panel-client-area {
+        --bg-color: #0f172a;
+        --surface-color: #1e293b;
+        --text-color: #f8fafc;
+        --muted-color: #94a3b8;
+        --border-color: #334155;
+    }
+
+    .fi-panel-client-area .fi-sidebar-item-button:hover {
+        background-color: #334155 !important;
+    }
+
+    .fi-panel-client-area .fi-sidebar-item-active .fi-sidebar-item-button {
+        background-color: rgba(14, 165, 233, 0.15) !important;
+    }
+
+    .fi-panel-client-area .fi-fo-rich-editor-toolbar {
+        background-color: #0f172a;
+    }
+}

@@ -8,10 +8,15 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Schemas\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -22,12 +27,11 @@ use Illuminate\Database\Eloquent\Builder;
 class ClientArticleResource extends Resource
 {
     protected static ?string $model = Article::class;
-    protected static string|\BackedEnum|null $navigationIcon  = 'heroicon-o-document-text';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'My Articles';
-    protected static ?string $slug            = 'client-articles';
-    protected static ?int    $navigationSort  = 5;
+    protected static ?string $slug = 'client-articles';
+    protected static ?int $navigationSort = 5;
 
-    // ── Scope to the authenticated user's articles only ───────────────────
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->where('user_id', auth()->id());
@@ -36,34 +40,74 @@ class ClientArticleResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Article Content')->schema([
-                TextInput::make('title')
-                    ->label('Title (English)')
-                    ->required()
-                    ->maxLength(255)
-                    ->live(debounce: 500),
+            Grid::make(3)->schema([
+                Grid::make(1)->schema([
+                    TextInput::make('title')
+                        ->label('Title')
+                        ->required()
+                        ->maxLength(255)
+                        ->live(debounce: 500),
 
-                Textarea::make('content')
-                    ->label('Content (English)')
-                    ->required()
-                    ->rows(12),
+                    RichEditor::make('content')
+                        ->label('Content')
+                        ->required()
+                        ->extraInputAttributes(['style' => 'min-height: 400px;'])
+                        ->toolbarButtons([
+                            'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
+                            'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
+                            'strike', 'table', 'underline', 'undo',
+                        ]),
 
-                FileUpload::make('thumbnail')
-                    ->image()
-                    ->disk('public')
-                    ->directory('articles/thumbnails')
-                    ->imageEditor()
-                    ->nullable(),
+                    Placeholder::make('estimated_read_time')
+                        ->label('Estimated Read Time')
+                        ->content(function (Get $get): string {
+                            $words = str_word_count(strip_tags($get('content') ?? ''));
+                            $minutes = max(1, (int) ceil($words / 200));
+                            return "{$minutes} min read (~{$words} words)";
+                        }),
+                ])->columnSpan(2),
+
+                Grid::make(1)->schema([
+                    Select::make('status')
+                        ->label('Status')
+                        ->options([
+                            'Draft' => 'Draft',
+                            'Pending Review' => 'Pending Review',
+                        ])
+                        ->default('Pending Review')
+                        ->disabled(fn ($record) => $record?->isPublished() ?? false),
+
+                    DateTimePicker::make('published_at')
+                        ->label('Published At')
+                        ->nullable(),
+
+                    FileUpload::make('thumbnail')
+                        ->label('Featured Image')
+                        ->image()
+                        ->disk('public')
+                        ->directory('articles/thumbnails')
+                        ->imageEditor()
+                        ->imageEditorAspectRatios(['16:9'])
+                        ->nullable(),
+
+                    Select::make('tags')
+                        ->multiple()
+                        ->relationship('tags', 'name')
+                        ->preload()
+                        ->createOptionForm([
+                            TextInput::make('name')
+                                ->required()
+                                ->maxLength(255),
+                        ]),
+
+                    Textarea::make('meta_description')
+                        ->label('SEO Meta Description')
+                        ->maxLength(160)
+                        ->helperText('Maximum 160 characters for optimal SEO.')
+                        ->rows(4)
+                        ->nullable(),
+                ])->columnSpan(1),
             ]),
-
-            Section::make('Submission Status')
-                ->description('Your article will be reviewed by our team before it goes live.')
-                ->schema([
-                    Placeholder::make('status')
-                        ->label('Current Status')
-                        ->content(fn ($record) => $record?->status ?? 'Will be set to Pending Review on save'),
-                ])
-                ->visibleOn('edit'),
         ]);
     }
 
@@ -80,10 +124,10 @@ class ClientArticleResource extends Resource
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'Published'      => 'success',
+                        'Published' => 'success',
                         'Pending Review' => 'warning',
-                        'Draft'          => 'gray',
-                        default          => 'gray',
+                        'Draft' => 'gray',
+                        default => 'gray',
                     }),
 
                 TextColumn::make('created_at')
@@ -115,9 +159,9 @@ class ClientArticleResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListClientArticles::route('/'),
+            'index' => Pages\ListClientArticles::route('/'),
             'create' => Pages\CreateClientArticle::route('/create'),
-            'edit'   => Pages\EditClientArticle::route('/{record}/edit'),
+            'edit' => Pages\EditClientArticle::route('/{record}/edit'),
         ];
     }
 }

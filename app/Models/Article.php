@@ -17,7 +17,7 @@ class Article extends Model
     protected $guarded = [];
 
     /** Fields stored as JSON with per-locale values. */
-    public $translatable = ['title', 'content'];
+    public $translatable = ['title', 'content', 'meta_description'];
 
     protected $casts = [
         'published_at' => 'datetime',
@@ -75,6 +75,11 @@ class Article extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
     }
 
     // ── Scopes ───────────────────────────────────────────────────────────

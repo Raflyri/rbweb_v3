@@ -42,8 +42,9 @@ class ClientAreaPanelProvider extends PanelProvider
             ->profile(\App\Filament\Pages\Auth\EditProfile::class)
             ->databaseNotifications()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Sky,
             ])
+            ->viteTheme('resources/css/filament/client-area/theme.css')
             ->discoverResources(
                 in: app_path('Filament/ClientArea/Resources'),
                 for: 'App\Filament\ClientArea\Resources'

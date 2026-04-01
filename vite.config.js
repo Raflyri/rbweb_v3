@@ -5,7 +5,12 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/scroll-effects.js'],
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+                'resources/js/scroll-effects.js',
+                'resources/css/filament/client-area/theme.css',
+            ],
             refresh: true,
         }),
         tailwindcss(),
