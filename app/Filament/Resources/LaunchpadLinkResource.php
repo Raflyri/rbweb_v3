@@ -13,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -32,6 +33,8 @@ class LaunchpadLinkResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
+
+            // ── Section 1: Basic card info ───────────────────────────────────
             Section::make('Card Details')->columns(2)->schema([
                 TextInput::make('title')
                     ->required()
@@ -54,13 +57,14 @@ class LaunchpadLinkResource extends Resource
                     ->label('Target URL')
                     ->url()
                     ->required()
-                    ->placeholder('https://base64tools.rbeverything.com')
+                    ->placeholder('https://tools.rbeverything.com/base64')
                     ->columnSpanFull(),
             ]),
 
+            // ── Section 2: Visibility & client-area access ───────────────────
             Section::make('Visibility & Access')->columns(2)->schema([
                 Select::make('required_permission')
-                    ->label('Required Permission')
+                    ->label('Required Permission (Client Area)')
                     ->helperText('Leave empty to show to all authenticated users.')
                     ->options(fn () => Permission::pluck('name', 'name')->toArray())
                     ->searchable()
@@ -75,9 +79,67 @@ class LaunchpadLinkResource extends Resource
                     ->default(true),
 
                 Toggle::make('is_active')
-                    ->label('Active')
+                    ->label('Active (show in client area dashboard)')
                     ->default(true),
             ]),
+
+            // ── Section 3: Homepage product card ────────────────────────────
+            Section::make('Homepage Product Card')
+                ->description('Controls whether this link also appears as a product card on the public homepage (/). Only admins can change these settings.')
+                ->columns(2)
+                ->schema([
+                    Toggle::make('show_on_homepage')
+                        ->label('Show on Public Homepage')
+                        ->helperText('Enable to display this as a product card in the Products section.')
+                        ->default(false)
+                        ->columnSpanFull()
+                        ->live(),
+
+                    TextInput::make('homepage_badge')
+                        ->label('Badge / Tag Text')
+                        ->placeholder('AI · Computer Vision')
+                        ->helperText('Short label shown in the top-left of the card.')
+                        ->maxLength(60)
+                        ->columnSpan(1),
+
+                    Select::make('homepage_accent')
+                        ->label('Accent Colour')
+                        ->options([
+                            'violet'  => '🟣 Violet',
+                            'sky'     => '🔵 Sky Blue',
+                            'emerald' => '🟢 Emerald',
+                            'rose'    => '🔴 Rose',
+                            'amber'   => '🟡 Amber',
+                        ])
+                        ->default('sky')
+                        ->columnSpan(1),
+
+                    TextInput::make('version')
+                        ->label('Version Label')
+                        ->placeholder('v2.4')
+                        ->helperText('Shown in the top-right of the card, e.g. "v2.4".')
+                        ->maxLength(20)
+                        ->columnSpan(1),
+
+                    TextInput::make('homepage_cta_label')
+                        ->label('CTA Button Label')
+                        ->placeholder('Open Tool')
+                        ->helperText('Text for the card\'s action link.')
+                        ->maxLength(40)
+                        ->columnSpan(1),
+
+                    Select::make('card_template')
+                        ->label('Card Visual Template')
+                        ->helperText('Choose the interactive demo shown inside the card.')
+                        ->options([
+                            'generic'   => '⬜ Generic (description only)',
+                            'liveness'  => '👤 Liveness Detection (animated face scan)',
+                            'base64'    => '🔤 Base64 Suite (live encoder demo)',
+                            'portfolio' => '💼 Portfolio Platform (code window preview)',
+                        ])
+                        ->default('generic')
+                        ->columnSpanFull(),
+                ]),
         ]);
     }
 
@@ -104,6 +166,12 @@ class LaunchpadLinkResource extends Resource
                     ->color('warning')
                     ->default('Public'),
 
+                IconColumn::make('show_on_homepage')
+                    ->label('Homepage')
+                    ->boolean()
+                    ->trueColor('success')
+                    ->falseColor('gray'),
+
                 IconColumn::make('is_external')
                     ->label('New Tab')
                     ->boolean(),
@@ -120,6 +188,7 @@ class LaunchpadLinkResource extends Resource
             ->reorderable('sort_order')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')->label('Active'),
+                Tables\Filters\TernaryFilter::make('show_on_homepage')->label('On Homepage'),
             ])
             ->recordActions([
                 EditAction::make(),

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\LaunchpadLink;
 use App\Settings\GeneralSettings;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -55,6 +56,12 @@ class HomeController extends Controller
             ->toArray();
 
 
+        // ── 4. Fetch active homepage product cards from DB ────────────────────
+        $products = LaunchpadLink::where('is_active', true)
+            ->where('show_on_homepage', true)
+            ->orderBy('sort_order')
+            ->get();
+
         // ── 5. Page data (CMS-ready) ──────────────────────────────────────
         $pageData = [
 
@@ -64,39 +71,6 @@ class HomeController extends Controller
                 'phrases'  => 'hero.phrases',
                 'subtitle' => 'hero.subtitle',
                 'tagline'  => $tagline,
-            ],
-
-            'products' => [
-                [
-                    'id'       => 'liveness',
-                    'tag_key'  => 'products.liveness.tag',
-                    'name_key' => 'products.liveness.name',
-                    'desc_key' => 'products.liveness.desc',
-                    'cta_key'  => 'products.liveness.cta',
-                    'cta_href' => '#contact',
-                    'version'  => 'v1.1',
-                    'accent'   => 'violet',
-                ],
-                [
-                    'id'       => 'base64',
-                    'tag_key'  => 'products.base64.tag',
-                    'name_key' => 'products.base64.name',
-                    'desc_key' => 'products.base64.desc',
-                    'cta_key'  => 'products.base64.cta',
-                    'cta_href' => 'https://tools.rbeverything.com/base64',
-                    'version'  => 'v2.4',
-                    'accent'   => 'sky',
-                ],
-                [
-                    'id'       => 'portfolio',
-                    'tag_key'  => 'products.portfolio.tag',
-                    'name_key' => 'products.portfolio.name',
-                    'desc_key' => 'products.portfolio.desc',
-                    'cta_key'  => 'products.portfolio.cta',
-                    'cta_href' => '/client-area/register',
-                    'version'  => 'v3.0',
-                    'accent'   => 'emerald',
-                ],
             ],
 
             'services' => [
@@ -157,6 +131,6 @@ class HomeController extends Controller
         $siteFavicon = $settings->site_favicon ? asset('storage/' . $settings->site_favicon) : null;
         $siteName    = $settings->site_name    ?? config('app.name', 'RBeverything');
 
-        return view('welcome', compact('pageData', 'i18n', 'settings', 'siteLogo', 'siteFavicon', 'siteName'));
+        return view('welcome', compact('pageData', 'i18n', 'settings', 'siteLogo', 'siteFavicon', 'siteName', 'products'));
     }
 }

@@ -791,6 +791,24 @@ html.lenis { height: auto; }
 .tag-violet { background: rgba(167,139,250,0.08); color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
 .tag-emerald{ background: rgba(52,211,153,0.08);  color: #34D399; border: 1px solid rgba(52,211,153,0.2); }
 .tag-rose   { background: rgba(251,113,133,0.08); color: #FB7185; border: 1px solid rgba(251,113,133,0.2); }
+.tag-amber  { background: rgba(251,191,36,0.08);  color: #FBBF24; border: 1px solid rgba(251,191,36,0.2); }
+
+/* ── 13b. CTA / link colour variants (product cards) ─────────── */
+.rb-cta-sky     { color: #38BDF8; }
+.rb-cta-violet  { color: #A78BFA; }
+.rb-cta-emerald { color: #34D399; }
+.rb-cta-rose    { color: #FB7185; }
+.rb-cta-amber   { color: #FBBF24; }
+
+/* ── 13c. Service icon colour variants ────────────────────────── */
+/* Used by the 6-tile services grid; each tile gets its own accent background */
+.rb-svc-icon-consulting { background: rgba(56,189,248,0.08);  border-color: rgba(56,189,248,0.12); }
+.rb-svc-icon-webdev     { background: rgba(129,140,248,0.08); border-color: rgba(129,140,248,0.12); }
+.rb-svc-icon-ai         { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.12); }
+.rb-svc-icon-devops     { background: rgba(52,211,153,0.08);  border-color: rgba(52,211,153,0.12); }
+.rb-svc-icon-training   { background: rgba(251,113,133,0.08); border-color: rgba(251,113,133,0.12); }
+.rb-svc-icon-product    { background: rgba(251,191,36,0.08);  border-color: rgba(251,191,36,0.12); }
+
 
 /* ── 14. Language Switcher ────────────────────────────────────── */
 .rb-lang-switcher {

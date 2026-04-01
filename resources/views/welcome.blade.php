@@ -195,169 +195,133 @@
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;">
 
-                    {{-- ── CARD 1: Passive Liveness Detection ── --}}
-                    <article class="rb-card" data-reveal data-reveal-delay="1" style="padding:2rem;">
+                    @forelse ($products as $product)
+                    @php
+                        $accentColors = [
+                            'violet'  => ['tag' => 'tag-violet', 'text' => '#A78BFA', 'cta' => '#A78BFA'],
+                            'sky'     => ['tag' => 'tag-sky',    'text' => '#38BDF8', 'cta' => '#38BDF8'],
+                            'emerald' => ['tag' => 'tag-emerald','text' => '#34D399', 'cta' => '#34D399'],
+                            'rose'    => ['tag' => 'tag-rose',   'text' => '#FB7185', 'cta' => '#FB7185'],
+                            'amber'   => ['tag' => 'tag-amber',  'text' => '#FBBF24', 'cta' => '#FBBF24'],
+                        ];
+                        $colors = $accentColors[$product->homepage_accent ?? 'sky'] ?? $accentColors['sky'];
+                        $ctaColor = $colors['cta'];
+                        $isExternal = $product->is_external;
+                        $template = $product->card_template ?? 'generic';
+                        $ctaLabel = $product->homepage_cta_label ?? 'Learn More';
+                    @endphp
+
+                    <article class="rb-card" data-reveal data-reveal-delay="{{ $loop->iteration }}" style="padding:2rem;">
                         <div class="rb-card-content">
-                            <div
-                                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
-                                <span class="rb-tag tag-violet" data-i18n="products.liveness.tag">AI · Computer
-                                    Vision</span>
-                                <span
-                                    style="font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:#334155;">v1.1</span>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+                                <span class="rb-tag {{ $colors['tag'] }}">{{ $product->homepage_badge }}</span>
+                                @if($product->version)
+                                <span style="font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:#334155;">{{ $product->version }}</span>
+                                @endif
                             </div>
-                            <h3 style="font-size:1.3rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.5rem;color:#F1F5F9;"
-                                data-i18n="products.liveness.name">Passive Liveness Detection</h3>
-                            <p style="font-size:0.875rem;color:#64748B;line-height:1.7;margin-bottom:1.5rem;"
-                                data-i18n="products.liveness.desc">
-                                Frictionless identity verification. Anti-spoofing biometric detection that distinguishes
-                                real faces from photos, videos, and 3D masks — without user interaction.
+
+                            <h3 style="font-size:1.3rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.5rem;color:#F1F5F9;">
+                                {{ $product->title }}
+                            </h3>
+                            <p style="font-size:0.875rem;color:#64748B;line-height:1.7;margin-bottom:1.5rem;">
+                                {{ $product->description }}
                             </p>
 
-                            {{-- Animated liveness demo --}}
-                            <div class="rb-liveness-demo">
-                                {{-- Corner accents --}}
-                                <div class="rb-corner-tr" aria-hidden="true"></div>
-                                <div class="rb-corner-bl" aria-hidden="true"></div>
-                                {{-- Scan line --}}
-                                <div class="rb-scan-line" aria-hidden="true"></div>
-                                {{-- Face oval with pulse rings --}}
-                                <div class="rb-face-oval" aria-hidden="true">
-                                    <div class="rb-face-ring"></div>
-                                    <div class="rb-face-ring"></div>
-                                    <div class="rb-face-ring"></div>
-                                    {{-- Face silhouette SVG --}}
-                                    <svg width="32" height="36" viewBox="0 0 40 46" fill="none"
-                                        stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round">
-                                        <ellipse cx="20" cy="17" rx="11" ry="13" />
-                                        <path d="M6 44c0-8 6-14 14-14s14 6 14 14" />
+                            {{-- ── Card visual template ── --}}
+                            @if ($template === 'liveness')
+                                {{-- Animated liveness demo --}}
+                                <div class="rb-liveness-demo">
+                                    <div class="rb-corner-tr" aria-hidden="true"></div>
+                                    <div class="rb-corner-bl" aria-hidden="true"></div>
+                                    <div class="rb-scan-line" aria-hidden="true"></div>
+                                    <div class="rb-face-oval" aria-hidden="true">
+                                        <div class="rb-face-ring"></div>
+                                        <div class="rb-face-ring"></div>
+                                        <div class="rb-face-ring"></div>
+                                        <svg width="32" height="36" viewBox="0 0 40 46" fill="none"
+                                            stroke="rgba(167,139,250,0.5)" stroke-width="1.5" stroke-linecap="round">
+                                            <ellipse cx="20" cy="17" rx="11" ry="13" />
+                                            <path d="M6 44c0-8 6-14 14-14s14 6 14 14" />
+                                        </svg>
+                                    </div>
+                                    <div class="rb-liveness-status">
+                                        <span class="rb-liveness-dot" aria-hidden="true"></span>
+                                        LIVENESS: REAL
+                                    </div>
+                                </div>
+
+                            @elseif ($template === 'base64')
+                                {{-- Live Base64 encoder --}}
+                                <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem;">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
+                                        <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#334155;">Input</span>
+                                    </div>
+                                    <textarea id="rb-b64-input" class="rb-base64-input" rows="3"
+                                        data-i18n="products.base64.placeholder" placeholder="Type something to encode..."
+                                        aria-label="Text to encode in Base64"></textarea>
+                                    <div style="text-align:center;color:#334155;font-size:0.8rem;">↓ Base64</div>
+                                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
+                                        <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#334155;" data-i18n="products.base64.output_label">Base64 output</span>
+                                    </div>
+                                    <div class="rb-base64-output-wrap">
+                                        <div id="rb-b64-output" class="rb-base64-output" aria-live="polite" aria-label="Base64 encoded output"></div>
+                                        <button id="rb-b64-copy" class="rb-base64-copy-btn" aria-label="Copy Base64 output">Copy</button>
+                                    </div>
+                                </div>
+
+                            @elseif ($template === 'portfolio')
+                                {{-- Code window demo --}}
+                                <div class="rb-demo-window" style="margin-bottom:1.5rem;">
+                                    <div class="rb-demo-titlebar">
+                                        <div class="rb-demo-dot" style="background:#FF5F57"></div>
+                                        <div class="rb-demo-dot" style="background:#FEBC2E"></div>
+                                        <div class="rb-demo-dot" style="background:#28C840"></div>
+                                        <span style="font-size:0.63rem;color:#334155;margin-left:0.75rem;font-family:'JetBrains Mono',monospace;">rbeverything.com/@rafly</span>
+                                    </div>
+                                    <div class="rb-demo-code"><span style="color:#38BDF8">const</span> <span
+                                            style="color:#34D399">user</span> = {
+                                        slug: <span style="color:#818CF8">'@rafly'</span>,
+                                        role: <span style="color:#818CF8">'Premium'</span>,
+                                        skills: [<span style="color:#FB7185">'Laravel'</span>, <span
+                                            style="color:#FB7185">'AI'</span>]
+                                        };</div>
+                                </div>
+
+                            @else
+                                {{-- Generic: no extra demo widget, description only --}}
+                                <div style="margin-bottom:1.5rem;"></div>
+                            @endif
+
+                            {{-- CTA link --}}
+                            <a href="{{ $product->url }}"
+                                @if($isExternal) target="_blank" rel="noopener" @endif
+                                class="rb-cta-{{ $product->homepage_accent ?? 'sky' }}"
+                                style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem;font-weight:600;text-decoration:none;">
+                                {{ $ctaLabel }}
+                                @if($isExternal)
+                                    {{-- External link icon --}}
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                                        <polyline points="15 3 21 3 21 9" />
+                                        <line x1="10" y1="14" x2="21" y2="3" />
                                     </svg>
-                                </div>
-                                {{-- Status badge --}}
-                                <div class="rb-liveness-status">
-                                    <span class="rb-liveness-dot" aria-hidden="true"></span>
-                                    LIVENESS: REAL
-                                </div>
-                            </div>
-
-                            <a href="#contact"
-                                style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem;font-weight:600;color:#A78BFA;text-decoration:none;"
-                                data-i18n="products.liveness.cta">
-                                Learn More
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
+                                @else
+                                    {{-- Internal arrow icon --}}
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5 12h14M12 5l7 7-7 7" />
+                                    </svg>
+                                @endif
                             </a>
                         </div>
                     </article>
 
-                    {{-- ── CARD 2: Base64 Suite (interactive) ── --}}
-                    <article class="rb-card" data-reveal data-reveal-delay="2" style="padding:2rem;">
-                        <div class="rb-card-content">
-                            <div
-                                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
-                                <span class="rb-tag tag-sky" data-i18n="products.base64.tag">Encoder / Decoder</span>
-                                <span
-                                    style="font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:#334155;">v2.4</span>
-                            </div>
-                            <h3 style="font-size:1.3rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.5rem;color:#F1F5F9;"
-                                data-i18n="products.base64.name">Base64 Suite</h3>
-                            <p style="font-size:0.875rem;color:#64748B;line-height:1.7;margin-bottom:1.5rem;"
-                                data-i18n="products.base64.desc">
-                                Encode, decode, and validate Base64 strings in real-time with support for URL-safe
-                                variants.
-                            </p>
-
-                            {{-- Live Base64 encoder --}}
-                            <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem;">
-                                {{-- Input label --}}
-                                <div
-                                    style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
-                                    <span
-                                        style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#334155;">Input</span>
-                                </div>
-                                <textarea id="rb-b64-input" class="rb-base64-input" rows="3"
-                                    data-i18n="products.base64.placeholder" placeholder="Type something to encode..."
-                                    aria-label="Text to encode in Base64"></textarea>
-
-                                {{-- Arrow divider --}}
-                                <div style="text-align:center;color:#334155;font-size:0.8rem;">↓ Base64</div>
-
-                                {{-- Output --}}
-                                <div
-                                    style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem;">
-                                    <span
-                                        style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#334155;"
-                                        data-i18n="products.base64.output_label">Base64 output</span>
-                                </div>
-                                <div class="rb-base64-output-wrap">
-                                    <div id="rb-b64-output" class="rb-base64-output" aria-live="polite"
-                                        aria-label="Base64 encoded output"></div>
-                                    <button id="rb-b64-copy" class="rb-base64-copy-btn"
-                                        aria-label="Copy Base64 output">Copy</button>
-                                </div>
-                            </div>
-
-                            <a href="https://tools.rbeverything.com/base64" target="_blank" rel="noopener"
-                                style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem;font-weight:600;color:#38BDF8;text-decoration:none;"
-                                data-i18n="products.base64.cta">
-                                Open Tool
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-                                    <polyline points="15 3 21 3 21 9" />
-                                    <line x1="10" y1="14" x2="21" y2="3" />
-                                </svg>
-                            </a>
-                        </div>
-                    </article>
-
-                    {{-- ── CARD 3: Portfolio Platform ── --}}
-                    <article class="rb-card" data-reveal data-reveal-delay="3" style="padding:2rem;">
-                        <div class="rb-card-content">
-                            <div
-                                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
-                                <span class="rb-tag tag-emerald" data-i18n="products.portfolio.tag">Platform</span>
-                                <span
-                                    style="font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:#334155;">v3.0</span>
-                            </div>
-                            <h3 style="font-size:1.3rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.5rem;color:#F1F5F9;"
-                                data-i18n="products.portfolio.name">Portfolio Platform</h3>
-                            <p style="font-size:0.875rem;color:#64748B;line-height:1.7;margin-bottom:1.5rem;"
-                                data-i18n="products.portfolio.desc">
-                                Every user gets a personalised /@slug page to showcase skills, experience, and
-                                achievements.
-                            </p>
-
-                            {{-- Code window demo --}}
-                            <div class="rb-demo-window" style="margin-bottom:1.5rem;">
-                                <div class="rb-demo-titlebar">
-                                    <div class="rb-demo-dot" style="background:#FF5F57"></div>
-                                    <div class="rb-demo-dot" style="background:#FEBC2E"></div>
-                                    <div class="rb-demo-dot" style="background:#28C840"></div>
-                                    <span
-                                        style="font-size:0.63rem;color:#334155;margin-left:0.75rem;font-family:'JetBrains Mono',monospace;">rbeverything.com/@rafly</span>
-                                </div>
-                                <div class="rb-demo-code"><span style="color:#38BDF8">const</span> <span
-                                        style="color:#34D399">user</span> = {
-                                    slug: <span style="color:#818CF8">'@rafly'</span>,
-                                    role: <span style="color:#818CF8">'Premium'</span>,
-                                    skills: [<span style="color:#FB7185">'Laravel'</span>, <span
-                                        style="color:#FB7185">'AI'</span>]
-                                    };</div>
-                            </div>
-
-                            <a href="/client-area/register"
-                                style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.85rem;font-weight:600;color:#34D399;text-decoration:none;"
-                                data-i18n="products.portfolio.cta">
-                                Build Your Page
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </a>
-                        </div>
-                    </article>
+                    @empty
+                        <p style="color:#64748B;text-align:center;grid-column:1/-1;padding:3rem 0;">
+                            No products available at the moment.
+                        </p>
+                    @endforelse
 
                 </div>
             </div>
@@ -410,8 +374,7 @@
                 <div class="rb-services-grid" style="margin-bottom:5rem;">
                     @foreach($pageData['services'] as $i => $service)
                         <div class="rb-service-tile" data-reveal data-reveal-delay="{{ $i + 1 }}">
-                            @php $iconStyle = "background:{$service['color']}10;border-color:{$service['color']}20;"; @endphp
-                            <div class="rb-service-icon" style="{{ $iconStyle }}">
+                            <div class="rb-service-icon rb-svc-icon-{{ $service['key'] }}">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ $service['color'] }}"
                                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                     {!! $serviceIcons[$service['key']] ?? '' !!}
@@ -524,8 +487,7 @@
                                              onmouseout="this.style.transform='scale(1)'">
                                     </div>
                                 @endif
-                                @php $catStyle = 'color:' . $article['category_color'] . ';'; @endphp
-                                <span class="rb-article-category" style="{{ $catStyle }}">{{ $article['category'] }}</span>
+                                <span class="rb-article-category">{{ $article['category'] }}</span>
                                 <h3 class="rb-article-title">{{ $article['title'] }}</h3>
                                 <p style="font-size:0.85rem;color:#64748B;line-height:1.6;flex:1;">{{ $article['excerpt'] }}</p>
                                 <span class="rb-article-date">{{ $article['date'] }}</span>
