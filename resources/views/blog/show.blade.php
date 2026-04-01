@@ -6,17 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $article->getTranslation('title', $locale, true) }} — RBeverything</title>
     <meta name="description" content="{{ Str::limit(strip_tags($article->getTranslation('content', $locale, true)), 160) }}">
+    <link rel="canonical" href="{{ url()->current() }}">
+    
     <meta property="og:title" content="{{ $article->getTranslation('title', $locale, true) }} — RBeverything">
+    <meta property="og:description" content="{{ Str::limit(strip_tags($article->getTranslation('content', $locale, true)), 160) }}">
     <meta property="og:type" content="article">
     @if($article->thumbnail)
         <meta property="og:image" content="{{ asset('storage/' . $article->thumbnail) }}">
     @endif
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $article->getTranslation('title', $locale, true) }} — RBeverything">
+    <meta name="twitter:description" content="{{ Str::limit(strip_tags($article->getTranslation('content', $locale, true)), 160) }}">
+    @if($article->thumbnail)
+        <meta name="twitter:image" content="{{ asset('storage/' . $article->thumbnail) }}">
+    @endif
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "{{ addslashes($article->getTranslation('title', $locale, true)) }}",
+      "image": [
+        "{{ $article->thumbnail ? asset('storage/' . $article->thumbnail) : '' }}"
+      ],
+      "datePublished": "{{ $article->published_at ? $article->published_at->toIso8601String() : '' }}",
+      "author": [{
+          "@type": "Person",
+          "name": "RBeverything"
+      }]
+    }
+    </script>
 </head>
 
 <body>

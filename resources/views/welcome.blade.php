@@ -7,9 +7,14 @@
     <title>RBeverything — Everything You Need!</title>
     <meta name="description"
         content="RBeverything is your trusted technology partner for IT consulting, web development, AI implementation, system architecture, and tech training.">
+    <link rel="canonical" href="{{ url()->current() }}">
     <meta property="og:title" content="RBeverything — Everything You Need!">
     <meta property="og:description" content="Your trusted technology partner. Smarter systems, bolder results.">
     <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RBeverything — Everything You Need!">
+    <meta name="twitter:description" content="RBeverything is your trusted technology partner for IT consulting, web development, AI implementation, system architecture, and tech training.">
+    <meta name="twitter:image" content="{{ asset('favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link

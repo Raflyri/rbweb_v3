@@ -16,6 +16,7 @@
         "spatie/laravel-activitylog": "^4.12",
         "spatie/laravel-permission": "^6.24",
         "spatie/laravel-settings": "^3.7",
+        "spatie/laravel-sitemap": "^8.0",
         "spatie/laravel-sluggable": "^3.8",
         "spatie/laravel-translatable": "^6.11",
         "stevebauman/location": "^7.6"

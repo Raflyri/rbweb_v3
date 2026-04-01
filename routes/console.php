@@ -30,3 +30,6 @@ Artisan::command('fix:roles', function () {
 
 // Purge authentication logs older than 60 days — runs every day at midnight
 Schedule::command('auth-logs:purge --days=60')->dailyAt('00:00');
+
+// Generate XML Sitemap daily
+Schedule::command('app:generate-sitemap')->daily();

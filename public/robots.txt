@@ -1,2 +1,4 @@
 User-agent: *
-Disallow:
+Disallow: /client-area/
+Disallow: /admin/
+Sitemap: https://rbeverything.com/sitemap.xml
