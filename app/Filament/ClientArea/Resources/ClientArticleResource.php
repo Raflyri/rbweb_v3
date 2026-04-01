@@ -11,9 +11,11 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Tabs;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
@@ -69,86 +71,101 @@ class ClientArticleResource extends Resource
                     return [];
                 })
                 ->schema([
-                    Grid::make(1)->schema([
-                        TextInput::make('title')
-                            ->label('Title')
-                            ->placeholder('Enter an engaging title...')
-                            ->required()
-                            ->maxLength(255)
-                            ->live(debounce: 500)
-                            ->hint(fn ($state) => mb_strlen($state ?? '') . '/255 chars'),
+                    Group::make()->schema([
+                        Section::make()->schema([
+                            FileUpload::make('thumbnail')
+                                ->hiddenLabel()
+                                ->image()
+                                ->disk('public')
+                                ->directory('articles/thumbnails')
+                                ->imageEditor()
+                                ->imageEditorAspectRatios(['16:9'])
+                                ->nullable()
+                                ->extraAttributes(['class' => 'mb-4']),
 
-                        Placeholder::make('estimated_read_time')
-                            ->label('Estimated Read Time')
-                            ->content(function (Get $get): string {
-                                $words = str_word_count(strip_tags($get('content') ?? ''));
-                                $minutes = max(1, (int) ceil($words / 200));
-                                return "{$minutes} min read (~{$words} words)";
-                            }),
-                    ])->columnSpan(2),
+                            Select::make('tags')
+                                ->hiddenLabel()
+                                ->multiple()
+                                ->relationship('tags', 'name')
+                                ->preload()
+                                ->createOptionForm([
+                                    TextInput::make('name')
+                                        ->required()
+                                        ->placeholder('Enter tag name...')
+                                        ->maxLength(255),
+                                ])
+                                ->placeholder('+ Tag Kategori')
+                                ->extraAttributes(['class' => 'mb-4']),
 
-                    Grid::make(1)->schema([
-                        Select::make('status')
-                            ->label('Status')
-                            ->options([
-                                'Draft' => 'Draft',
-                                'Pending Review' => 'Pending Review',
-                            ])
-                            ->default('Pending Review')
-                            ->helperText('Articles in "Pending Review" status will be inspected by an editor prior to publication.')
-                            ->disabled(fn ($record) => $record?->isPublished() ?? false),
+                            TextInput::make('title')
+                                ->hiddenLabel()
+                                ->placeholder('Judul artikel Anda...')
+                                ->required()
+                                ->maxLength(255)
+                                ->live(debounce: 500)
+                                ->extraInputAttributes(['class' => 'text-2xl md:text-3xl font-bold bg-transparent border-0 ring-0 focus:ring-0 px-0 shadow-none border-transparent', 'style' => 'box-shadow: none;']),
 
-                        DateTimePicker::make('published_at')
-                            ->label('Published At')
-                            ->native(false)
-                            ->displayFormat('d/m/Y H:i')
-                            ->placeholder('Select publication date')
-                            ->nullable(),
+                            RichEditor::make('content')
+                                ->hiddenLabel()
+                                ->placeholder('Write your article content here...')
+                                ->required()
+                                ->extraInputAttributes(['style' => 'min-height: 500px; box-shadow: none; max-width: 100%;'])
+                                ->toolbarButtons([
+                                    'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
+                                    'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
+                                    'strike', 'table', 'underline', 'undo',
+                                ]),
+                        ])
+                    ])->columnSpan(['sm' => 3, 'lg' => 2]),
 
-                        FileUpload::make('thumbnail')
-                            ->label('Featured Image')
-                            ->image()
-                            ->disk('public')
-                            ->directory('articles/thumbnails')
-                            ->imageEditor()
-                            ->imageEditorAspectRatios(['16:9'])
-                            ->nullable(),
+                    Group::make()->schema([
+                        Tabs::make('Tabs')
+                            ->tabs([
+                                Tabs\Tab::make('Properti')
+                                    ->schema([
+                                        Placeholder::make('author')
+                                            ->label('Penulis')
+                                            ->content(fn () => auth()->user()->name ?? 'Unknown')
+                                            ->helperText('Editor'),
 
-                        Select::make('tags')
-                            ->multiple()
-                            ->relationship('tags', 'name')
-                            ->preload()
-                            ->createOptionForm([
-                                TextInput::make('name')
-                                    ->required()
-                                    ->placeholder('Enter tag name...')
-                                    ->maxLength(255),
+                                        DateTimePicker::make('published_at')
+                                            ->label('Jadwal Publish')
+                                            ->native(false)
+                                            ->displayFormat('d/m/Y H:i')
+                                            ->placeholder('Pilih tanggal')
+                                            ->nullable(),
+
+                                        Select::make('status')
+                                            ->label('Status')
+                                            ->options([
+                                                'Draft' => 'Draft',
+                                                'Pending Review' => 'Pending Review',
+                                            ])
+                                            ->default('Pending Review')
+                                            ->disabled(fn ($record) => $record?->isPublished() ?? false),
+
+                                        Placeholder::make('estimated_read_time')
+                                            ->label('Estimasi Membaca')
+                                            ->content(function (Get $get): string {
+                                                $words = str_word_count(strip_tags($get('content') ?? ''));
+                                                $minutes = max(1, (int) ceil($words / 200));
+                                                return "{$words} kata · ~{$minutes} mnt baca";
+                                            }),
+                                    ]),
+
+                                Tabs\Tab::make('SEO')
+                                    ->schema([
+                                        Textarea::make('meta_description')
+                                            ->label('Meta Description')
+                                            ->placeholder('Panduan lengkap tren desain UI tahun 2025...')
+                                            ->maxLength(160)
+                                            ->live(debounce: 500)
+                                            ->helperText(fn ($state) => mb_strlen($state ?? '') . ' / 160')
+                                            ->rows(4)
+                                            ->nullable(),
+                                    ]),
                             ]),
-                    ])->columnSpan(1),
-
-                    Section::make('Article Content')->schema([
-                        RichEditor::make('content')
-                            ->hiddenLabel()
-                            ->placeholder('Write your article content here...')
-                            ->required()
-                            ->extraInputAttributes(['style' => 'min-height: 500px;'])
-                            ->toolbarButtons([
-                                'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
-                                'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
-                                'strike', 'table', 'underline', 'undo',
-                            ]),
-                    ])->columnSpan('full'),
-
-                    Section::make('Search Engine Optimization')->schema([
-                        Textarea::make('meta_description')
-                            ->hiddenLabel()
-                            ->placeholder('A brief summary of your article for search engines (max 160 characters)...')
-                            ->maxLength(160)
-                            ->live(debounce: 500)
-                            ->helperText(fn ($state) => 'Maximum 160 characters for optimal SEO. Current: ' . mb_strlen($state ?? '') . ' chars.')
-                            ->rows(3)
-                            ->nullable(),
-                    ])->columnSpan('full'),
+                    ])->columnSpan(['sm' => 3, 'lg' => 1]),
                 ]),
         ]);
     }

@@ -9,6 +9,26 @@ use Filament\Actions\Action;
 class CreateClientArticle extends CreateRecord
 {
     protected static string $resource = ClientArticleResource::class;
+    
+    protected string $view = 'filament.client-area.articles.create';
+
+    public function getTagsProperty(): array
+    {
+        return \App\Models\Tag::all()->pluck('name', 'id')->toArray();
+    }
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        // Initialize translatable fields for the "id" (Indonesian) locale
+        // so clicking create doesn't error on missing keys.
+        $this->data['title'] = ['id' => ''];
+        $this->data['content'] = ['id' => ''];
+        $this->data['meta_description'] = ['id' => ''];
+        $this->data['status'] = 'Pending Review';
+        $this->data['tags'] = [];
+    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

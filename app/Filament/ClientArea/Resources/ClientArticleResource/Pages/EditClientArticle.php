@@ -29,6 +29,23 @@ class EditClientArticle extends EditRecord
         }
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        // Spatie Translatable casts return arrays in toArray(). 
+        // We unpack them for the Filament form fields.
+        $locale = app()->getLocale();
+        foreach (['title', 'content', 'meta_description'] as $field) {
+            if (isset($data[$field]) && is_array($data[$field])) {
+                $data[$field] = $data[$field][$locale] 
+                    ?? $data[$field]['id'] 
+                    ?? $data[$field]['en'] 
+                    ?? (array_values($data[$field])[0] ?? null);
+            }
+        }
+
+        return $data;
+    }
+
     protected function getHeaderActions(): array
     {
         return [Actions\DeleteAction::make()];

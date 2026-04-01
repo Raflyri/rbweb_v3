@@ -81,8 +81,8 @@ class UserChangeRequestResource extends Resource
 
                 TextColumn::make('payload')
                     ->label('Proposed Changes')
-                    ->formatStateUsing(function (?array $state): string {
-                        if (empty($state)) {
+                    ->formatStateUsing(function (?array $state, UserChangeRequest $record): string {
+                        if (empty($state) || $record->action !== 'update') {
                             return '—';
                         }
                         $lines = [];
@@ -98,8 +98,7 @@ class UserChangeRequestResource extends Resource
                         }
                         return implode("\n", $lines);
                     })
-                    ->wrap()
-                    ->visible(fn (UserChangeRequest $record): bool => $record->action === 'update'),
+                    ->wrap(),
 
                 TextColumn::make('status')
                     ->label('Status')
