@@ -1,0 +1,39 @@
+PHP Fatal error:  Cannot redeclare non static Filament\Pages\Page::$view as static App\Filament\Pages\ManageSystemMaintenance::$view in C:\Work\rbtech.site\rbeverything.com\rbeverything-main\app\Filament\Pages\ManageSystemMaintenance.php on line 11
+
+   Symfony\Component\ErrorHandler\Error\FatalError 
+
+  Cannot redeclare non static Filament\Pages\Page::$view as static App\Filament\Pages\ManageSystemMaintenance::$view
+
+  at app\Filament\Pages\ManageSystemMaintenance.php:11
+      7▕ use Filament\Pages\Page;
+      8▕ use Illuminate\Support\Facades\Artisan;
+      9▕ use Illuminate\Support\Facades\Log;
+     10▕ 
+  ➜  11▕ class ManageSystemMaintenance extends Page
+     12▕ {
+     13▕     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-server';
+     14▕     protected static string | \UnitEnum | null $navigationGroup = 'System';
+     15▕     protected static ?string $title = 'System Maintenance';
+
+
+   Whoops\Exception\ErrorException 
+
+  Cannot redeclare non static Filament\Pages\Page::$view as static App\Filament\Pages\ManageSystemMaintenance::$view
+
+  at app\Filament\Pages\ManageSystemMaintenance.php:11
+      7▕ use Filament\Pages\Page;
+      8▕ use Illuminate\Support\Facades\Artisan;
+      9▕ use Illuminate\Support\Facades\Log;
+     10▕ 
+  ➜  11▕ class ManageSystemMaintenance extends Page
+     12▕ {
+     13▕     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-server';
+     14▕     protected static string | \UnitEnum | null $navigationGroup = 'System';
+     15▕     protected static ?string $title = 'System Maintenance';
+
+  1   vendor\filp\whoops\src\Whoops\Run.php:520
+      Whoops\Run::handleError("Cannot redeclare non static Filament\Pages\Page::$view as static App\Filament\Pages\ManageSystemMaintenance::$view", "C:\Work\rbtech.site\rbeverything.com\rbeverything-main\app\Filament\Pages\ManageSystemMaintenance.php")
+
+  2   [internal]:0
+      Whoops\Run::handleShutdown()
+

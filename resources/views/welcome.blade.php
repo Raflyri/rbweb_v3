@@ -406,7 +406,7 @@
                     @foreach($pageData['services'] as $i => $service)
                         <div class="rb-service-tile" data-reveal data-reveal-delay="{{ $i + 1 }}">
                             @php $iconStyle = "background:{$service['color']}10;border-color:{$service['color']}20;"; @endphp
-                            <div class="rb-service-icon" {!! 'style="' . $iconStyle . '"' !!}>
+                            <div class="rb-service-icon" style="{{ $iconStyle }}">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{ $service['color'] }}"
                                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                     {!! $serviceIcons[$service['key']] ?? '' !!}
@@ -520,7 +520,7 @@
                                     </div>
                                 @endif
                                 @php $catStyle = 'color:' . $article['category_color'] . ';'; @endphp
-                                <span class="rb-article-category" {!! 'style="' . $catStyle . '"' !!}>{{ $article['category'] }}</span>
+                                <span class="rb-article-category" style="{{ $catStyle }}">{{ $article['category'] }}</span>
                                 <h3 class="rb-article-title">{{ $article['title'] }}</h3>
                                 <p style="font-size:0.85rem;color:#64748B;line-height:1.6;flex:1;">{{ $article['excerpt'] }}</p>
                                 <span class="rb-article-date">{{ $article['date'] }}</span>
