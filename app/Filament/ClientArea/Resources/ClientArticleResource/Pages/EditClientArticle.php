@@ -11,6 +11,9 @@ class EditClientArticle extends EditRecord
 {
     protected static string $resource = ClientArticleResource::class;
 
+    // Shared premium layout with CreateClientArticle
+    protected string $view = 'filament.client-area.articles.article-editor';
+
     // Prevent editing published articles
     public function mount(int|string $record): void
     {

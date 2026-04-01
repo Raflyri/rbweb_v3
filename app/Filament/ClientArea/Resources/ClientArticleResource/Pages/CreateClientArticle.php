@@ -5,12 +5,13 @@ namespace App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
 use App\Filament\ClientArea\Resources\ClientArticleResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Actions\Action;
+use Illuminate\Support\Facades\Auth;
 
 class CreateClientArticle extends CreateRecord
 {
     protected static string $resource = ClientArticleResource::class;
     
-    protected string $view = 'filament.client-area.articles.create';
+    protected string $view = 'filament.client-area.articles.article-editor';
 
     public function getTagsProperty(): array
     {
@@ -32,7 +33,7 @@ class CreateClientArticle extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = Auth::id();
 
         // If not deliberately set to Draft, default to Pending Review.
         if (($data['status'] ?? '') !== 'Draft') {
@@ -70,7 +71,7 @@ class CreateClientArticle extends CreateRecord
             foreach ($admins as $admin) {
                 \Filament\Notifications\Notification::make()
                     ->title('New article awaiting review')
-                    ->body(auth()->user()->name . ' submitted a new article.')
+                    ->body((Auth::user()?->name ?? 'Someone') . ' submitted a new article.')
                     ->icon('heroicon-o-document-text')
                     ->warning()
                     ->sendToDatabase($admin);

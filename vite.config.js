@@ -10,6 +10,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/scroll-effects.js',
                 'resources/css/filament/client-area/theme.css',
+                'resources/css/filament/client-area/article-editor.css',
+                'resources/js/filament/client-area/article-editor.js',
             ],
             refresh: true,
         }),

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         // ✅ Seed semua role terlebih dahulu
         $this->call(RoleSeeder::class);
+        $this->call(LaunchpadLinkSeeder::class);
 
         // User admin
         $admin = User::firstOrCreate(

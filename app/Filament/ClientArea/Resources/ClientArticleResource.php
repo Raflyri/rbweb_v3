@@ -12,7 +12,8 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
-use Filament\Forms\Components\Placeholder;
+use Filament\Infolists\Components\TextEntry;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Tabs;
@@ -36,136 +37,131 @@ class ClientArticleResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('user_id', auth()->id());
+        return parent::getEloquentQuery()->where('user_id', Auth::id());
     }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             Grid::make(3)
-                ->extraAttributes(function (\Livewire\Component $livewire) {
-                    if ($livewire instanceof Pages\CreateClientArticle) {
-                        return [
-                            'x-data' => '{
-                                init() {
-                                    let key = "draft_article_" + ' . auth()->id() . ';
-                                    let saved = localStorage.getItem(key);
-                                    if (saved) {
-                                        try {
-                                            let parsed = JSON.parse(saved);
-                                            if (!$wire.data.title && parsed.title) {
-                                                $wire.set("data", { ...$wire.data, ...parsed });
-                                            }
-                                        } catch(e) {}
-                                    }
-                                    $watch("data", value => {
-                                        localStorage.setItem(key, JSON.stringify(value));
-                                    });
-                                    $wire.on("article-created", () => {
-                                        localStorage.removeItem(key);
-                                    });
-                                }
-                            }'
-                        ];
-                    }
-                    return [];
-                })
                 ->schema([
-                    Group::make()->schema([
-                        Section::make()->schema([
-                            FileUpload::make('thumbnail')
-                                ->hiddenLabel()
-                                ->image()
-                                ->disk('public')
-                                ->directory('articles/thumbnails')
-                                ->imageEditor()
-                                ->imageEditorAspectRatios(['16:9'])
-                                ->nullable()
-                                ->extraAttributes(['class' => 'mb-4']),
+                    // ── Main writing area (2/3 width) ─────────────────────────
+                    Group::make()
+                        ->extraAttributes(['class' => 'article-editor-main'])
+                        ->schema([
+                            Section::make()->schema([
 
-                            Select::make('tags')
-                                ->hiddenLabel()
-                                ->multiple()
-                                ->relationship('tags', 'name')
-                                ->preload()
-                                ->createOptionForm([
-                                    TextInput::make('name')
-                                        ->required()
-                                        ->placeholder('Enter tag name...')
-                                        ->maxLength(255),
-                                ])
-                                ->placeholder('+ Tag Kategori')
-                                ->extraAttributes(['class' => 'mb-4']),
+                                // Featured image / thumbnail (16:9)
+                                FileUpload::make('thumbnail')
+                                    ->hiddenLabel()
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('articles/thumbnails')
+                                    ->imageEditor()
+                                    ->imageEditorAspectRatioOptions(['16:9' => '16:9 (Landscape)'])
+                                    ->nullable(),
 
-                            TextInput::make('title')
-                                ->hiddenLabel()
-                                ->placeholder('Judul artikel Anda...')
-                                ->required()
-                                ->maxLength(255)
-                                ->live(debounce: 500)
-                                ->extraInputAttributes(['class' => 'text-2xl md:text-3xl font-bold bg-transparent border-0 ring-0 focus:ring-0 px-0 shadow-none border-transparent', 'style' => 'box-shadow: none;']),
+                                // Article title (styled as a document heading via CSS)
+                                TextInput::make('title')
+                                    ->hiddenLabel()
+                                    ->placeholder('Judul artikel Anda...')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->live(debounce: 500)
+                                    ->extraAttributes(['class' => 'article-title-field'])
+                                    ->extraInputAttributes([
+                                        'class' => 'text-3xl font-bold bg-transparent border-0 ring-0 focus:ring-0 px-0 shadow-none',
+                                        'style' => 'box-shadow: none;',
+                                    ]),
 
-                            RichEditor::make('content')
-                                ->hiddenLabel()
-                                ->placeholder('Write your article content here...')
-                                ->required()
-                                ->extraInputAttributes(['style' => 'min-height: 500px; box-shadow: none; max-width: 100%;'])
-                                ->toolbarButtons([
-                                    'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
-                                    'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
-                                    'strike', 'table', 'underline', 'undo',
+                                // Rich content editor
+                                RichEditor::make('content')
+                                    ->hiddenLabel()
+                                    ->placeholder('Mulai menulis artikel Anda di sini...')
+                                    ->required()
+                                    ->extraInputAttributes([
+                                        'style' => 'min-height: 560px; box-shadow: none; max-width: 100%;',
+                                    ])
+                                    ->toolbarButtons([
+                                        'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
+                                        'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
+                                        'strike', 'table', 'underline', 'undo',
+                                    ]),
+
+                            ]),
+                        ])
+                        ->columnSpan(['sm' => 3, 'lg' => 2]),
+
+                    // ── Sidebar meta area (1/3 width) ──────────────────────────
+                    Group::make()
+                        ->extraAttributes(['class' => 'article-editor-sidebar'])
+                        ->schema([
+                            Tabs::make('Tabs')
+                                ->tabs([
+                                    // ── Properti tab ──────────────────────────
+                                    Tabs\Tab::make('Properti')
+                                        ->schema([
+                                            TextEntry::make('author')
+                                                ->label('Penulis')
+                                                ->state(fn () => Auth::user()?->name ?? 'Unknown')
+                                                ->helperText('Editor')
+                                                ->columnSpanFull(),
+
+                                            Select::make('status')
+                                                ->label('Status')
+                                                ->options([
+                                                    'Draft'          => 'Draft',
+                                                    'Pending Review' => 'Pending Review',
+                                                ])
+                                                ->default('Pending Review')
+                                                ->disabled(fn ($record) => $record?->isPublished() ?? false),
+
+                                            DateTimePicker::make('published_at')
+                                                ->label('Jadwal Publish')
+                                                ->native(false)
+                                                ->displayFormat('d/m/Y H:i')
+                                                ->placeholder('Pilih tanggal')
+                                                ->nullable(),
+
+                                            // Tags (moved from main column into sidebar for cleaner writing area)
+                                            Select::make('tags')
+                                                ->label('Kategori / Tag')
+                                                ->multiple()
+                                                ->relationship('tags', 'name')
+                                                ->preload()
+                                                ->createOptionForm([
+                                                    TextInput::make('name')
+                                                        ->required()
+                                                        ->placeholder('Nama tag baru...')
+                                                        ->maxLength(255),
+                                                ])
+                                                ->placeholder('+ Tambah tag'),
+
+                                            TextEntry::make('estimated_read_time')
+                                                ->label('Estimasi Membaca')
+                                                ->state(function (Get $get): string {
+                                                    $words = str_word_count(strip_tags($get('content') ?? ''));
+                                                    $minutes = max(1, (int) ceil($words / 200));
+                                                    return "{$words} kata · ~{$minutes} mnt baca";
+                                                })
+                                                ->columnSpanFull(),
+                                        ]),
+
+                                    // ── SEO tab ───────────────────────────────
+                                    Tabs\Tab::make('SEO')
+                                        ->schema([
+                                            Textarea::make('meta_description')
+                                                ->label('Meta Description')
+                                                ->placeholder('Panduan lengkap tren desain UI tahun 2025...')
+                                                ->maxLength(160)
+                                                ->live(debounce: 500)
+                                                ->helperText(fn ($state) => mb_strlen($state ?? '') . ' / 160')
+                                                ->rows(4)
+                                                ->nullable(),
+                                        ]),
                                 ]),
                         ])
-                    ])->columnSpan(['sm' => 3, 'lg' => 2]),
-
-                    Group::make()->schema([
-                        Tabs::make('Tabs')
-                            ->tabs([
-                                Tabs\Tab::make('Properti')
-                                    ->schema([
-                                        Placeholder::make('author')
-                                            ->label('Penulis')
-                                            ->content(fn () => auth()->user()->name ?? 'Unknown')
-                                            ->helperText('Editor'),
-
-                                        DateTimePicker::make('published_at')
-                                            ->label('Jadwal Publish')
-                                            ->native(false)
-                                            ->displayFormat('d/m/Y H:i')
-                                            ->placeholder('Pilih tanggal')
-                                            ->nullable(),
-
-                                        Select::make('status')
-                                            ->label('Status')
-                                            ->options([
-                                                'Draft' => 'Draft',
-                                                'Pending Review' => 'Pending Review',
-                                            ])
-                                            ->default('Pending Review')
-                                            ->disabled(fn ($record) => $record?->isPublished() ?? false),
-
-                                        Placeholder::make('estimated_read_time')
-                                            ->label('Estimasi Membaca')
-                                            ->content(function (Get $get): string {
-                                                $words = str_word_count(strip_tags($get('content') ?? ''));
-                                                $minutes = max(1, (int) ceil($words / 200));
-                                                return "{$words} kata · ~{$minutes} mnt baca";
-                                            }),
-                                    ]),
-
-                                Tabs\Tab::make('SEO')
-                                    ->schema([
-                                        Textarea::make('meta_description')
-                                            ->label('Meta Description')
-                                            ->placeholder('Panduan lengkap tren desain UI tahun 2025...')
-                                            ->maxLength(160)
-                                            ->live(debounce: 500)
-                                            ->helperText(fn ($state) => mb_strlen($state ?? '') . ' / 160')
-                                            ->rows(4)
-                                            ->nullable(),
-                                    ]),
-                            ]),
-                    ])->columnSpan(['sm' => 3, 'lg' => 1]),
+                        ->columnSpan(['sm' => 3, 'lg' => 1]),
                 ]),
         ]);
     }
@@ -183,10 +179,10 @@ class ClientArticleResource extends Resource
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'Published' => 'success',
+                        'Published'      => 'success',
                         'Pending Review' => 'warning',
-                        'Draft' => 'gray',
-                        default => 'gray',
+                        'Draft'          => 'gray',
+                        default          => 'gray',
                     }),
 
                 TextColumn::make('created_at')
@@ -218,9 +214,9 @@ class ClientArticleResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListClientArticles::route('/'),
+            'index'  => Pages\ListClientArticles::route('/'),
             'create' => Pages\CreateClientArticle::route('/create'),
-            'edit' => Pages\EditClientArticle::route('/{record}/edit'),
+            'edit'   => Pages\EditClientArticle::route('/{record}/edit'),
         ];
     }
 }
