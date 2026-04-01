@@ -44,6 +44,7 @@ class ClientAreaPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Sky,
             ])
+            ->unsavedChangesAlerts()
             ->viteTheme('resources/css/filament/client-area/theme.css')
             ->discoverResources(
                 in: app_path('Filament/ClientArea/Resources'),
