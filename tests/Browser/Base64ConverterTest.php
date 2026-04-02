@@ -12,7 +12,7 @@ class Base64ConverterTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
                 ->pause(1000)
-                ->script('document.getElementById("rb-b64-input").scrollIntoView({block: "center"});');
+                ->scrollIntoView('#rb-b64-input');
                 
             $browser->pause(1000)
                 ->type('#rb-b64-input', 'RBeverything')
