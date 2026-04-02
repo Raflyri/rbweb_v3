@@ -139,8 +139,16 @@ class ClientArticleResource extends Resource
 
                                             TextEntry::make('estimated_read_time')
                                                 ->label('Estimasi Membaca')
-                                                ->state(function (Get $get): string {
-                                                    $words = str_word_count(strip_tags($get('content') ?? ''));
+                                                ->state(function (?Article $record): string {
+                                                    // On edit: read from the already-saved record (safe, no TipTap cast).
+                                                    // On create: $record is null — show placeholder.
+                                                    if (! $record) {
+                                                        return '0 kata · ~1 mnt baca';
+                                                    }
+                                                    $text = is_string($record->getRawOriginal('content'))
+                                                        ? strip_tags($record->getRawOriginal('content'))
+                                                        : strip_tags((string) $record->content);
+                                                    $words   = $text !== '' ? str_word_count($text) : 0;
                                                     $minutes = max(1, (int) ceil($words / 200));
                                                     return "{$words} kata · ~{$minutes} mnt baca";
                                                 })
@@ -155,7 +163,7 @@ class ClientArticleResource extends Resource
                                                 ->placeholder('Panduan lengkap tren desain UI tahun 2025...')
                                                 ->maxLength(160)
                                                 ->live(debounce: 500)
-                                                ->helperText(fn ($state) => mb_strlen($state ?? '') . ' / 160')
+                                                ->helperText(fn ($state) => mb_strlen(is_string($state) ? $state : '') . ' / 160')
                                                 ->rows(4)
                                                 ->nullable(),
                                         ]),

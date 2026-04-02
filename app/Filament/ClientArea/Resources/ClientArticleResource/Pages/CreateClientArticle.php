@@ -10,8 +10,13 @@ use Illuminate\Support\Facades\Auth;
 class CreateClientArticle extends CreateRecord
 {
     protected static string $resource = ClientArticleResource::class;
-    
-    protected string $view = 'filament.client-area.articles.article-editor';
+
+    // No custom $view in Filament v4 — the Schema handles form+actions natively.
+    // We add the CSS scope class via extraAttributes on the page wrapper.
+    public function getExtraAttributes(): array
+    {
+        return ['class' => 'article-editor-page'];
+    }
 
     public function getTagsProperty(): array
     {
@@ -22,13 +27,14 @@ class CreateClientArticle extends CreateRecord
     {
         parent::mount();
 
-        // Initialize translatable fields for the "id" (Indonesian) locale
-        // so clicking create doesn't error on missing keys.
-        $this->data['title'] = ['id' => ''];
-        $this->data['content'] = ['id' => ''];
+        // Initialize translatable fields for the "id" (Indonesian) locale.
+        // Use null (not '') for RichEditor — Filament v4's TipTap StateCast
+        // crashes when it tries to parse an empty string as a JSON document.
+        $this->data['title']            = ['id' => ''];
+        $this->data['content']          = ['id' => null];
         $this->data['meta_description'] = ['id' => ''];
         $this->data['status'] = 'Pending Review';
-        $this->data['tags'] = [];
+        $this->data['tags']   = [];
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
@@ -58,6 +64,8 @@ class CreateClientArticle extends CreateRecord
             $this->getCancelFormAction(),
         ];
     }
+
+    protected function getHeaderWidgets(): array { return []; }
 
     protected function afterCreate(): void
     {

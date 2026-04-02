@@ -5,10 +5,23 @@ namespace Tests\Browser;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
+use App\Models\LaunchpadLink;
+
 class Base64ConverterTest extends DuskTestCase
 {
     public function test_base64_converter_updates_output_in_real_time(): void
     {
+        LaunchpadLink::updateOrCreate(
+            ['card_template' => 'base64'],
+            [
+                'title' => 'Base64 Converter',
+                'description' => 'Test Base64',
+                'url' => '#',
+                'is_active' => true,
+                'show_on_homepage' => true,
+            ]
+        );
+
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
                 ->pause(500)

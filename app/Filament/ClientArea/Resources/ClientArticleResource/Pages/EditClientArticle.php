@@ -11,8 +11,11 @@ class EditClientArticle extends EditRecord
 {
     protected static string $resource = ClientArticleResource::class;
 
-    // Shared premium layout with CreateClientArticle
-    protected string $view = 'filament.client-area.articles.article-editor';
+    // No custom $view in Filament v4 — Schema handles form+actions natively.
+    public function getExtraAttributes(): array
+    {
+        return ['class' => 'article-editor-page'];
+    }
 
     // Prevent editing published articles
     public function mount(int|string $record): void
