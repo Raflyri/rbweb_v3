@@ -12,6 +12,7 @@ class Base64ConverterTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
                 ->pause(1000)
+                ->waitFor('#rb-b64-input')
                 ->scrollIntoView('#rb-b64-input');
                 
             $browser->pause(1000)
