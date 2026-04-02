@@ -11,11 +11,16 @@ class Base64ConverterTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
-                ->pause(1000)
+                // 1. Langsung gulir ke elemennya terlebih dahulu untuk memicu animasi
+                ->scrollIntoView('#rb-b64-input')
+
+                // 2. Jeda yang cukup (misal 2 detik) untuk memastikan animasi data-reveal benar-benar selesai
+                ->pause(2000)
+
+                // 3. Pastikan elemen sudah terdeteksi dan siap menerima input
                 ->waitFor('#rb-b64-input')
-                ->scrollIntoView('#rb-b64-input');
-                
-            $browser->pause(1000)
+
+                // 4. Lakukan interaksi
                 ->type('#rb-b64-input', 'RBeverything')
                 ->pause(1000)
                 ->assertSeeIn('#rb-b64-output', 'UkJldmVyeXRoaW5n');
