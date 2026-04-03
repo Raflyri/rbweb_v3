@@ -43,133 +43,146 @@ class ClientArticleResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Grid::make(3)
+            Group::make()
+                ->extraAttributes([
+                    'class' => 'flex flex-col gap-8 w-full',
+                    'x-data' => "{ activeTab: 'id' }"
+                ])
+                ->columnSpanFull()
                 ->schema([
-                    // ── Main writing area (2/3 width) ─────────────────────────
-                    Group::make()
-                        ->extraAttributes(['class' => 'article-editor-main'])
+                    // ── Main writing area (Top) ─────────────────────────
+                    Section::make()
+                        ->extraAttributes(['class' => 'article-editor-main min-w-0'])
                         ->schema([
-                            Section::make()->schema([
+                            // Language Tabs View
+                            \Filament\Schemas\Components\View::make('filament.components.locale-tabs'),
 
-                                // Featured image / thumbnail (16:9)
-                                FileUpload::make('thumbnail')
-                                    ->hiddenLabel()
-                                    ->image()
-                                    ->disk('public')
-                                    ->directory('articles/thumbnails')
-                                    ->imageEditor()
-                                    ->imageEditorAspectRatioOptions(['16:9' => '16:9 (Landscape)'])
-                                    ->nullable(),
+                            // Featured image / thumbnail (16:9)
+                            FileUpload::make('thumbnail')
+                                ->hiddenLabel()
+                                ->image()
+                                ->disk('public')
+                                ->directory('articles/thumbnails')
+                                ->imageEditor()
+                                ->imageEditorAspectRatioOptions(['16:9' => '16:9 (Landscape)'])
+                                ->nullable(),
 
-                                // Article title (styled as a document heading via CSS)
-                                TextInput::make('title')
-                                    ->hiddenLabel()
-                                    ->placeholder('Judul artikel Anda...')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->live(debounce: 500)
-                                    ->extraAttributes(['class' => 'article-title-field'])
-                                    ->extraInputAttributes([
-                                        'class' => 'text-3xl font-bold bg-transparent border-0 ring-0 focus:ring-0 px-0 shadow-none',
-                                        'style' => 'box-shadow: none;',
-                                    ]),
-
-                                // Rich content editor
-                                RichEditor::make('content')
-                                    ->hiddenLabel()
-                                    ->placeholder('Mulai menulis artikel Anda di sini...')
-                                    ->required()
-                                    ->extraInputAttributes([
-                                        'style' => 'min-height: 560px; box-shadow: none; max-width: 100%;',
+                            // Build Dynamic Lokale Inputs
+                            ...array_map(function ($langCode) {
+                                return Group::make()
+                                    ->extraAttributes([
+                                        'x-show' => "activeTab === '{$langCode}'",
+                                        'style' => $langCode === 'id' ? '' : 'display: none;',
                                     ])
-                                    ->toolbarButtons([
-                                        'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
-                                        'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
-                                        'strike', 'table', 'underline', 'undo',
-                                    ]),
+                                    ->schema([
+                                        TextInput::make("title.{$langCode}")
+                                            ->hiddenLabel()
+                                            ->placeholder('Judul artikel Anda ('. strtoupper($langCode) .')...')
+                                            ->required($langCode === 'id') // Only require ID
+                                            ->maxLength(255)
+                                            ->live(debounce: 500)
+                                            ->extraAttributes(['class' => 'article-title-field'])
+                                            ->extraInputAttributes([
+                                                'class' => 'text-3xl font-bold bg-transparent border-0 ring-0 focus:ring-0 px-0 shadow-none',
+                                                'style' => 'box-shadow: none;',
+                                            ]),
 
-                            ]),
-                        ])
-                        ->columnSpan(['sm' => 3, 'lg' => 2]),
+                                        RichEditor::make("content.{$langCode}")
+                                            ->hiddenLabel()
+                                            ->placeholder('Mulai menulis artikel Anda di sini ('. strtoupper($langCode) .')...')
+                                            ->required($langCode === 'id')
+                                            ->extraInputAttributes([
+                                                'style' => 'min-height: 560px; box-shadow: none; max-width: 100%;',
+                                            ])
+                                            ->toolbarButtons([
+                                                'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
+                                                'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
+                                                'strike', 'table', 'underline', 'undo',
+                                            ]),
+                                    ]);
+                            }, ['id', 'my', 'en', 'jp']),
+                        ]),
 
-                    // ── Sidebar meta area (1/3 width) ──────────────────────────
-                    Group::make()
-                        ->extraAttributes(['class' => 'article-editor-sidebar'])
+                    // ── Settings Area (Bottom) ──────────────────────────
+                    Section::make('Pengaturan & Properti Artikel')
                         ->schema([
-                            Tabs::make('Tabs')
-                                ->tabs([
-                                    // ── Properti tab ──────────────────────────
-                                    Tabs\Tab::make('Properti')
-                                        ->schema([
-                                            TextEntry::make('author')
-                                                ->label('Penulis')
-                                                ->state(fn () => Auth::user()?->name ?? 'Unknown')
-                                                ->helperText('Editor')
-                                                ->columnSpanFull(),
+                            Grid::make(3)
+                                ->schema([
+                                    TextEntry::make('author')
+                                        ->label('Penulis')
+                                        ->state(fn () => Auth::user()?->name ?? 'Unknown')
+                                        ->helperText('Editor'),
 
-                                            Select::make('status')
-                                                ->label('Status')
-                                                ->options([
-                                                    'Draft'          => 'Draft',
-                                                    'Pending Review' => 'Pending Review',
-                                                ])
-                                                ->default('Pending Review')
-                                                ->disabled(fn ($record) => $record?->isPublished() ?? false),
+                                    Select::make('status')
+                                        ->label('Status')
+                                        ->options([
+                                            'Draft'          => 'Draft',
+                                            'Pending Review' => 'Pending Review',
+                                        ])
+                                        ->default('Pending Review')
+                                        ->disabled(fn ($record) => $record?->isPublished() ?? false),
 
-                                            DateTimePicker::make('published_at')
-                                                ->label('Jadwal Publish')
-                                                ->native(false)
-                                                ->displayFormat('d/m/Y H:i')
-                                                ->placeholder('Pilih tanggal')
-                                                ->nullable(),
-
-                                            // Tags (moved from main column into sidebar for cleaner writing area)
-                                            Select::make('tags')
-                                                ->label('Kategori / Tag')
-                                                ->multiple()
-                                                ->relationship('tags', 'name')
-                                                ->preload()
-                                                ->createOptionForm([
-                                                    TextInput::make('name')
-                                                        ->required()
-                                                        ->placeholder('Nama tag baru...')
-                                                        ->maxLength(255),
-                                                ])
-                                                ->placeholder('+ Tambah tag'),
-
-                                            TextEntry::make('estimated_read_time')
-                                                ->label('Estimasi Membaca')
-                                                ->state(function (?Article $record): string {
-                                                    // On edit: read from the already-saved record (safe, no TipTap cast).
-                                                    // On create: $record is null — show placeholder.
-                                                    if (! $record) {
-                                                        return '0 kata · ~1 mnt baca';
-                                                    }
-                                                    $text = is_string($record->getRawOriginal('content'))
-                                                        ? strip_tags($record->getRawOriginal('content'))
-                                                        : strip_tags((string) $record->content);
-                                                    $words   = $text !== '' ? str_word_count($text) : 0;
-                                                    $minutes = max(1, (int) ceil($words / 200));
-                                                    return "{$words} kata · ~{$minutes} mnt baca";
-                                                })
-                                                ->columnSpanFull(),
-                                        ]),
-
-                                    // ── SEO tab ───────────────────────────────
-                                    Tabs\Tab::make('SEO')
-                                        ->schema([
-                                            Textarea::make('meta_description')
-                                                ->label('Meta Description')
-                                                ->placeholder('Panduan lengkap tren desain UI tahun 2025...')
-                                                ->maxLength(160)
-                                                ->live(debounce: 500)
-                                                ->helperText(fn ($state) => mb_strlen(is_string($state) ? $state : '') . ' / 160')
-                                                ->rows(4)
-                                                ->nullable(),
-                                        ]),
+                                    DateTimePicker::make('published_at')
+                                        ->label('Jadwal Publish')
+                                        ->native(false)
+                                        ->displayFormat('d/m/Y H:i')
+                                        ->placeholder('Pilih tanggal')
+                                        ->nullable(),
                                 ]),
-                        ])
-                        ->columnSpan(['sm' => 3, 'lg' => 1]),
+
+                            Grid::make(2)
+                                ->schema([
+                                    Select::make('tags')
+                                        ->label('Kategori / Tag')
+                                        ->multiple()
+                                        ->relationship('tags', 'name')
+                                        ->preload()
+                                        ->createOptionForm([
+                                            TextInput::make('name')
+                                                ->required()
+                                                ->placeholder('Nama tag baru...')
+                                                ->maxLength(255),
+                                        ])
+                                        ->placeholder('+ Tambah tag'),
+
+                                    TextEntry::make('estimated_read_time')
+                                        ->label('Estimasi Membaca')
+                                        ->state(function (?Article $record): string {
+                                            if (! $record) {
+                                                return '0 kata · ~1 mnt baca';
+                                            }
+                                            $text = is_string($record->getRawOriginal('content'))
+                                                ? strip_tags($record->getRawOriginal('content'))
+                                                : strip_tags((string) $record->content);
+                                            $words   = $text !== '' ? str_word_count($text) : 0;
+                                            $minutes = max(1, (int) ceil($words / 200));
+                                            return "{$words} kata · ~{$minutes} mnt baca";
+                                        }),
+                                ]),
+                        ]),
+
+                    // ── SEO Area ───────────────────────────────
+                    Section::make('Search Engine Optimization (SEO)')
+                        ->collapsed()
+                        ->schema([
+                            ...array_map(function ($langCode) {
+                                return Group::make()
+                                    ->extraAttributes([
+                                        'x-show' => "activeTab === '{$langCode}'",
+                                        'style' => $langCode === 'id' ? '' : 'display: none;',
+                                    ])
+                                    ->schema([
+                                        Textarea::make("meta_description.{$langCode}")
+                                            ->label('Meta Description ('. strtoupper($langCode) .')')
+                                            ->placeholder('Panduan lengkap tren desain UI tahun 2025...')
+                                            ->maxLength(160)
+                                            ->live(debounce: 500)
+                                            ->helperText(fn ($state) => mb_strlen(is_string($state) ? $state : '') . ' / 160')
+                                            ->rows(3)
+                                            ->nullable(),
+                                    ]);
+                            }, ['id', 'my', 'en', 'jp']),
+                        ]),
                 ]),
         ]);
     }

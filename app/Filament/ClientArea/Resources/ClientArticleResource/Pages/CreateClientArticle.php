@@ -41,9 +41,12 @@ class CreateClientArticle extends CreateRecord
     {
         $data['user_id'] = Auth::id();
 
-        // If not deliberately set to Draft, default to Pending Review.
-        if (($data['status'] ?? '') !== 'Draft') {
-            $data['status'] = 'Pending Review';
+        if (($data['status'] ?? '') !== 'Draft' && ($data['status'] ?? '') !== 'Published') {
+            if (!empty($data['published_at']) && strtotime($data['published_at']) > time()) {
+                $data['status'] = 'Scheduled';
+            } else {
+                $data['status'] = 'Pending Review';
+            }
         }
 
         return $data;
@@ -53,7 +56,15 @@ class CreateClientArticle extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->label('Create Article'),
+                ->label(fn () => (!empty($this->data['published_at']) && strtotime($this->data['published_at']) > time()) ? 'Schedule Article' : 'Save Article'),
+            Action::make('publishNow')
+                ->label('Publish Now')
+                ->color('success')
+                ->action(function () {
+                    $this->data['status'] = 'Published';
+                    $this->data['published_at'] = now()->format('Y-m-d H:i:s');
+                    $this->create();
+                }),
             Action::make('saveDraft')
                 ->label('Save as Draft')
                 ->color('gray')

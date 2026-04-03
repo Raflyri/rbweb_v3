@@ -14,10 +14,30 @@ class Article extends Model
 {
     use HasFactory, \Spatie\Translatable\HasTranslations, LogsActivity;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'reviewer_id',
+        'title',
+        'slug',
+        'content',
+        'excerpt',
+        'meta_title',
+        'meta_description',
+        'thumbnail',
+        'status',
+        'published_at',
+        'reviewed_at'
+    ];
 
     /** Fields stored as JSON with per-locale values. */
-    public $translatable = ['title', 'content', 'meta_description'];
+    public $translatable = [
+        'title',
+        'slug',
+        'content',
+        'excerpt',
+        'meta_title',
+        'meta_description',
+    ];
 
     protected $casts = [
         'published_at' => 'datetime',
@@ -107,5 +127,10 @@ class Article extends Model
     public function isDraft(): bool
     {
         return $this->status === 'Draft';
+    }
+
+    public function isScheduled(): bool
+    {
+        return $this->status === 'Scheduled';
     }
 }
