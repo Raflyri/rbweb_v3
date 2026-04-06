@@ -18,30 +18,25 @@ beforeEach(function () {
     Role::firstOrCreate(['name' => 'regular_user','guard_name' => 'web']);
 });
 
-// ── 1. Status is always Pending Review on create ─────────────────────────────
-it('forces Pending Review status when a client creates an article', function () {
+// ── 1. Status defaults to Pending Review on create ─────────────────────────────
+it('Forces Pending Review status when a client creates an article via Filament', function () {
     $client = User::factory()->create();
     $client->assignRole('regular_user');
 
-    $article = Article::create([
-        'user_id' => $client->id,
-        'title'   => ['en' => 'Test Article'],
-        'content' => ['en' => 'Some content'],
-        'slug'    => 'test-article',
-        // Intentionally omit status — or try to set Published
-        'status'  => 'Published',
-    ]);
+    test()->actingAs($client);
 
-    // The model boot() forces Pending Review on creating
-    // But since we set status directly here (not via boot because it's set),
-    // let's test via the boot hook path:
-    $article2 = new Article([
-        'user_id' => $client->id,
-        'title'   => ['en' => 'Another Article'],
-        'content' => ['en' => 'Content here'],
-    ]);
-    $article2->save();
+    // Tests using Filament Livewire component to simulate real Client workflow
+    \Livewire\Livewire::test(\App\Filament\ClientArea\Resources\ClientArticleResource\Pages\CreateClientArticle::class)
+        ->fillForm([
+            'title'   => ['id' => 'Another Article'],
+            'content' => ['id' => 'Content here'],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
 
+    $article2 = Article::whereJsonContains('title->id', 'Another Article')->first();
+    
+    expect($article2)->not->toBeNull();
     expect($article2->status)->toBe('Pending Review');
 });
 
