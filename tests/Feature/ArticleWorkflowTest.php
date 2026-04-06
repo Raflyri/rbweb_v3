@@ -25,6 +25,9 @@ it('Forces Pending Review status when a client creates an article via Filament',
 
     test()->actingAs($client);
 
+    // Set active panel so Filament redirects to the correct route after creation
+    \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('client-area'));
+
     // Tests using Filament Livewire component to simulate real Client workflow
     \Livewire\Livewire::test(\App\Filament\ClientArea\Resources\ClientArticleResource\Pages\CreateClientArticle::class)
         ->fillForm([
