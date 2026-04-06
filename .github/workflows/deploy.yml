@@ -85,6 +85,8 @@ jobs:
           php artisan migrate --force
           php artisan serve --no-reload &
           sleep 5 # Tunggu server hidup sebelum test
+          php artisan config:clear
+          php artisan env
           php artisan test # Jalankan Pest PHP
           php artisan dusk # Jalankan Browser Test
 

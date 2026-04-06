@@ -20,10 +20,11 @@ class ArticleController extends Controller
         $articles = Article::published()
             ->with(['user', 'tags'])
             ->latest('published_at')
-            ->when($search, function ($query) use ($search) {
-                // Remove harmful operators, use basic match
-                $safeSearch = str_replace(array('*', '+', '-', '~', '<', '>', '(', ')', '"', '@'), '', $search);
-                $query->whereRaw('MATCH(title_en, title_id, content_en, content_id) AGAINST(? IN BOOLEAN MODE)', ["*{$safeSearch}*"]);
+            ->when($search, function ($query) use ($search, $locale) {
+                $query->where(function ($q) use ($search, $locale) {
+                    $q->where('title->' . $locale, 'like', '%' . $search . '%')
+                      ->orWhere('content->' . $locale, 'like', '%' . $search . '%');
+                });
             })
             ->paginate(9)
             ->withQueryString();
