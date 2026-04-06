@@ -15,7 +15,7 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->beforeEach(function () {
         if (is_dir(database_path('settings'))) {
-            $this->artisan('migrate', ['--path' => 'database/settings', '--database' => 'sqlite']);
+            $this->artisan('migrate', ['--path' => 'database/settings']);
         }
     })
     ->in('Feature');
