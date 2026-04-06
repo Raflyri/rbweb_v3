@@ -64,6 +64,12 @@ class CreateClientArticle extends CreateRecord
                     $this->data['status'] = 'Published';
                     $this->data['published_at'] = now()->format('Y-m-d H:i:s');
                     $this->create();
+                    
+                    \Filament\Notifications\Notification::make()
+                        ->success()
+                        ->title('Berhasil diterbitkan')
+                        ->body('Artikel Anda telah bersatus Published.')
+                        ->send();
                 }),
             Action::make('saveDraft')
                 ->label('Save as Draft')

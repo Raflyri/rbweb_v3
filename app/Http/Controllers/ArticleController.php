@@ -18,14 +18,12 @@ class ArticleController extends Controller
         $search = $request->query('search');
 
         $articles = Article::published()
+            ->with(['user', 'tags'])
             ->latest('published_at')
             ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('title->en', 'like', "%{$search}%")
-                      ->orWhere('title->id', 'like', "%{$search}%")
-                      ->orWhere('content->en', 'like', "%{$search}%")
-                      ->orWhere('content->id', 'like', "%{$search}%");
-                });
+                // Remove harmful operators, use basic match
+                $safeSearch = str_replace(array('*', '+', '-', '~', '<', '>', '(', ')', '"', '@'), '', $search);
+                $query->whereRaw('MATCH(title_en, title_id, content_en, content_id) AGAINST(? IN BOOLEAN MODE)', ["*{$safeSearch}*"]);
             })
             ->paginate(9)
             ->withQueryString();
@@ -41,7 +39,7 @@ class ArticleController extends Controller
         $locale = app()->getLocale();
 
         $article = Article::published()
-            ->where('slug', $slug)
+            ->whereJsonContains('slug->id', $slug)
             ->firstOrFail();
 
         // Get related articles (same status, exclude current, limit 3)

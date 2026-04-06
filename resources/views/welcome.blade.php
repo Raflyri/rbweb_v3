@@ -269,23 +269,23 @@
                                 </div>
                             </div>
 
-                            <!--@elseif ($template === 'portfolio')
-                                {{-- Code window demo --}}
-                                <div class="rb-demo-window" style="margin-bottom:1.5rem;">
-                                    <div class="rb-demo-titlebar">
-                                        <div class="rb-demo-dot" style="background:#FF5F57"></div>
-                                        <div class="rb-demo-dot" style="background:#FEBC2E"></div>
-                                        <div class="rb-demo-dot" style="background:#28C840"></div>
-                                        <span style="font-size:0.63rem;color:#334155;margin-left:0.75rem;font-family:'JetBrains Mono',monospace;">rbeverything.com/@rafly</span>
-                                    </div>
-                                    <div class="rb-demo-code"><span style="color:#38BDF8">const</span> <span
-                                            style="color:#34D399">user</span> = {
-                                        slug: <span style="color:#818CF8">'@rafly'</span>,
-                                        role: <span style="color:#818CF8">'Premium'</span>,
-                                        skills: [<span style="color:#FB7185">'Laravel'</span>, <span
-                                            style="color:#FB7185">'AI'</span>]
-                                        };</div>
-                                </div>-->
+                            @elseif ($template==='portfolio' )
+                            {{-- Code window demo --}}
+                            <div class="rb-demo-window" style="margin-bottom:1.5rem;">
+                                <div class="rb-demo-titlebar">
+                                    <div class="rb-demo-dot" style="background:#FF5F57"></div>
+                                    <div class="rb-demo-dot" style="background:#FEBC2E"></div>
+                                    <div class="rb-demo-dot" style="background:#28C840"></div>
+                                    <span style="font-size:0.63rem;color:#334155;margin-left:0.75rem;font-family:'JetBrains Mono',monospace;">rbeverything.com/@rafly</span>
+                                </div>
+                                <div class="rb-demo-code"><span style="color:#38BDF8">const</span> <span
+                                        style="color:#34D399">user</span> = {
+                                    slug: <span style="color:#818CF8">'@rafly'</span>,
+                                    role: <span style="color:#818CF8">'Premium'</span>,
+                                    skills: [<span style="color:#FB7185">'Laravel'</span>, <span
+                                        style="color:#FB7185">'AI'</span>]
+                                    };</div>
+                            </div>
 
                             @else
                             {{-- Generic: no extra demo widget, description only --}}

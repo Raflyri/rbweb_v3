@@ -65,10 +65,6 @@ class Article extends Model
                     $article->getTranslation('title', 'en', true) ?: 'article'
                 );
             }
-            // Always force Pending Review on creation (clients cannot self-publish)
-            if (empty($article->status)) {
-                $article->status = 'Pending Review';
-            }
         });
     }
 

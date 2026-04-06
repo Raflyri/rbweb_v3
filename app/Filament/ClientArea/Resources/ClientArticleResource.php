@@ -118,6 +118,8 @@ class ClientArticleResource extends Resource
                                         ->options([
                                             'Draft'          => 'Draft',
                                             'Pending Review' => 'Pending Review',
+                                            'Scheduled'      => 'Scheduled',
+                                            'Published'      => 'Published',
                                         ])
                                         ->default('Pending Review')
                                         ->disabled(fn ($record) => $record?->isPublished() ?? false),

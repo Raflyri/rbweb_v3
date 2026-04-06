@@ -14,6 +14,17 @@ jobs:
     name: 🧪 Run Pest & Dusk Tests
     runs-on: ubuntu-latest
     
+    # Tambahkan layer services MySQL untuk kompatibilitas migration production
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: rbeverything_testing
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
@@ -22,10 +33,29 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite3, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, pdo_mysql, bcmath, soap, intl, gd, exif, iconv
+          coverage: none
+
+      - name: 📦 Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: 🔄 Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: 📦 Install Composer Dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: 🔄 Cache NPM Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
 
       - name: 🛠️ Build NPM Assets
         run: |
@@ -35,7 +65,6 @@ jobs:
       - name: 🗄️ Setup Environment & Database
         run: |
           cp .env.example .env
-          touch database/database.sqlite
           php artisan key:generate
 
       - name: 🌐 Setup Chrome Driver (For Dusk)
@@ -45,13 +74,17 @@ jobs:
 
       - name: 🚀 Run Server & Execute Dusk + Pest Tests
         env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: rbeverything_testing
+          DB_USERNAME: root
+          DB_PASSWORD: root
           APP_URL: "http://127.0.0.1:8000"
         run: |
           php artisan migrate --force
           php artisan serve --no-reload &
-          sleep 5 # Tunggu server hidup
+          sleep 5 # Tunggu server hidup sebelum test
           php artisan test # Jalankan Pest PHP
           php artisan dusk # Jalankan Browser Test
 

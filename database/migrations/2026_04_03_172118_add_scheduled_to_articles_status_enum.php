@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE articles MODIFY COLUMN status ENUM('Draft','Pending Review','Scheduled','Published') NOT NULL DEFAULT 'Draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE articles MODIFY COLUMN status ENUM('Draft','Pending Review','Scheduled','Published') NOT NULL DEFAULT 'Draft'");
+        }
     }
 
     /**
@@ -20,8 +22,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert any 'Scheduled' records back to 'Draft' before reverting enum
-        DB::table('articles')->where('status', 'Scheduled')->update(['status' => 'Draft']);
-        DB::statement("ALTER TABLE articles MODIFY COLUMN status ENUM('Draft','Pending Review','Published') NOT NULL DEFAULT 'Draft'");
+        if (DB::getDriverName() === 'mysql') {
+            // Revert any 'Scheduled' records back to 'Draft' before reverting enum
+            DB::table('articles')->where('status', 'Scheduled')->update(['status' => 'Draft']);
+            DB::statement("ALTER TABLE articles MODIFY COLUMN status ENUM('Draft','Pending Review','Published') NOT NULL DEFAULT 'Draft'");
+        }
     }
 };
