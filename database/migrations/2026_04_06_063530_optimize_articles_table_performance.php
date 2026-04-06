@@ -16,11 +16,11 @@ return new class extends Migration
             // Composite index for fast published_at sorting
             $table->index(['status', 'published_at'], 'articles_status_published_at_index');
             
-            // Generated columns for searching
-            $table->string('title_en')->virtualAs("JSON_UNQUOTE(JSON_EXTRACT(title, '$.en'))")->nullable();
-            $table->string('title_id')->virtualAs("JSON_UNQUOTE(JSON_EXTRACT(title, '$.id'))")->nullable();
-            $table->text('content_en')->virtualAs("JSON_UNQUOTE(JSON_EXTRACT(content, '$.en'))")->nullable();
-            $table->text('content_id')->virtualAs("JSON_UNQUOTE(JSON_EXTRACT(content, '$.id'))")->nullable();
+            // Generated columns for searching (must be STORED for FULLTEXT index)
+            $table->string('title_en')->storedAs("JSON_UNQUOTE(JSON_EXTRACT(title, '$.en'))")->nullable();
+            $table->string('title_id')->storedAs("JSON_UNQUOTE(JSON_EXTRACT(title, '$.id'))")->nullable();
+            $table->text('content_en')->storedAs("JSON_UNQUOTE(JSON_EXTRACT(content, '$.en'))")->nullable();
+            $table->text('content_id')->storedAs("JSON_UNQUOTE(JSON_EXTRACT(content, '$.id'))")->nullable();
         });
 
         // Add FULLTEXT index via raw statement
