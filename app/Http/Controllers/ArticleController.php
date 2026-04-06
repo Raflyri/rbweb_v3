@@ -39,7 +39,7 @@ class ArticleController extends Controller
         $locale = app()->getLocale();
 
         $article = Article::published()
-            ->whereJsonContains('slug->id', $slug)
+            ->whereJsonContains('slug->' . $locale, $slug)
             ->firstOrFail();
 
         // Get related articles (same status, exclude current, limit 3)
