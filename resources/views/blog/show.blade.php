@@ -16,7 +16,7 @@
                       ), 160);
 
     $ogImage = $article->thumbnail
-             ? asset('storage/' . $article->thumbnail)
+             ? \Illuminate\Support\Facades\Storage::url($article->thumbnail)
              : asset('images/og-default.png');
 
     /* ── Article display fields ──────────────────────────── */
@@ -111,7 +111,7 @@
     ════════════════════════════════════════════════════ --}}
     @if($article->thumbnail)
         <div class="article-hero" aria-hidden="true">
-            <img src="{{ asset('storage/' . $article->thumbnail) }}"
+            <img src="{{ \Illuminate\Support\Facades\Storage::url($article->thumbnail) }}"
                  alt="{{ $displayTitle }}"
                  class="article-hero__img">
             <div class="article-hero__overlay"></div>
@@ -300,7 +300,7 @@
                             {{-- Thumbnail --}}
                             @if($rel->thumbnail)
                                 <div class="related-card__cover">
-                                    <img src="{{ asset('storage/' . $rel->thumbnail) }}"
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($rel->thumbnail) }}"
                                          alt="{{ $relTitle }}"
                                          class="related-card__img" loading="lazy">
                                 </div>

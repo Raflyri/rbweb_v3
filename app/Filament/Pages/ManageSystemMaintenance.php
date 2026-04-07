@@ -137,16 +137,33 @@ class ManageSystemMaintenance extends Page
                 try {
                     Artisan::call('storage:link');
                     $output = Artisan::output();
-                    
+
+                    Log::info('System Maintenance: Storage symlink created via Admin Panel.', ['user' => \Illuminate\Support\Facades\Auth::id()]);
+
                     Notification::make()
                         ->title('Storage Linked Successfully')
-                        ->body(nl2br(htmlspecialchars($output)))
+                        ->body(nl2br(htmlspecialchars($output ?: 'The storage symlink was created successfully.')))
                         ->success()
                         ->send();
                 } catch (\Exception $e) {
+                    $message = $e->getMessage();
+
+                    // Symlink already exists — this is not a real error
+                    if (str_contains($message, 'already exists') || str_contains($message, 'file exists')) {
+                        Notification::make()
+                            ->title('Storage Already Linked')
+                            ->body('The public/storage symlink already exists. No action was needed.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    Log::error('System Maintenance Storage Link Error: ' . $message);
+
                     Notification::make()
-                        ->title('Action Failed')
-                        ->body($e->getMessage())
+                        ->title('Storage Link Failed')
+                        ->body('Could not create the symlink. Check folder permissions or run `php artisan storage:link` manually. Error: ' . $message)
                         ->danger()
                         ->send();
                 }

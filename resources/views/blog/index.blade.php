@@ -117,7 +117,7 @@
                                class="article-card__cover-link" aria-label="{{ $title }}" tabindex="-1">
                                 @if($article->thumbnail)
                                     <div class="article-card__cover">
-                                        <img src="{{ asset('storage/' . $article->thumbnail) }}"
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($article->thumbnail) }}"
                                              alt="{{ $title }}"
                                              class="article-card__img"
                                              loading="lazy">
