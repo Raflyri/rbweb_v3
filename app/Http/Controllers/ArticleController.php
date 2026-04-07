@@ -34,17 +34,36 @@ class ArticleController extends Controller
 
     /**
      * Display a single published article by slug.
+     *
+     * The slug column is a Spatie Translatable JSON field stored as
+     * {"id":"my-slug","en":"my-slug", ...}.  MySQL's arrow operator
+     * (slug->"$.en") is the only reliable way to query inside the JSON.
+     * whereJsonContains('slug->locale', $value) is NOT valid for a scalar
+     * string comparison — it requires an array value on MySQL 8.
      */
     public function show(string $slug): View
     {
         $locale = app()->getLocale();
 
         $article = Article::published()
-            ->whereJsonContains('slug->' . $locale, $slug)
+            ->with(['user', 'tags'])
+            ->where(function ($query) use ($slug, $locale) {
+                // Primary: match the active locale key inside the JSON column.
+                $query->where("slug->{$locale}", $slug);
+
+                // Fallback: if no match in the active locale, search every
+                // stored locale key so old links keep working after locale changes.
+                foreach (['id', 'my', 'en', 'jp', 'ms', 'ja'] as $loc) {
+                    if ($loc !== $locale) {
+                        $query->orWhere("slug->{$loc}", $slug);
+                    }
+                }
+            })
             ->firstOrFail();
 
-        // Get related articles (same status, exclude current, limit 3)
+        // Related articles — exclude current, newest first
         $related = Article::published()
+            ->with(['user', 'tags'])
             ->where('id', '!=', $article->id)
             ->latest('published_at')
             ->take(3)

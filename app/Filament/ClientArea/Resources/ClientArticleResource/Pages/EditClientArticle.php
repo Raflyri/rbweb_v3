@@ -17,7 +17,7 @@ class EditClientArticle extends EditRecord
         return ['class' => 'article-editor-page'];
     }
 
-    // Prevent editing published articles
+    // Show a soft reminder but do NOT lock out editing of published articles
     public function mount(int|string $record): void
     {
         parent::mount($record);
@@ -27,30 +27,22 @@ class EditClientArticle extends EditRecord
 
         if ($article->isPublished()) {
             \Filament\Notifications\Notification::make()
-                ->title('Published articles cannot be edited.')
-                ->info()
+                ->title('Artikel sudah Published')
+                ->body('Perubahan pada artikel ini akan langsung diterapkan ke halaman publik.')
+                ->warning()
                 ->send();
-
-            $this->redirect(ClientArticleResource::getUrl('index'));
         }
     }
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // Spatie Translatable casts return arrays in toArray(). 
-        // We unpack them for the Filament form fields.
-        $locale = app()->getLocale();
-        foreach (['title', 'content', 'meta_description'] as $field) {
-            if (isset($data[$field]) && is_array($data[$field])) {
-                $data[$field] = $data[$field][$locale] 
-                    ?? $data[$field]['id'] 
-                    ?? $data[$field]['en'] 
-                    ?? (array_values($data[$field])[0] ?? null);
-            }
-        }
-
+        // Spatie Translatable stores translatable fields as JSON arrays keyed by locale.
+        // The form uses dot-notation fields (title.id, title.en, content.id, …) which
+        // Filament resolves from the nested array automatically.
+        // Do NOT flatten the arrays here — doing so wipes every other locale on save.
         return $data;
     }
+
 
     protected function getHeaderActions(): array
     {

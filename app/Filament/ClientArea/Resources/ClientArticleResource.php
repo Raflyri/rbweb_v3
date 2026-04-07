@@ -121,8 +121,7 @@ class ClientArticleResource extends Resource
                                             'Scheduled'      => 'Scheduled',
                                             'Published'      => 'Published',
                                         ])
-                                        ->default('Pending Review')
-                                        ->disabled(fn ($record) => $record?->isPublished() ?? false),
+                                        ->default('Pending Review'),
 
                                     DateTimePicker::make('published_at')
                                         ->label('Jadwal Publish')
@@ -220,8 +219,7 @@ class ClientArticleResource extends Resource
                     ->sortable(),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->visible(fn (Article $record) => $record->isDraft()),
+                EditAction::make(),
 
                 ViewAction::make()
                     ->visible(fn (Article $record) => ! $record->isDraft()),

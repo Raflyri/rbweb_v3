@@ -1,377 +1,779 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@extends('layouts.public')
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Blog — RBeverything</title>
-    <meta name="description" content="Latest insights, tutorials, and tech deep-dives from RBeverything.">
-    <meta property="og:title" content="Blog — RBeverything">
-    <meta property="og:description" content="Latest insights, tutorials, and tech deep-dives from RBeverything.">
-    <meta property="og:type" content="website">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
+{{-- ════════════════════════════════════════════════════════════
+     SEO — Blog Index
+════════════════════════════════════════════════════════════ --}}
+@section('meta_title',       'Blog')
+@section('meta_description', 'Latest insights, tutorials, and tech deep-dives from RBeverything.')
+@section('og_type',          'website')
+@section('og_title',         'Blog — RBeverything')
+@section('og_description',   'Latest insights, tutorials, and tech deep-dives from RBeverything.')
+@section('nav_blog_active',  'style="color:var(--color-text);"')
 
-<body>
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    {{-- BACKGROUND --}}
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    <div class="rb-bg" aria-hidden="true">
-        <div class="rb-bg-gradient"></div>
-        <div class="rb-dot-grid"></div>
-        <div class="rb-binary-overlay"></div>
-    </div>
+{{-- ════════════════════════════════════════════════════════════
+     CONTENT
+════════════════════════════════════════════════════════════ --}}
+@section('content')
 
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    {{-- NAVIGATION --}}
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    <header id="rb-nav" class="rb-nav scrolled" role="banner">
-        <div
-            style="max-width:80rem;margin:0 auto;padding:0 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    {{-- ════════════════════════════════════════════════════════
+         BLOG HERO HEADER
+    ════════════════════════════════════════════════════════ --}}
+    <section class="blog-hero" aria-label="Blog Header">
+        <div class="rb-section" style="padding-bottom:2.5rem;">
 
-            {{-- LOGO --}}
-            <a href="/" style="text-decoration:none;flex-shrink:0;" aria-label="RBeverything — Home">
-                <span
-                    style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;background:linear-gradient(135deg,#E53E3E,#C53030);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                    RBeverything
-                </span>
-            </a>
-
-            {{-- DESKTOP NAV --}}
-            <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
-                <a href="/#products" class="rb-nav-link">Products</a>
-                <a href="/#services" class="rb-nav-link">Services</a>
-                <a href="/blog" class="rb-nav-link" style="color:var(--color-text);">Blog</a>
-                <a href="/#about" class="rb-nav-link">About Us</a>
+            {{-- Breadcrumb --}}
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+                <a href="/" class="breadcrumb__link">Home</a>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                <span class="breadcrumb__current">Blog</span>
             </nav>
 
-            {{-- CTA --}}
-            <div class="rb-desktop-nav" style="display:flex;align-items:center;gap:0.875rem;">
-                <a href="mailto:hello@rbeverything.com" class="rb-btn-primary">
-                    Let's Collaborate
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                </a>
-            </div>
-
-            {{-- HAMBURGER --}}
-            <button id="rb-hamburger" class="rb-hamburger" aria-label="Open navigation menu" aria-expanded="false"
-                aria-controls="rb-mobile-menu">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </header>
-
-    {{-- ── MOBILE MENU ── --}}
-    <div id="rb-mobile-menu" class="rb-mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
-        <nav style="display:flex;flex-direction:column;gap:0.25rem;">
-            <a href="/#products"
-                style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Products</a>
-            <a href="/#services"
-                style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Services</a>
-            <a href="/blog"
-                style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Blog</a>
-            <a href="/#about"
-                style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">About Us</a>
-        </nav>
-        <a href="mailto:hello@rbeverything.com" class="rb-btn-hero" style="margin-top:1.25rem;width:fit-content;">
-            Let's Collaborate
-        </a>
-    </div>
-
-    <main style="padding-top:8rem;">
-
-        {{-- ═══════════════════════════════════════════════════════════ --}}
-        {{-- BLOG HEADER --}}
-        {{-- ═══════════════════════════════════════════════════════════ --}}
-        <section aria-label="Blog Header">
-            <div class="rb-section" style="padding-bottom:2rem;">
-                {{-- Breadcrumb --}}
-                <nav style="margin-bottom:2rem;font-size:0.8rem;color:var(--color-muted);" aria-label="Breadcrumb">
-                    <a href="/" style="color:var(--color-muted);text-decoration:none;transition:color 0.3s;"
-                       onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color=''">Home</a>
-                    <span style="margin:0 0.5rem;opacity:0.4;">/</span>
-                    <span style="color:var(--color-text);">Blog</span>
-                </nav>
-
-                <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:2rem;">
-                    <div>
-                        <span class="rb-section-label">Latest Insights</span>
-                        <h1 class="rb-section-title" style="margin-bottom:0.5rem;">Blog</h1>
-                        <p style="font-size:1.05rem;color:var(--color-muted);font-weight:300;max-width:32rem;line-height:1.7;">
-                            Deep-dives into technology, tutorials, and insights from our engineering team.
-                        </p>
-                    </div>
-
-                    {{-- SEARCH BAR --}}
-                    <form action="{{ route('blog.index') }}" method="GET" id="blog-search-form"
-                          style="display:flex;align-items:center;gap:0.5rem;width:100%;max-width:24rem;">
-                        <div style="position:relative;flex:1;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)"
-                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                 style="position:absolute;left:0.875rem;top:50%;transform:translateY(-50%);pointer-events:none;">
-                                <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
-                            </svg>
-                            <input type="text" name="search" id="blog-search-input"
-                                   value="{{ $search ?? '' }}"
-                                   placeholder="Search articles..."
-                                   style="width:100%;padding:0.7rem 1rem 0.7rem 2.75rem;border-radius:9999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:var(--color-text);font-size:0.875rem;font-family:inherit;outline:none;transition:border-color 0.3s,box-shadow 0.3s;"
-                                   onfocus="this.style.borderColor='rgba(220,38,38,0.3)';this.style.boxShadow='0 0 0 3px rgba(220,38,38,0.08)'"
-                                   onblur="this.style.borderColor='rgba(255,255,255,0.08)';this.style.boxShadow='none'">
-                        </div>
-                        <button type="submit" class="rb-btn-primary"
-                                style="padding:0.7rem 1.25rem;font-size:0.8rem;border-radius:9999px;">
-                            Search
-                        </button>
-                    </form>
+            {{-- Title block --}}
+            <div class="blog-hero__inner">
+                <div class="blog-hero__text">
+                    <span class="rb-section-label">Latest Insights</span>
+                    <h1 class="rb-section-title" style="margin-bottom:0.75rem;">Blog</h1>
+                    <p class="blog-hero__subtitle">
+                        Deep-dives into technology, tutorials, and insights from our engineering team.
+                    </p>
                 </div>
 
-                @if($search)
-                    <div style="margin-top:1.5rem;display:flex;align-items:center;gap:0.75rem;">
-                        <p style="font-size:0.875rem;color:var(--color-muted);">
-                            Showing results for "<span style="color:var(--color-text);font-weight:600;">{{ $search }}</span>"
-                            <span style="opacity:0.5;">·</span>
-                            {{ $articles->total() }} {{ Str::plural('article', $articles->total()) }} found
-                        </p>
-                        <a href="{{ route('blog.index') }}"
-                           style="font-size:0.75rem;font-weight:600;color:#DC2626;text-decoration:none;padding:0.25rem 0.75rem;border-radius:9999px;border:1px solid rgba(220,38,38,0.25);transition:background 0.3s;"
-                           onmouseover="this.style.background='rgba(220,38,38,0.08)'"
-                           onmouseout="this.style.background='transparent'">
-                            Clear
-                        </a>
-                    </div>
-                @endif
-            </div>
-        </section>
-
-        <div class="rb-divider"></div>
-
-        {{-- ═══════════════════════════════════════════════════════════ --}}
-        {{-- ARTICLES GRID --}}
-        {{-- ═══════════════════════════════════════════════════════════ --}}
-        <section aria-label="Articles">
-            <div class="rb-section" style="padding-top:3rem;">
-
-                @if($articles->count() > 0)
-                    <div style="display:grid;grid-template-columns:repeat(1,1fr);gap:2rem;"
-                         class="blog-grid">
-                        @foreach($articles as $article)
-                            @php
-                                $title   = $article->getTranslation('title', $locale, true);
-                                $content = $article->getTranslation('content', $locale, true);
-                                $excerpt = Str::limit(strip_tags($content), 160);
-                            @endphp
-                            <a href="{{ route('blog.show', $article->slug) }}" class="rb-card"
-                               style="display:flex;flex-direction:column;text-decoration:none;color:inherit;overflow:hidden;"
-                               id="article-card-{{ $article->id }}">
-                                <div class="rb-card-content" style="display:flex;flex-direction:column;height:100%;">
-                                    {{-- Thumbnail --}}
-                                    @if($article->thumbnail)
-                                        <div style="width:100%;height:200px;overflow:hidden;">
-                                            <img src="{{ asset('storage/' . $article->thumbnail) }}"
-                                                 alt="{{ $title }}"
-                                                 style="width:100%;height:100%;object-fit:cover;transition:transform 0.5s ease;"
-                                                 onmouseover="this.style.transform='scale(1.05)'"
-                                                 onmouseout="this.style.transform='scale(1)'">
-                                        </div>
-                                    @else
-                                        <div style="width:100%;height:200px;background:linear-gradient(135deg,rgba(220,38,38,0.08),rgba(185,28,28,0.03));display:flex;align-items:center;justify-content:center;">
-                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,0.2)"
-                                                 stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="3" width="18" height="18" rx="2" />
-                                                <circle cx="8.5" cy="8.5" r="1.5" />
-                                                <polyline points="21 15 16 10 5 21" />
-                                            </svg>
-                                        </div>
-                                    @endif
-
-                                    {{-- Content --}}
-                                    <div style="padding:1.5rem;display:flex;flex-direction:column;flex:1;gap:0.75rem;">
-                                        <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#DC2626;">
-                                            Article
-                                        </span>
-                                        <h2 style="font-size:1.15rem;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:var(--color-text);margin:0;">
-                                            {{ $title }}
-                                        </h2>
-                                        <p style="font-size:0.85rem;color:var(--color-muted);line-height:1.65;flex:1;">
-                                            {{ $excerpt }}
-                                        </p>
-                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.05);">
-                                            <span style="font-size:0.75rem;color:var(--color-muted);font-family:var(--font-mono);">
-                                                {{ $article->published_at?->format('M d, Y') ?? '' }}
-                                            </span>
-                                            <span style="font-size:0.75rem;font-weight:600;color:#DC2626;display:flex;align-items:center;gap:0.25rem;">
-                                                Read more
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                                </svg>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        @endforeach
-                    </div>
-
-                    {{-- PAGINATION --}}
-                    @if($articles->hasPages())
-                        <div style="margin-top:3rem;display:flex;justify-content:center;" id="blog-pagination">
-                            {{ $articles->links() }}
-                        </div>
-                    @endif
-
-                @else
-                    {{-- EMPTY STATE --}}
-                    <div class="flex flex-col items-center justify-center py-24 px-4 text-center" id="blog-empty-state">
+                {{-- Search Bar --}}
+                <form action="{{ route('blog.index') }}" method="GET"
+                      id="blog-search-form" class="blog-search" role="search" aria-label="Search articles">
+                    <div class="blog-search__field">
+                        <svg class="blog-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                        </svg>
+                        <input type="text" name="search" id="blog-search-input"
+                               value="{{ $search ?? '' }}"
+                               placeholder="{{ __('Search articles…') }}"
+                               autocomplete="off"
+                               class="blog-search__input">
                         @if($search)
-                            {{-- Search with no results --}}
-                            <div class="mb-6 rounded-full bg-red-500/10 p-5 border border-red-500/20 shadow-inner">
-                                <svg class="w-14 h-14 text-red-500/70 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m13.5 8.5-5 5"></path><path d="m8.5 8.5 5 5"></path><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
-                                </svg>
-                            </div>
-                            <h3 class="text-2xl font-bold text-white mb-3" style="font-family:var(--font-sans, 'Inter', sans-serif);">
-                                {{ __('No articles found') }}
-                            </h3>
-                            <p class="text-[0.95rem] text-slate-400 max-w-md mx-auto leading-relaxed">
-                                {{ __('We couldn\'t find any articles matching ":search". Try adjusting your search keywords.', ['search' => $search]) }}
-                            </p>
-                            <a href="{{ route('blog.index') }}" class="mt-8 font-semibold text-sm text-red-400 hover:text-red-300 flex items-center justify-center gap-1.5 transition-colors border-b border-transparent hover:border-red-300 pb-0.5">
-                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                                {{ __('Clear search') }}
+                            <a href="{{ route('blog.index') }}" class="blog-search__clear" aria-label="Clear search">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                             </a>
-                        @else
-                            {{-- Completely Empty Blog --}}
-                            <div class="mb-6 rounded-full bg-red-500/10 p-5 border border-red-500/20 shadow-inner">
-                                <svg class="w-14 h-14 text-red-500/70 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
-                                </svg>
-                            </div>
-                            <h3 class="text-2xl font-bold text-white mb-3" style="font-family:var(--font-sans, 'Inter', sans-serif);">
-                                {{ __('No articles yet') }}
-                            </h3>
-                            <p class="text-[0.95rem] text-slate-400 max-w-md mx-auto leading-relaxed">
-                                {{ __('We are actively preparing new tech insights and tutorials. Please check back soon!') }}
-                            </p>
                         @endif
                     </div>
+                    <button type="submit" class="rb-btn-primary blog-search__btn">
+                        {{ __('Search') }}
+                    </button>
+                </form>
+            </div>
+
+            {{-- Active search notice --}}
+            @if($search)
+                <div class="blog-search-badge" role="status">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <span>
+                        {{ $articles->total() }} {{ Str::plural('result', $articles->total()) }} for
+                        <strong>"{{ $search }}"</strong>
+                    </span>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    <div class="rb-divider"></div>
+
+    {{-- ════════════════════════════════════════════════════════
+         ARTICLES GRID
+    ════════════════════════════════════════════════════════ --}}
+    <section aria-label="{{ __('Articles') }}" class="blog-articles">
+        <div class="rb-section" style="padding-top:3.5rem;padding-bottom:5rem;">
+
+            @if($articles->count() > 0)
+
+                <div class="article-grid">
+                    @foreach($articles as $article)
+                        @php
+                            /* ── Translatable fields ──────────────────────────── */
+                            $title   = $article->getTranslation('title',   $locale, true);
+                            $excerpt = $article->getTranslation('excerpt', $locale, false);
+
+                            // Fallback: strip HTML from content if no excerpt set
+                            if (empty(trim($excerpt))) {
+                                $rawContent = $article->getTranslation('content', $locale, true);
+                                $excerpt    = Str::limit(strip_tags($rawContent), 200);
+                            }
+
+                            /* ── Read-time estimate ───────────────────────────── */
+                            $rawContent  = $article->getTranslation('content', $locale, true);
+                            $wordCount   = str_word_count(strip_tags($rawContent));
+                            $readMinutes = max(1, (int) ceil($wordCount / 200));
+
+                            /* ── Author ───────────────────────────────────────── */
+                            $authorName = $article->user?->name ?? 'RBeverything';
+
+                            /* ── First tag ────────────────────────────────────── */
+                            $firstTag = $article->tags->first();
+                        @endphp
+
+                        <article class="article-card" id="article-card-{{ $article->id }}">
+                            {{-- ── Cover Image ──────────────────────────────── --}}
+                            <a href="{{ route('blog.show', $article->getTranslation('slug', $locale, true)) }}"
+                               class="article-card__cover-link" aria-label="{{ $title }}" tabindex="-1">
+                                @if($article->thumbnail)
+                                    <div class="article-card__cover">
+                                        <img src="{{ asset('storage/' . $article->thumbnail) }}"
+                                             alt="{{ $title }}"
+                                             class="article-card__img"
+                                             loading="lazy">
+                                        <div class="article-card__cover-overlay" aria-hidden="true"></div>
+                                    </div>
+                                @else
+                                    <div class="article-card__cover article-card__cover--placeholder">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                             stroke="rgba(220,38,38,0.25)" stroke-width="1"
+                                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                                            <polyline points="21 15 16 10 5 21"/>
+                                        </svg>
+                                    </div>
+                                @endif
+                            </a>
+
+                            {{-- ── Card Body ────────────────────────────────── --}}
+                            <div class="article-card__body">
+
+                                {{-- Tags row --}}
+                                <div class="article-card__tags" aria-label="Tags">
+                                    @if($firstTag)
+                                        <span class="article-tag">
+                                            {{ $firstTag->getTranslation('name', $locale, false) ?: $firstTag->name }}
+                                        </span>
+                                        @if($article->tags->count() > 1)
+                                            <span class="article-tag article-tag--more">
+                                                +{{ $article->tags->count() - 1 }}
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span class="article-tag">Article</span>
+                                    @endif
+                                </div>
+
+                                {{-- Title --}}
+                                <h2 class="article-card__title">
+                                    <a href="{{ route('blog.show', $article->getTranslation('slug', $locale, true)) }}"
+                                       class="article-card__title-link">
+                                        {{ $title }}
+                                    </a>
+                                </h2>
+
+                                {{-- Excerpt (clamped to 2 lines via CSS) --}}
+                                <p class="article-card__excerpt">{{ $excerpt }}</p>
+
+                                {{-- ── Meta Footer ─────────────────────────── --}}
+                                <div class="article-card__meta">
+                                    {{-- Author avatar + name --}}
+                                    <div class="article-card__author">
+                                        <div class="article-card__avatar" aria-hidden="true">
+                                            {{ strtoupper(mb_substr($authorName, 0, 1)) }}
+                                        </div>
+                                        <span class="article-card__author-name">{{ $authorName }}</span>
+                                    </div>
+
+                                    {{-- Read time + date --}}
+                                    <div class="article-card__info">
+                                        <span class="article-card__read-time" title="{{ __('Estimated reading time') }}">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            {{ $readMinutes }} min read
+                                        </span>
+                                        @if($article->published_at)
+                                            <span class="article-card__dot" aria-hidden="true">·</span>
+                                            <time class="article-card__date"
+                                                  datetime="{{ $article->published_at->toIso8601String() }}">
+                                                {{ $article->published_at->format('M d, Y') }}
+                                            </time>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Read More CTA --}}
+                                <a href="{{ route('blog.show', $article->getTranslation('slug', $locale, true)) }}"
+                                   class="article-card__cta" aria-label="Read {{ $title }}">
+                                    Read Article
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+
+                {{-- ── Pagination ───────────────────────────────────── --}}
+                @if($articles->hasPages())
+                    <div class="blog-pagination" id="blog-pagination" aria-label="Pagination">
+                        {{ $articles->links() }}
+                    </div>
                 @endif
 
-            </div>
-        </section>
+            @else
+                {{-- ════════════════════════════════════════════════
+                     EMPTY STATE
+                ════════════════════════════════════════════════ --}}
+                <div class="blog-empty" id="blog-empty-state" role="status">
+                    @if($search)
+                        <div class="blog-empty__icon-wrap blog-empty__icon-wrap--search">
+                            <svg class="blog-empty__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/>
+                                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                            </svg>
+                        </div>
+                        <h3 class="blog-empty__title">{{ __('No articles found') }}</h3>
+                        <p class="blog-empty__desc">
+                            {{ __('We couldn\'t find any articles matching ":search". Try different keywords.', ['search' => $search]) }}
+                        </p>
+                        <a href="{{ route('blog.index') }}" class="blog-empty__cta">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+                            </svg>
+                            {{ __('Clear search') }}
+                        </a>
+                    @else
+                        <div class="blog-empty__icon-wrap">
+                            <svg class="blog-empty__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+                            </svg>
+                        </div>
+                        <h3 class="blog-empty__title">{{ __('No articles yet') }}</h3>
+                        <p class="blog-empty__desc">
+                            {{ __('We\'re actively preparing new tech insights and tutorials. Please check back soon!') }}
+                        </p>
+                    @endif
+                </div>
+            @endif
 
-    </main>
-
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    {{-- FOOTER --}}
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    <footer class="rb-footer" aria-label="Footer">
-        <div style="max-width:80rem;margin:0 auto;text-align:center;">
-            <a href="/" style="text-decoration:none;">
-                <span class="rb-footer-logo">RBeverything</span>
-            </a>
-            <p style="font-size:0.85rem;color:var(--color-muted);margin-top:0.75rem;line-height:1.6;">
-                Everything you need. Smarter systems, bolder results.
-            </p>
         </div>
-        <div class="rb-footer-bottom">
-            <span>© {{ date('Y') }} RBeverything. All rights reserved.</span>
-            <div style="display:flex;gap:1.5rem;">
-                <a href="/" class="rb-footer-link" style="margin:0;">Home</a>
-                <a href="/blog" class="rb-footer-link" style="margin:0;">Blog</a>
-            </div>
-        </div>
-    </footer>
+    </section>
 
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    {{-- RESPONSIVE GRID + PAGINATION STYLING --}}
-    {{-- ═══════════════════════════════════════════════════════════ --}}
-    <style>
-        /* Blog responsive grid */
-        @media (min-width: 640px) {
-            .blog-grid { grid-template-columns: repeat(2, 1fr) !important; }
-        }
-        @media (min-width: 1024px) {
-            .blog-grid { grid-template-columns: repeat(3, 1fr) !important; }
-        }
+@endsection
 
-        /* Laravel pagination dark theme */
-        nav[role="navigation"] {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-        }
-        nav[role="navigation"] .flex-1 { display: none; }
-        nav[role="navigation"] .hidden { display: flex !important; gap: 0.25rem; }
-        nav[role="navigation"] span[aria-current="page"] span,
-        nav[role="navigation"] a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 2.25rem;
-            height: 2.25rem;
-            padding: 0 0.5rem;
-            border-radius: 0.5rem;
-            font-size: 0.8rem;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-        nav[role="navigation"] span[aria-current="page"] span {
-            background: rgba(220,38,38,0.12);
-            border-color: rgba(220,38,38,0.3);
-            color: #DC2626;
-            font-weight: 700;
-        }
-        nav[role="navigation"] a {
-            color: var(--color-muted);
-            background: rgba(255,255,255,0.02);
-        }
-        nav[role="navigation"] a:hover {
-            background: rgba(220,38,38,0.06);
-            border-color: rgba(220,38,38,0.2);
-            color: var(--color-text);
-        }
-        nav[role="navigation"] span.cursor-default {
-            display: none;
-        }
-        nav[role="navigation"] p {
-            font-size: 0.8rem;
-            color: var(--color-muted);
-        }
-        /* Mobile menu toggle */
-        .rb-hamburger { display: none; }
-        @media (max-width: 768px) {
-            .rb-hamburger { display: flex; }
-            .rb-desktop-nav { display: none !important; }
-        }
-    </style>
+{{-- ════════════════════════════════════════════════════════════
+     PAGE-SPECIFIC STYLES
+════════════════════════════════════════════════════════════ --}}
+@section('styles')
+<style>
+/* ══════════════════════════════════════════════════════
+   BLOG HERO
+══════════════════════════════════════════════════════ */
+.blog-hero {}
 
-    <script>
-        // Simple hamburger toggle for blog pages
-        document.getElementById('rb-hamburger')?.addEventListener('click', function() {
-            this.classList.toggle('open');
-            document.getElementById('rb-mobile-menu')?.classList.toggle('open');
-        });
-        // Close mobile menu on link click
-        document.querySelectorAll('#rb-mobile-menu a').forEach(a => {
-            a.addEventListener('click', () => {
-                document.getElementById('rb-hamburger')?.classList.remove('open');
-                document.getElementById('rb-mobile-menu')?.classList.remove('open');
-            });
-        });
-    </script>
+.blog-hero__inner {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2rem;
+}
 
-</body>
+.blog-hero__text {
+    flex: 1;
+    min-width: 0;
+}
 
-</html>
+.blog-hero__subtitle {
+    font-size: 1.05rem;
+    color: var(--color-muted);
+    font-weight: 300;
+    max-width: 34rem;
+    line-height: 1.75;
+    margin: 0;
+}
+
+/* ── Breadcrumb ─────────────────────────────────────── */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    margin-bottom: 2rem;
+}
+.breadcrumb svg { opacity: 0.4; flex-shrink: 0; }
+.breadcrumb__link {
+    color: var(--color-muted);
+    text-decoration: none;
+    transition: color 0.25s;
+}
+.breadcrumb__link:hover { color: #DC2626; }
+.breadcrumb__current { color: var(--color-text); }
+
+/* ── Search ─────────────────────────────────────────── */
+.blog-search {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    max-width: 26rem;
+    flex-shrink: 0;
+}
+
+.blog-search__field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.blog-search__icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--color-muted);
+    flex-shrink: 0;
+}
+
+.blog-search__input {
+    width: 100%;
+    padding: 0.7rem 2.6rem 0.7rem 2.75rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+}
+.blog-search__input::placeholder { color: var(--color-muted); }
+.blog-search__input:focus {
+    border-color: rgba(220,38,38,0.35);
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.09);
+    background: rgba(255,255,255,0.06);
+}
+
+.blog-search__clear {
+    position: absolute;
+    right: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+.blog-search__clear:hover { color: #DC2626; }
+
+.blog-search__btn {
+    padding: 0.7rem 1.35rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Search result badge ────────────────────────────── */
+.blog-search-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+    padding: 0.45rem 1rem;
+    border-radius: 9999px;
+    background: rgba(220,38,38,0.07);
+    border: 1px solid rgba(220,38,38,0.2);
+    font-size: 0.82rem;
+    color: var(--color-muted);
+}
+.blog-search-badge svg { color: #DC2626; flex-shrink: 0; }
+.blog-search-badge strong { color: var(--color-text); font-weight: 600; }
+
+/* ══════════════════════════════════════════════════════
+   ARTICLE GRID
+══════════════════════════════════════════════════════ */
+.article-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 2rem;
+}
+@media (min-width: 640px)  { .article-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .article-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ══════════════════════════════════════════════════════
+   ARTICLE CARD
+══════════════════════════════════════════════════════ */
+.article-card {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    transition:
+        border-color 0.35s cubic-bezier(0.4,0,0.2,1),
+        box-shadow   0.35s cubic-bezier(0.4,0,0.2,1),
+        transform    0.35s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+}
+
+.article-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 0% 0%, rgba(220,38,38,0.05), transparent 65%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.article-card:hover {
+    border-color: rgba(220,38,38,0.28);
+    box-shadow: 0 0 0 1px rgba(220,38,38,0.12), 0 20px 50px -12px rgba(0,0,0,0.55);
+    transform: translateY(-5px);
+}
+.article-card:hover::before { opacity: 1; }
+
+/* ── Cover image ────────────────────────────────────── */
+.article-card__cover-link {
+    display: block;
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+}
+
+.article-card__cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(220,38,38,0.08), rgba(185,28,28,0.03));
+}
+
+.article-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.article-card:hover .article-card__img {
+    transform: scale(1.06);
+}
+
+.article-card__cover-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(3,5,8,0.5) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.35s;
+}
+.article-card:hover .article-card__cover-overlay { opacity: 1; }
+
+.article-card__cover--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Body ───────────────────────────────────────────── */
+.article-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 1.5rem;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Tags ───────────────────────────────────────────── */
+.article-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.article-tag {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(220,38,38,0.1);
+    color: #DC2626;
+    border: 1px solid rgba(220,38,38,0.22);
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.article-tag--more {
+    background: rgba(255,255,255,0.04);
+    color: var(--color-muted);
+    border-color: rgba(255,255,255,0.08);
+}
+
+/* ── Title ──────────────────────────────────────────── */
+.article-card__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.018em;
+    line-height: 1.38;
+}
+
+.article-card__title-link {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color 0.25s;
+    /* Clamp to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.article-card__title-link:hover { color: #DC2626; }
+
+/* ── Excerpt ────────────────────────────────────────── */
+.article-card__excerpt {
+    margin: 0;
+    font-size: 0.855rem;
+    color: var(--color-muted);
+    line-height: 1.7;
+    flex: 1;
+    /* Hard 2-line clamp */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Meta footer ────────────────────────────────────── */
+.article-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid rgba(255,255,255,0.055);
+    margin-top: auto;
+}
+
+.article-card__author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.article-card__avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(220,38,38,0.25), rgba(185,28,28,0.15));
+    border: 1px solid rgba(220,38,38,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #DC2626;
+    flex-shrink: 0;
+    letter-spacing: 0;
+}
+
+.article-card__author-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 8rem;
+}
+
+.article-card__info {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.article-card__read-time {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
+.article-card__dot {
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    opacity: 0.5;
+}
+
+.article-card__date {
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
+/* ── CTA ────────────────────────────────────────────── */
+.article-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #DC2626;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: gap 0.25s, color 0.25s;
+    margin-top: 0.25rem;
+    align-self: flex-start;
+}
+.article-card__cta svg {
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.article-card:hover .article-card__cta { color: #EF4444; }
+.article-card:hover .article-card__cta svg { transform: translateX(4px); }
+
+/* ══════════════════════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════════════════════ */
+.blog-pagination {
+    margin-top: 4rem;
+    display: flex;
+    justify-content: center;
+}
+.blog-pagination nav[role="navigation"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+}
+.blog-pagination nav[role="navigation"] .flex-1 { display: none; }
+.blog-pagination nav[role="navigation"] .hidden { display: flex !important; gap: 0.3rem; }
+.blog-pagination nav[role="navigation"] span[aria-current="page"] span,
+.blog-pagination nav[role="navigation"] a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.35rem;
+    height: 2.35rem;
+    padding: 0 0.5rem;
+    border-radius: 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.07);
+    font-family: var(--font-mono);
+}
+.blog-pagination nav[role="navigation"] span[aria-current="page"] span {
+    background: rgba(220,38,38,0.14);
+    border-color: rgba(220,38,38,0.35);
+    color: #DC2626;
+    font-weight: 700;
+}
+.blog-pagination nav[role="navigation"] a {
+    color: var(--color-muted);
+    background: rgba(255,255,255,0.02);
+}
+.blog-pagination nav[role="navigation"] a:hover {
+    background: rgba(220,38,38,0.07);
+    border-color: rgba(220,38,38,0.22);
+    color: var(--color-text);
+}
+.blog-pagination nav[role="navigation"] span.cursor-default { display: none; }
+.blog-pagination nav[role="navigation"] p {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+/* ══════════════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════════════ */
+.blog-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 1.5rem;
+    text-align: center;
+}
+
+.blog-empty__icon-wrap {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    background: rgba(220,38,38,0.07);
+    border: 1px solid rgba(220,38,38,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 0 40px rgba(220,38,38,0.08);
+}
+.blog-empty__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    color: rgba(220,38,38,0.6);
+}
+
+.blog-empty__title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    margin: 0 0 0.75rem;
+    font-family: var(--font-sans);
+}
+
+.blog-empty__desc {
+    font-size: 0.95rem;
+    color: var(--color-muted);
+    max-width: 28rem;
+    line-height: 1.7;
+    margin: 0 0 2rem;
+}
+
+.blog-empty__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #DC2626;
+    text-decoration: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(220,38,38,0.28);
+    transition: background 0.25s, box-shadow 0.25s;
+}
+.blog-empty__cta:hover {
+    background: rgba(220,38,38,0.07);
+    box-shadow: 0 0 20px rgba(220,38,38,0.1);
+}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE TWEAKS
+══════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+    .blog-hero__inner { flex-direction: column; align-items: flex-start; }
+    .blog-search { max-width: 100%; }
+    .article-card__meta { flex-direction: column; align-items: flex-start; }
+}
+</style>
+@endsection
