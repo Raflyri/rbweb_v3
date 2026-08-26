@@ -117,12 +117,7 @@ class ClientArticleResource extends Resource
 
                                     Select::make('status')
                                         ->label('Status')
-                                        ->options([
-                                            'Draft'          => 'Draft',
-                                            'Pending Review' => 'Pending Review',
-                                            'Scheduled'      => 'Scheduled',
-                                            'Published'      => 'Published',
-                                        ])
+                                        ->options(fn (?Article $record) => ArticlePublishRules::statusOptions($record))
                                         ->default('Pending Review')
                                         ->live()
                                         ->rules(ArticlePublishRules::rules())
@@ -208,6 +203,7 @@ class ClientArticleResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Published'      => 'success',
+                        'Scheduled'      => 'info',
                         'Pending Review' => 'warning',
                         'Draft'          => 'gray',
                         default          => 'gray',

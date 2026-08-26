@@ -2,9 +2,12 @@
 
 namespace App\Filament\Support;
 
+use App\Models\Article;
+use App\Policies\ArticlePolicy;
 use App\Support\ArticleContent;
 use Closure;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 use Filament\Schemas\Components\Utilities\Get;
 
 /**
@@ -19,7 +22,41 @@ use Filament\Schemas\Components\Utilities\Get;
 class ArticlePublishRules
 {
     /** Statuses that make an article publicly reachable. */
-    public const GUARDED_STATUSES = ['Published', 'Scheduled'];
+    public const GUARDED_STATUSES = ArticlePolicy::PUBLIC_STATUSES;
+
+    /**
+     * Status options the current user is allowed to pick.
+     *
+     * A client only ever sees Draft and Pending Review. The record's existing
+     * status is always included so that opening an already-published article
+     * does not blank the field and silently downgrade it on save.
+     *
+     * @return array<string, string>
+     */
+    public static function statusOptions(?Article $record = null): array
+    {
+        $all = [
+            'Draft'          => 'Draft',
+            'Pending Review' => 'Pending Review',
+            'Scheduled'      => 'Scheduled',
+            'Published'      => 'Published',
+        ];
+
+        if (ArticlePolicy::userCanPublish(Auth::user())) {
+            return $all;
+        }
+
+        $options = [
+            'Draft'          => 'Draft',
+            'Pending Review' => 'Pending Review',
+        ];
+
+        if ($record?->status !== null && ! isset($options[$record->status])) {
+            $options[$record->status] = $record->status . ' (dikunci — hanya admin yang bisa mengubah)';
+        }
+
+        return $options;
+    }
 
     /**
      * Validation rules for the `status` Select.
@@ -31,6 +68,12 @@ class ArticlePublishRules
         return [
             fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
                 if (! in_array($value, static::GUARDED_STATUSES, true)) {
+                    return;
+                }
+
+                if (! ArticlePolicy::userCanPublish(Auth::user())) {
+                    $fail('Anda tidak berwenang menerbitkan artikel. Pilih "Pending Review" agar ditinjau admin terlebih dahulu.');
+
                     return;
                 }
 
@@ -48,6 +91,17 @@ class ArticlePublishRules
     public static function notifyOnStatusChange(Get $get, mixed $state): void
     {
         if (! in_array($state, static::GUARDED_STATUSES, true)) {
+            return;
+        }
+
+        if (! ArticlePolicy::userCanPublish(Auth::user())) {
+            Notification::make()
+                ->title('Tidak berwenang menerbitkan')
+                ->body('Artikel harus melewati review admin. Pilih "Pending Review".')
+                ->danger()
+                ->persistent()
+                ->send();
+
             return;
         }
 

@@ -93,11 +93,7 @@ class ArticleForm
                             ->helperText('Auto-generated from English title. Edit to customise.'),
 
                         Select::make('status')
-                            ->options([
-                                'Draft'          => 'Draft',
-                                'Pending Review' => 'Pending Review',
-                                'Published'      => 'Published',
-                            ])
+                            ->options(fn (?\App\Models\Article $record) => ArticlePublishRules::statusOptions($record))
                             ->default('Draft')
                             ->required()
                             ->live()
