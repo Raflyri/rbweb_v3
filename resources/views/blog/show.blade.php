@@ -4,7 +4,7 @@
      SEO — Article show page (100% dynamic from DB)
 ════════════════════════════════════════════════════════════ --}}
 @php
-    $locale = app()->getLocale();
+    $locale = \App\Support\ArticleLocale::current();
 
     /* ── Translatable SEO fields ─────────────────────────── */
     $seoTitle       = $article->getTranslation('meta_title',       $locale, false)

@@ -5,6 +5,7 @@ namespace App\Filament\ClientArea\Resources;
 use App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
 use App\Filament\Support\ArticlePublishRules;
 use App\Models\Article;
+use App\Support\ArticleLocale;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -101,7 +102,7 @@ class ClientArticleResource extends Resource
                                                 'strike', 'table', 'underline', 'undo',
                                             ]),
                                     ]);
-                            }, ['id', 'my', 'en', 'jp']),
+                            }, ArticleLocale::editorLocales()),
                         ]),
 
                     // ── Settings Area (Bottom) ──────────────────────────
@@ -187,7 +188,7 @@ class ClientArticleResource extends Resource
                                             ->rows(3)
                                             ->nullable(),
                                     ]);
-                            }, ['id', 'my', 'en', 'jp']),
+                            }, ArticleLocale::editorLocales()),
                         ]),
                 ]),
         ]);

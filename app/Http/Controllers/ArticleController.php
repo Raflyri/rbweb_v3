@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Support\ArticleLocale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -14,7 +15,7 @@ class ArticleController extends Controller
      */
     public function index(Request $request): View
     {
-        $locale = app()->getLocale();
+        $locale = ArticleLocale::current();
         $search = $request->query('search');
 
         $articles = Article::published()
@@ -43,7 +44,7 @@ class ArticleController extends Controller
      */
     public function show(string $slug): View
     {
-        $locale = app()->getLocale();
+        $locale = ArticleLocale::current();
 
         $article = Article::published()
             ->with(['user', 'tags'])
@@ -53,7 +54,7 @@ class ArticleController extends Controller
 
                 // Fallback: if no match in the active locale, search every
                 // stored locale key so old links keep working after locale changes.
-                foreach (['id', 'my', 'en', 'jp', 'ms', 'ja'] as $loc) {
+                foreach (ArticleLocale::lookupKeys() as $loc) {
                     if ($loc !== $locale) {
                         $query->orWhere("slug->{$loc}", $slug);
                     }

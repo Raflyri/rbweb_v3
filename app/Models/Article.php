@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ArticleLocale;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -76,9 +77,8 @@ class Article extends Model
                     null
                 );
                 // Only slug is relevant here:
-                $locales = ['id', 'my', 'en', 'jp', 'ms', 'ja'];
                 $slugMap = [];
-                foreach ($locales as $locale) {
+                foreach (ArticleLocale::SUPPORTED as $locale) {
                     $slugMap[$locale] = $baseSlug;
                 }
                 $article->slug = $slugMap;
@@ -113,7 +113,7 @@ class Article extends Model
     {
         $query = static::where(function ($q) use ($slug) {
             // Check each common locale key inside the JSON column
-            foreach (['id', 'my', 'en', 'jp', 'ms', 'ja'] as $locale) {
+            foreach (ArticleLocale::lookupKeys() as $locale) {
                 $q->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(slug, '$.{$locale}')) = ?", [$slug]);
             }
         });
@@ -188,8 +188,8 @@ class Article extends Model
      */
     public function resolveRouteBinding($value, $field = null): ?self
     {
-        $locale  = app()->getLocale();
-        $locales = ['id', 'my', 'en', 'jp', 'ms', 'ja'];
+        $locale  = ArticleLocale::current();
+        $locales = ArticleLocale::lookupKeys();
 
         return $this->where(function ($query) use ($value, $locale, $locales) {
                 // Try active locale first, then all others as fallback.
