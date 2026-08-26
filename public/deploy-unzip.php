@@ -117,6 +117,24 @@ $output = "Deploy Unzip Log\n----------------\n";
 $output .= "Core Arch: " . extractZip($coreZip, $coreDir) . "\n";
 $output .= "Pub  Arch: " . extractZip($publicZip, $publicDir) . "\n";
 
+// Drop the compiled config BEFORE anything else, and without relying on
+// shell_exec — which is disabled on some shared hosts, in which case the
+// optimize:clear below never runs.
+//
+// This matters more than it looks: a config.php cached from an earlier
+// release does not contain keys added by this one, and config() returns null
+// for them. app.emergency_token is such a key, and it guards
+// /system/emergency-command — the only artisan path here, and the endpoint
+// the deploy pipeline itself calls for db:seed. A stale cache would lock it.
+$output .= "\nConfig Cache\n----------------\n";
+foreach (['config.php', 'routes-v7.php', 'events.php'] as $compiled) {
+    $compiledPath = $coreDir . '/bootstrap/cache/' . $compiled;
+
+    if (file_exists($compiledPath)) {
+        $output .= (@unlink($compiledPath) ? "Removed" : "Could NOT remove") . " bootstrap/cache/{$compiled}\n";
+    }
+}
+
 // Execute migrations directly via CLI to bypass Laravel HTTP Kernel boot issues (like MissingSettings exceptions)
 $output .= "\nSystem Updates Logs\n----------------\n";
 if (file_exists($coreDir . '/artisan')) {
