@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Article;
 use App\Policies\ArticlePolicy;
+use App\Observers\Concerns\RefreshesSitemap;
 use App\Support\ArticleContent;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,8 @@ use Mews\Purifier\Facades\Purifier;
  */
 class ArticleObserver
 {
+    use RefreshesSitemap;
+
     public function saving(Article $article): void
     {
         $this->guardStatusEscalation($article);
@@ -84,6 +87,29 @@ class ArticleObserver
      * Fill excerpt / meta_description from the body for every locale that has
      * content but no summary. Author-written values are never overwritten.
      */
+    public function saved(Article $article): void
+    {
+        // Only a change that alters what the public can reach matters here:
+        // an article going live or dark, or its permalink moving.
+        if ($this->isPubliclyVisible($article)
+            || $article->wasChanged('status')
+            || $article->wasChanged('slug')) {
+            $this->refreshSitemapSoon();
+        }
+    }
+
+    public function deleted(Article $article): void
+    {
+        if ($this->isPubliclyVisible($article)) {
+            $this->refreshSitemapSoon();
+        }
+    }
+
+    protected function isPubliclyVisible(Article $article): bool
+    {
+        return in_array($article->status, ArticlePolicy::PUBLIC_STATUSES, true);
+    }
+
     protected function backfillSummaries(Article $article): void
     {
         $contents = $article->getTranslations('content');
