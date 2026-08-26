@@ -27,6 +27,9 @@ class EmergencyCommandController extends Controller
             'config:cache',
             'route:cache',
             'view:cache',
+            'app:publish-scheduled-articles',
+            'articles:cleanup-test-data',
+            'articles:fix-locale-keys',
         ];
 
         if (!in_array($command, $allowedCommands)) {
@@ -34,10 +37,18 @@ class EmergencyCommandController extends Controller
         }
 
         try {
-            $parameters = [];
-            if ($command === 'migrate' || $command === 'db:seed') {
-                $parameters = ['--force' => true];
-            }
+            // Anything interactive must be given --force here: there is no TTY
+            // behind an HTTP request, so a confirmation prompt would hang.
+            $parameters = match ($command) {
+                'migrate', 'db:seed', 'articles:fix-locale-keys' => ['--force' => true],
+                'articles:cleanup-test-data' => [
+                    '--force' => true,
+                    '--mode'  => in_array($request->input('mode'), ['draft', 'delete'], true)
+                        ? $request->input('mode')
+                        : 'draft',
+                ],
+                default => [],
+            };
             Artisan::call($command, $parameters);
             $output = Artisan::output();
             Log::info("Emergency command executed: {$command}", ['output' => $output]);

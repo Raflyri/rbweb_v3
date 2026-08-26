@@ -12,13 +12,18 @@ class ArticleController extends Controller
 {
     /**
      * Display paginated list of published articles with optional search.
+     *
+     * visiblePublic() rather than published(): on this shared host the
+     * scheduler may lag, and an article whose publish time has passed should
+     * not stay hidden just because app:publish-scheduled-articles has not run
+     * yet. The command still normalises `status` behind the scenes.
      */
     public function index(Request $request): View
     {
         $locale = ArticleLocale::current();
         $search = $request->query('search');
 
-        $articles = Article::published()
+        $articles = Article::visiblePublic()
             ->with(['user', 'tags'])
             ->latest('published_at')
             ->when($search, function ($query) use ($search, $locale) {
@@ -46,7 +51,7 @@ class ArticleController extends Controller
     {
         $locale = ArticleLocale::current();
 
-        $article = Article::published()
+        $article = Article::visiblePublic()
             ->with(['user', 'tags'])
             ->where(function ($query) use ($slug, $locale) {
                 // Primary: match the active locale key inside the JSON column.
@@ -63,7 +68,7 @@ class ArticleController extends Controller
             ->firstOrFail();
 
         // Related articles — exclude current, newest first
-        $related = Article::published()
+        $related = Article::visiblePublic()
             ->with(['user', 'tags'])
             ->where('id', '!=', $article->id)
             ->latest('published_at')

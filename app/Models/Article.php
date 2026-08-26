@@ -152,6 +152,26 @@ class Article extends Model
         return $query->where('status', 'Pending Review');
     }
 
+    /**
+     * Everything the public should be able to see right now.
+     *
+     * scopePublished() trusts the status column, which app:publish-scheduled-articles
+     * keeps accurate. This scope additionally sweeps up Scheduled articles whose
+     * time has already passed, so a late cron run cannot hide an article that
+     * should already be live.
+     */
+    public function scopeVisiblePublic(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where('status', 'Published')
+              ->orWhere(function (Builder $scheduled) {
+                  $scheduled->where('status', 'Scheduled')
+                            ->whereNotNull('published_at')
+                            ->where('published_at', '<=', now());
+              });
+        });
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────
     public function isPendingReview(): bool
     {

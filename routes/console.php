@@ -33,3 +33,9 @@ Schedule::command('auth-logs:purge --days=60')->dailyAt('00:00');
 
 // Generate XML Sitemap daily
 Schedule::command('app:generate-sitemap')->daily();
+
+// Promote Scheduled articles once their publish time passes.
+// This is the *backup* path: shared hosting here has no reliable
+// `schedule:run` cron, so the primary trigger is a cPanel cron job calling
+// /system/emergency-command with the app:publish-scheduled-articles command.
+Schedule::command('app:publish-scheduled-articles')->everyMinute()->withoutOverlapping();
