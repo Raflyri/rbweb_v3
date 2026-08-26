@@ -21,6 +21,16 @@ pest()->extend(Tests\TestCase::class)
     ->in('Feature');
 
 /*
+| InnoDB defers FULLTEXT index maintenance until commit, so rows written
+| inside RefreshDatabase's transaction are invisible to MATCH … AGAINST.
+| Tests that exercise real full-text search therefore live in tests/FullText
+| and truncate between tests instead of rolling back.
+*/
+pest()->extend(Tests\TestCase::class)
+    ->use(Illuminate\Foundation\Testing\DatabaseTruncation::class)
+    ->in('FullText');
+
+/*
 |--------------------------------------------------------------------------
 | Expectations
 |--------------------------------------------------------------------------

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Support\ArticleLocale;
+use App\Support\ArticleSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -25,13 +26,10 @@ class ArticleController extends Controller
 
         $articles = Article::visiblePublic()
             ->with(['user', 'tags'])
-            ->latest('published_at')
-            ->when($search, function ($query) use ($search, $locale) {
-                $query->where(function ($q) use ($search, $locale) {
-                    $q->where('title->' . $locale, 'like', '%' . $search . '%')
-                      ->orWhere('content->' . $locale, 'like', '%' . $search . '%');
-                });
-            })
+            // Relevance ordering is applied by ArticleSearch when full text is
+            // used, so recency is only the tie-breaker on a search.
+            ->when(! $search, fn ($query) => $query->latest('published_at'))
+            ->when($search, fn ($query) => ArticleSearch::apply($query, $search, $locale))
             ->paginate(9)
             ->withQueryString();
 
