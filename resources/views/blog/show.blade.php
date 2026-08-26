@@ -26,7 +26,7 @@
                    ?: Str::limit(strip_tags($displayContent), 200);
 
     /* ── Meta ────────────────────────────────────────────── */
-    $wordCount   = str_word_count(strip_tags($displayContent));
+    $wordCount   = \App\Support\ArticleContent::wordCount($displayContent);
     $readMinutes = max(1, (int) ceil($wordCount / 200));
     $authorName  = $article->user?->name ?? 'RBeverything';
 @endphp
@@ -199,12 +199,14 @@
                     </time>
                 @endif
 
-                <div class="article-meta-dot" aria-hidden="true">·</div>
+                @if($wordCount > 0)
+                    <div class="article-meta-dot" aria-hidden="true">·</div>
 
-                {{-- Word count --}}
-                <span class="article-meta-stat">
-                    {{ number_format($wordCount) }} words
-                </span>
+                    {{-- Word count --}}
+                    <span class="article-meta-stat">
+                        {{ number_format($wordCount) }} words
+                    </span>
+                @endif
             </div>
 
             {{-- Decorative separator --}}
@@ -218,7 +220,13 @@
     ════════════════════════════════════════════════════ --}}
     <div class="article-body-wrap" id="article-body">
         <div class="prose prose-lg max-w-3xl mx-auto prose-invert article-prose">
-            {!! $displayContent !!}
+            @if(trim(strip_tags($displayContent)) !== '')
+                {!! $displayContent !!}
+            @else
+                <p class="article-body-empty">
+                    {{ __('This article has no content yet. Please check back soon.') }}
+                </p>
+            @endif
         </div>
     </div>
 
@@ -580,6 +588,17 @@
 }
 
 /* ── Tailwind Typography dark overrides ─────────────── */
+/* Fallback when an article has no body for the active locale */
+.article-body-empty {
+    padding: 2.5rem 1.5rem;
+    border: 1px dashed rgba(220,38,38,0.28);
+    border-radius: 14px;
+    background: rgba(220,38,38,0.04);
+    color: #94A3B8;
+    font-style: italic;
+    text-align: center;
+}
+
 .article-prose {
     --tw-prose-body:          #C9D1D9;
     --tw-prose-headings:      #F1F5F9;

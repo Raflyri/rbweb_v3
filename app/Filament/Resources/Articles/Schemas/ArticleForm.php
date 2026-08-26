@@ -9,6 +9,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
+use App\Filament\Support\ArticlePublishRules;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
@@ -97,7 +99,11 @@ class ArticleForm
                                 'Published'      => 'Published',
                             ])
                             ->default('Draft')
-                            ->required(),
+                            ->required()
+                            ->live()
+                            ->rules(ArticlePublishRules::rules())
+                            ->afterStateUpdated(fn (Get $get, $state) => ArticlePublishRules::notifyOnStatusChange($get, $state))
+                            ->helperText(fn (Get $get): string => ArticlePublishRules::helperText($get)),
 
                         DateTimePicker::make('published_at')
                             ->label('Publish Date'),

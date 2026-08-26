@@ -101,7 +101,7 @@
 
                             /* ── Read-time estimate ───────────────────────────── */
                             $rawContent  = $article->getTranslation('content', $locale, true);
-                            $wordCount   = str_word_count(strip_tags($rawContent));
+                            $wordCount   = \App\Support\ArticleContent::wordCount($rawContent);
                             $readMinutes = max(1, (int) ceil($wordCount / 200));
 
                             /* ── Author ───────────────────────────────────────── */
@@ -248,6 +248,13 @@
                         <p class="blog-empty__desc">
                             {{ __('We\'re actively preparing new tech insights and tutorials. Please check back soon!') }}
                         </p>
+                        <a href="{{ route('home') }}" class="blog-empty__cta">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>
+                            </svg>
+                            {{ __('Back to homepage') }}
+                        </a>
                     @endif
                 </div>
             @endif

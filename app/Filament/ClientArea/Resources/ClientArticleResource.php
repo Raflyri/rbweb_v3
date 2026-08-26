@@ -3,6 +3,7 @@
 namespace App\Filament\ClientArea\Resources;
 
 use App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
+use App\Filament\Support\ArticlePublishRules;
 use App\Models\Article;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -121,7 +122,11 @@ class ClientArticleResource extends Resource
                                             'Scheduled'      => 'Scheduled',
                                             'Published'      => 'Published',
                                         ])
-                                        ->default('Pending Review'),
+                                        ->default('Pending Review')
+                                        ->live()
+                                        ->rules(ArticlePublishRules::rules())
+                                        ->afterStateUpdated(fn (Get $get, $state) => ArticlePublishRules::notifyOnStatusChange($get, $state))
+                                        ->helperText(fn (Get $get): string => ArticlePublishRules::helperText($get)),
 
                                     DateTimePicker::make('published_at')
                                         ->label('Jadwal Publish')

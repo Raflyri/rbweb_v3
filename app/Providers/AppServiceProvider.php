@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Listeners\AssignClientRoleOnRegister;
 use App\Listeners\LogSuccessfulLogin;
 use App\Listeners\LogSuccessfulLogout;
+use App\Models\Article;
 use App\Models\Post;
+use App\Observers\ArticleObserver;
 use App\Observers\PostObserver;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -37,5 +39,8 @@ class AppServiceProvider extends ServiceProvider
 
         // ✅ Kirim notifikasi saat status post berubah menjadi Published/Rejected
         Post::observe(PostObserver::class);
+
+        // ✅ Backfill excerpt/meta_description dari konten saat artikel disimpan
+        Article::observe(ArticleObserver::class);
     }
 }
