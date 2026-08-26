@@ -24,3 +24,23 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# ── One-off debugging leftovers ───────────────────────────────────────
+# A batch of these was committed to the repo root during past manual
+# troubleshooting. Two of them (cleanup.php, full_cleanup.php) dropped the
+# articles FULLTEXT index and its generated columns, so keeping that class of
+# script out of the repo is a safety measure, not only tidiness.
+#
+# All patterns are anchored with a leading slash: they apply to the repo root
+# only, never to app/, resources/ or tests/.
+/*.txt
+!/README*.txt
+/*.html
+/*.log
+/versions.json
+/add_*.php
+/check_*.php
+/cleanup.php
+/*_cleanup.php
+/test.php
+/test_compiled.php
