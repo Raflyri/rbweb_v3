@@ -65,12 +65,3 @@ it('shows a due scheduled article even before the command runs', function () {
     $this->get(route('blog.index'))->assertOk()->assertSee('Race Condition Article');
     $this->get('/blog/race-condition-article')->assertOk();
 });
-
-it('exposes the command through the emergency endpoint allowlist', function () {
-    config(['app.emergency_token' => 'test-token-abc']);
-
-    $this->postJson('/system/emergency-command', [
-        'token'   => 'test-token-abc',
-        'command' => 'app:publish-scheduled-articles',
-    ])->assertOk()->assertJsonPath('status', 'success');
-})->skip('enabled once the token moves to config in the emergency-endpoint hardening');

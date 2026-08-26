@@ -7,6 +7,7 @@ use App\Policies\ArticlePolicy;
 use App\Support\ArticleContent;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
+use Mews\Purifier\Facades\Purifier;
 
 /**
  * Keeps derived Article fields in sync on every save.
@@ -20,7 +21,32 @@ class ArticleObserver
     public function saving(Article $article): void
     {
         $this->guardStatusEscalation($article);
+        $this->purifyContent($article);
         $this->backfillSummaries($article);
+    }
+
+    /**
+     * Strip dangerous markup from the body before it is stored.
+     *
+     * blog/show.blade.php renders the body with {!! !!}, so anything that
+     * reaches the column is executed in a reader's browser. Sanitising on the
+     * way in means every existing article is cleaned the next time it is
+     * saved, and the RichEditor's own formatting survives (see the 'article'
+     * profile in config/purifier.php).
+     */
+    protected function purifyContent(Article $article): void
+    {
+        if (! $article->isDirty('content')) {
+            return;
+        }
+
+        foreach ($article->getTranslations('content') as $locale => $html) {
+            if (! is_string($html) || $html === '') {
+                continue;
+            }
+
+            $article->setTranslation('content', $locale, Purifier::clean($html, 'article'));
+        }
     }
 
     /**
