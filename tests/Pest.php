@@ -25,9 +25,17 @@ pest()->extend(Tests\TestCase::class)
 | inside RefreshDatabase's transaction are invisible to MATCH … AGAINST.
 | Tests that exercise real full-text search therefore live in tests/FullText
 | and truncate between tests instead of rolling back.
+|
+| DatabaseTruncation only truncates in setUp() (before each test), so
+| without the afterEach below the last test in this directory leaves its
+| rows committed in the database — including for whatever runs after the
+| suite, e.g. Dusk hitting the same MySQL database through the live server.
 */
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\DatabaseTruncation::class)
+    ->afterEach(function () {
+        $this->truncateDatabaseTables();
+    })
     ->in('FullText');
 
 /*
