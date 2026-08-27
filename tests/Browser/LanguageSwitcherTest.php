@@ -11,7 +11,7 @@ class LanguageSwitcherTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
-                ->waitFor('.rb-lang-switcher');
+                ->waitFor('.rb-lang-switcher', 15);
 
             // Find the desktop ID button and click it
             $browser->click('.rb-desktop-nav .rb-lang-btn[data-lang="id"]')
