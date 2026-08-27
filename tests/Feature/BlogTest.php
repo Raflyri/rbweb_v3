@@ -58,24 +58,6 @@ class BlogTest extends TestCase
                  ->assertDontSee('Draft Article');
     }
 
-    /** @test */
-    public function blog_index_search_filters_by_title(): void
-    {
-        $this->createPublishedArticle([
-            'slug'  => ['en' => 'laravel-article', 'id' => 'laravel-article'],
-            'title' => ['en' => 'Laravel is Amazing', 'id' => 'Laravel Luar Biasa'],
-        ]);
-        $this->createPublishedArticle([
-            'slug'  => ['en' => 'python-article', 'id' => 'python-article'],
-            'title' => ['en' => 'Python for Data Science', 'id' => 'Python untuk Sains Data'],
-        ]);
-
-        $response = $this->get(route('blog.index', ['search' => 'Laravel']));
-
-        $response->assertStatus(200)
-                 ->assertSee('Laravel is Amazing')
-                 ->assertDontSee('Python for Data Science');
-    }
 
     /** @test */
     public function blog_index_shows_empty_state_when_no_articles(): void
@@ -85,15 +67,15 @@ class BlogTest extends TestCase
              ->assertSee('No articles yet');
     }
 
-    /** @test */
-    public function blog_index_search_shows_no_results_state(): void
-    {
-        $this->createPublishedArticle(['slug' => ['en' => 'some-article', 'id' => 'some-article']]);
 
-        $this->get(route('blog.index', ['search' => 'nonexistentxyz']))
-             ->assertStatus(200)
-             ->assertSee('No articles found');
-    }
+    /*
+     * Search coverage lives in tests/FullText/ArticleSearchTest.php, not here.
+     *
+     * /blog?search= now uses MATCH … AGAINST, and InnoDB defers FULLTEXT index
+     * maintenance until commit — so rows created inside RefreshDatabase's
+     * transaction are invisible to it. Those tests need a suite that truncates
+     * instead of rolling back.
+     */
 
     /** @test */
     public function blog_index_paginates_articles(): void

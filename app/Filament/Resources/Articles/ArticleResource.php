@@ -8,6 +8,7 @@ use App\Filament\Resources\Articles\Pages\ListArticles;
 use App\Filament\Resources\Articles\Schemas\ArticleForm;
 use App\Filament\Resources\Articles\Tables\ArticlesTable;
 use App\Models\Article;
+use App\Policies\ArticlePolicy;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -21,9 +22,14 @@ class ArticleResource extends Resource
 
     protected static ?string $model = Article::class;
 
+    /**
+     * Roles are stored as 'super_admin' / 'admin'; this used to check
+     * 'Super Admin' / 'Admin', which matched nobody and hid the whole
+     * Articles resource — including the approve/reject review queue.
+     */
     public static function canViewAny(): bool
     {
-        return auth()->user()?->hasAnyRole(['Super Admin', 'Admin']) ?? false;
+        return ArticlePolicy::userCanPublish(auth()->user());
     }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

@@ -7,12 +7,7 @@
     </style>
     <div class="flex space-x-1 rounded-xl bg-gray-100/80 p-1 dark:bg-gray-800">
         @php
-            $locales = [
-                'id' => 'Indonesia',
-                'my' => 'Melayu',
-                'en' => 'English',
-                'jp' => '日本語'
-            ];
+            $locales = \App\Support\ArticleLocale::LABELS;
         @endphp
         @foreach($locales as $code => $label)
             <button

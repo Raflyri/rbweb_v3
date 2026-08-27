@@ -1,4 +1,5 @@
 User-agent: *
 Disallow: /client-area/
-Disallow: /admin/
+Disallow: /rbdashboard/
+Disallow: /system/
 Sitemap: https://rbeverything.com/sitemap.xml

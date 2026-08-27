@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\URL as UrlFacade;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 use App\Models\Article;
@@ -27,8 +28,23 @@ class GenerateSitemap extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
+        // The sitemap is now regenerated from web requests too (see
+        // App\Observers\Concerns\RefreshesSitemap), not just from the console.
+        // url() would then inherit whatever scheme and host that request had —
+        // http, or an internal hostname behind the proxy. Pin it to APP_URL so
+        // every <loc> is identical no matter what triggered the rebuild.
+        $base = (string) config('app.url');
+
+        if ($base !== '') {
+            UrlFacade::forceRootUrl($base);
+
+            if (str_starts_with($base, 'https://')) {
+                UrlFacade::forceScheme('https');
+            }
+        }
+
         $sitemap = Sitemap::create();
 
         // a. Static routes
@@ -41,9 +57,23 @@ class GenerateSitemap extends Command
             ->setLastModificationDate(now()));
 
         // b. Dynamic routes for Articles
-        $articles = Article::published()->get();
-        foreach ($articles as $article) {
-            $sitemap->add(Url::create("/blog/{$article->slug}")
+        //
+        // `slug` is a translatable JSON column, so $article->slug returns the
+        // value for the active locale and is empty whenever that locale has
+        // no translation — which produced "/blog/" entries. Resolve it with a
+        // fallback and skip anything that still has no slug.
+        $locale = \App\Support\ArticleLocale::current();
+
+        foreach (Article::visiblePublic()->get() as $article) {
+            $slug = $article->getTranslation('slug', $locale, true);
+
+            if (! is_string($slug) || trim($slug) === '') {
+                $this->warn("Skipped article #{$article->id}: no slug for any locale.");
+
+                continue;
+            }
+
+            $sitemap->add(Url::create("/blog/{$slug}")
                 ->setPriority(0.7)
                 ->setLastModificationDate($article->updated_at ?? now()));
         }
@@ -58,6 +88,14 @@ class GenerateSitemap extends Command
 
         $sitemap->writeToFile(public_path('sitemap.xml'));
 
-        $this->info('Sitemap generated successfully at public/sitemap.xml');
+        $count = count($sitemap->getTags());
+
+        $this->info("Sitemap generated at public/sitemap.xml ({$count} URLs, base " . config('app.url') . ').');
+
+        if (str_contains((string) config('app.url'), 'localhost')) {
+            $this->warn('APP_URL still points at localhost — every <loc> in this sitemap is wrong.');
+        }
+
+        return self::SUCCESS;
     }
 }

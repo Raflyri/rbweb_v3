@@ -16,6 +16,7 @@ Route::get('/blog/{slug}', [ArticleController::class, 'show'])->name('blog.show'
 // Emergency route to execute commands without SSH
 Route::post('/system/emergency-command', [EmergencyCommandController::class, 'run'])
     ->name('system.emergency.command')
+    ->middleware('throttle:5,1')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Support\ArticleLocale;
+use App\Support\ArticleSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -11,21 +13,23 @@ class ArticleController extends Controller
 {
     /**
      * Display paginated list of published articles with optional search.
+     *
+     * visiblePublic() rather than published(): on this shared host the
+     * scheduler may lag, and an article whose publish time has passed should
+     * not stay hidden just because app:publish-scheduled-articles has not run
+     * yet. The command still normalises `status` behind the scenes.
      */
     public function index(Request $request): View
     {
-        $locale = app()->getLocale();
+        $locale = ArticleLocale::current();
         $search = $request->query('search');
 
-        $articles = Article::published()
+        $articles = Article::visiblePublic()
             ->with(['user', 'tags'])
-            ->latest('published_at')
-            ->when($search, function ($query) use ($search, $locale) {
-                $query->where(function ($q) use ($search, $locale) {
-                    $q->where('title->' . $locale, 'like', '%' . $search . '%')
-                      ->orWhere('content->' . $locale, 'like', '%' . $search . '%');
-                });
-            })
+            // Relevance ordering is applied by ArticleSearch when full text is
+            // used, so recency is only the tie-breaker on a search.
+            ->when(! $search, fn ($query) => $query->latest('published_at'))
+            ->when($search, fn ($query) => ArticleSearch::apply($query, $search, $locale))
             ->paginate(9)
             ->withQueryString();
 
@@ -43,9 +47,9 @@ class ArticleController extends Controller
      */
     public function show(string $slug): View
     {
-        $locale = app()->getLocale();
+        $locale = ArticleLocale::current();
 
-        $article = Article::published()
+        $article = Article::visiblePublic()
             ->with(['user', 'tags'])
             ->where(function ($query) use ($slug, $locale) {
                 // Primary: match the active locale key inside the JSON column.
@@ -53,7 +57,7 @@ class ArticleController extends Controller
 
                 // Fallback: if no match in the active locale, search every
                 // stored locale key so old links keep working after locale changes.
-                foreach (['id', 'my', 'en', 'jp', 'ms', 'ja'] as $loc) {
+                foreach (ArticleLocale::lookupKeys() as $loc) {
                     if ($loc !== $locale) {
                         $query->orWhere("slug->{$loc}", $slug);
                     }
@@ -62,7 +66,7 @@ class ArticleController extends Controller
             ->firstOrFail();
 
         // Related articles — exclude current, newest first
-        $related = Article::published()
+        $related = Article::visiblePublic()
             ->with(['user', 'tags'])
             ->where('id', '!=', $article->id)
             ->latest('published_at')

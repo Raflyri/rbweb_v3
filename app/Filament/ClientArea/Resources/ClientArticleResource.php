@@ -3,7 +3,9 @@
 namespace App\Filament\ClientArea\Resources;
 
 use App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
+use App\Filament\Support\ArticlePublishRules;
 use App\Models\Article;
+use App\Support\ArticleLocale;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -100,7 +102,7 @@ class ClientArticleResource extends Resource
                                                 'strike', 'table', 'underline', 'undo',
                                             ]),
                                     ]);
-                            }, ['id', 'my', 'en', 'jp']),
+                            }, ArticleLocale::editorLocales()),
                         ]),
 
                     // ── Settings Area (Bottom) ──────────────────────────
@@ -115,13 +117,12 @@ class ClientArticleResource extends Resource
 
                                     Select::make('status')
                                         ->label('Status')
-                                        ->options([
-                                            'Draft'          => 'Draft',
-                                            'Pending Review' => 'Pending Review',
-                                            'Scheduled'      => 'Scheduled',
-                                            'Published'      => 'Published',
-                                        ])
-                                        ->default('Pending Review'),
+                                        ->options(fn (?Article $record) => ArticlePublishRules::statusOptions($record))
+                                        ->default('Pending Review')
+                                        ->live()
+                                        ->rules(ArticlePublishRules::rules())
+                                        ->afterStateUpdated(fn (Get $get, $state) => ArticlePublishRules::notifyOnStatusChange($get, $state))
+                                        ->helperText(fn (Get $get): string => ArticlePublishRules::helperText($get)),
 
                                     DateTimePicker::make('published_at')
                                         ->label('Jadwal Publish')
@@ -182,7 +183,7 @@ class ClientArticleResource extends Resource
                                             ->rows(3)
                                             ->nullable(),
                                     ]);
-                            }, ['id', 'my', 'en', 'jp']),
+                            }, ArticleLocale::editorLocales()),
                         ]),
                 ]),
         ]);
@@ -202,6 +203,7 @@ class ClientArticleResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Published'      => 'success',
+                        'Scheduled'      => 'info',
                         'Pending Review' => 'warning',
                         'Draft'          => 'gray',
                         default          => 'gray',

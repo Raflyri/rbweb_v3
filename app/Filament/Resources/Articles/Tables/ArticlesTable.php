@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Articles\Tables;
 
+use App\Policies\ArticlePolicy;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -37,6 +38,7 @@ class ArticlesTable
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Published'      => 'success',
+                        'Scheduled'      => 'info',
                         'Pending Review' => 'warning',
                         'Draft'          => 'gray',
                         default          => 'gray',
@@ -79,6 +81,7 @@ class ArticlesTable
                     ->options([
                         'Draft'          => 'Draft',
                         'Pending Review' => 'Pending Review',
+                        'Scheduled'      => 'Scheduled',
                         'Published'      => 'Published',
                     ]),
             ])
@@ -92,7 +95,8 @@ class ArticlesTable
                     ->requiresConfirmation()
                     ->modalHeading('Approve Article?')
                     ->modalDescription('This will publish the article and notify the author.')
-                    ->visible(fn ($record) => $record->status === 'Pending Review')
+                    ->visible(fn ($record) => $record->status === 'Pending Review'
+                        && ArticlePolicy::userCanPublish(auth()->user()))
                     ->action(function ($record) {
                         $record->update([
                             'status'       => 'Published',
@@ -120,7 +124,8 @@ class ArticlesTable
                     ->requiresConfirmation()
                     ->modalHeading('Reject Article?')
                     ->modalDescription('This will revert the article back to Draft and notify the author.')
-                    ->visible(fn ($record) => $record->status === 'Pending Review')
+                    ->visible(fn ($record) => $record->status === 'Pending Review'
+                        && ArticlePolicy::userCanPublish(auth()->user()))
                     ->action(function ($record) {
                         $record->update([
                             'status'      => 'Draft',

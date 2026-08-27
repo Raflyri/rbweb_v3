@@ -78,6 +78,35 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Emergency Command Token
+    |--------------------------------------------------------------------------
+    |
+    | Shared secret for POST /system/emergency-command, the only way to run
+    | artisan on this host without SSH. It MUST be read through config() and
+    | not env() directly: once config:cache has run — and config:cache is
+    | itself on that endpoint's allowlist — env() returns null for everything,
+    | which would lock the endpoint permanently for everyone.
+    |
+    */
+
+    'emergency_token' => env('EMERGENCY_ROUTE_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Automatic Sitemap Refresh
+    |--------------------------------------------------------------------------
+    |
+    | Regenerate public/sitemap.xml whenever a public article or profile
+    | changes. This host has no dependable `schedule:run` cron, so relying on
+    | the scheduler alone leaves sitemap.xml stale for months. Refreshes are
+    | deferred to app termination, so they never slow down a save.
+    |
+    */
+
+    'auto_sitemap' => env('AUTO_SITEMAP', true),
+
     'locale' => env('APP_LOCALE', 'en'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),

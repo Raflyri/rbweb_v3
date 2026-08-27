@@ -5,6 +5,7 @@ namespace App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
 use App\Filament\ClientArea\Resources\ClientArticleResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Actions\Action;
+use App\Policies\ArticlePolicy;
 use Illuminate\Support\Facades\Auth;
 
 class CreateClientArticle extends CreateRecord
@@ -41,13 +42,24 @@ class CreateClientArticle extends CreateRecord
     {
         $data['user_id'] = Auth::id();
 
-        if (($data['status'] ?? '') !== 'Draft' && ($data['status'] ?? '') !== 'Published') {
-            if (!empty($data['published_at']) && strtotime($data['published_at']) > time()) {
-                $data['status'] = 'Scheduled';
-            } else {
-                $data['status'] = 'Pending Review';
-            }
+        $status    = $data['status'] ?? '';
+        $canPublish = ArticlePolicy::userCanPublish(Auth::user());
+
+        // A client may only ever land on Draft or Pending Review. Anything
+        // else they submit — including a tampered Livewire payload asking for
+        // Published — is folded back into the review queue.
+        if (! $canPublish && in_array($status, ArticlePolicy::PUBLIC_STATUSES, true)) {
+            $status = 'Pending Review';
         }
+
+        if ($status !== 'Draft' && $status !== 'Published') {
+            $scheduledForLater = ! empty($data['published_at'])
+                && strtotime($data['published_at']) > time();
+
+            $status = ($scheduledForLater && $canPublish) ? 'Scheduled' : 'Pending Review';
+        }
+
+        $data['status'] = $status;
 
         return $data;
     }
@@ -56,10 +68,15 @@ class CreateClientArticle extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->label(fn () => (!empty($this->data['published_at']) && strtotime($this->data['published_at']) > time()) ? 'Schedule Article' : 'Save Article'),
+                ->label(fn () => (
+                    ArticlePolicy::userCanPublish(Auth::user())
+                    && ! empty($this->data['published_at'])
+                    && strtotime($this->data['published_at']) > time()
+                ) ? 'Schedule Article' : 'Save Article'),
             Action::make('publishNow')
                 ->label('Publish Now')
                 ->color('success')
+                ->visible(fn () => ArticlePolicy::userCanPublish(Auth::user()))
                 ->action(function () {
                     $this->data['status'] = 'Published';
                     $this->data['published_at'] = now()->format('Y-m-d H:i:s');
