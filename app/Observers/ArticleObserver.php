@@ -25,7 +25,37 @@ class ArticleObserver
     {
         $this->guardStatusEscalation($article);
         $this->purifyContent($article);
+        $this->pruneBlankLocales($article);
         $this->backfillSummaries($article);
+    }
+
+    /**
+     * Drop locale entries that carry no real content, for every
+     * translatable field except slug (which deliberately holds the same
+     * value across all four locales — see Article::boot()).
+     *
+     * An article can now legitimately be written in a single locale (see
+     * ArticleContent::publishBlockers), and several editor UIs — Client
+     * Area's Alpine-driven locale tabs in particular — pre-seed every
+     * locale's RichEditor so Livewire has something to entangle with.
+     * Saving an untouched RichEditor field dehydrates to markup like
+     * "<p></p>": present and non-empty as a string, but with no visible
+     * text. Left in place, that makes Article::scopeHasContentIn() treat
+     * a locale as "written" when nobody wrote anything in it, so an
+     * English-only article would start showing up on /blog for Indonesian,
+     * Malay, and Japanese visitors too. This runs after purifyContent so
+     * blankness is judged on the sanitised value, not the raw one.
+     */
+    protected function pruneBlankLocales(Article $article): void
+    {
+        foreach (['title', 'content', 'meta_title', 'meta_description'] as $field) {
+            $translations = $article->getTranslations($field);
+            $kept = array_filter($translations, fn (mixed $value) => $this->isFilled($value));
+
+            if ($kept !== $translations) {
+                $article->setTranslations($field, $kept);
+            }
+        }
     }
 
     /**

@@ -70,17 +70,19 @@ it('returns 404 for a draft article accessed directly by slug', function () {
     $this->get('/blog/secret-draft')->assertNotFound();
 });
 
-it('renders an article that has no thumbnail, tags or body without crashing', function () {
-    // Markup with no visible text, not a bare empty string: content_en still
-    // has to be non-blank for the article to be considered "written in
-    // English" and stay reachable at /blog/{slug} at all (see
-    // Article::scopeHasContentIn) — this is testing that empty *visible*
-    // content degrades gracefully, not that a locale with nothing in it
-    // does.
+it('renders an article that has no thumbnail or tags without crashing', function () {
+    // Visible-but-minimal content, not blank markup: ArticleObserver::
+    // pruneBlankLocales() now strips a locale whose content is empty-
+    // looking markup like "<p></p>" before it ever reaches storage (see
+    // ArticleLocaleVisibilityTest), so an article cannot actually exist
+    // with real HTML that renders to zero visible text — the "This
+    // article has no content yet" placeholder in blog/show.blade.php is
+    // dead code kept as a defensive fallback, not a reachable state. This
+    // test is about thumbnail/tags being absent, not about empty content.
     Article::factory()->published()->create([
         'title'     => ['en' => 'Bare Bones Article', 'id' => 'Bare Bones Article'],
         'slug'      => ['en' => 'bare-bones-article', 'id' => 'bare-bones-article'],
-        'content'   => ['en' => '<p></p>', 'id' => '<p></p>'],
+        'content'   => ['en' => '<p>x</p>', 'id' => '<p>x</p>'],
         'excerpt'   => ['en' => '', 'id' => ''],
         'thumbnail' => null,
     ]);
@@ -89,9 +91,5 @@ it('renders an article that has no thumbnail, tags or body without crashing', fu
 
     $response->assertOk()
         ->assertSee('Bare Bones Article')
-        ->assertSee('This article has no content yet. Please check back soon.')
-        // Read time never degrades to "0 min read"…
-        ->assertSee('1 min read')
-        // …and the word-count stat is hidden rather than showing "0 words".
-        ->assertDontSee('0 words');
+        ->assertSee('1 min read');
 });

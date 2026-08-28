@@ -162,3 +162,44 @@ it('shows a locale-matching article on the homepage but not a different-locale-o
         ->assertSee('Homepage Teaser EN')
         ->assertDontSee('ホームページのティーザー');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Blank-looking-non-blank markup never counts as "written"
+|--------------------------------------------------------------------------
+| A RichEditor field that was never touched dehydrates to markup like
+| "<p></p>" — present and non-empty as a string, but with no visible text.
+| Editor UIs that pre-seed every locale's RichEditor so Livewire has
+| something to entangle with (Client Area's Alpine-driven tabs) save that
+| for every locale the author never actually wrote in, not just the one
+| they meant to. ArticleObserver::pruneBlankLocales() is what stops that
+| from silently making an article "written" in a language nobody wrote it
+| in.
+*/
+it('drops a locale whose content is empty markup instead of treating it as written', function () {
+    $article = Article::create([
+        // 'id' simulates an untouched RichEditor tab: present, blank-looking
+        // markup for both fields, nothing the author actually wrote.
+        'title'   => ['en' => 'Real English Title', 'id' => ''],
+        'slug'    => ['en' => 'real-english-title'],
+        'content' => ['en' => '<p>Real, visible English content.</p>', 'id' => '<p></p>'],
+        'status'  => 'Draft',
+    ]);
+
+    expect($article->getTranslations('content'))->not->toHaveKey('id')
+        ->and($article->getTranslations('title'))->not->toHaveKey('id')
+        ->and(Article::whereKey($article->id)->hasContentIn('en')->exists())->toBeTrue()
+        ->and(Article::whereKey($article->id)->hasContentIn('id')->exists())->toBeFalse();
+});
+
+it('never prunes a locale that has real text alongside empty-looking markup', function () {
+    $article = Article::create([
+        'title'   => ['en' => 'Real Title'],
+        'slug'    => ['en' => 'real-title-2'],
+        'content' => ['en' => '<p></p><p>Real text after an empty paragraph.</p>'],
+        'status'  => 'Draft',
+    ]);
+
+    expect($article->getTranslations('content'))->toHaveKey('en')
+        ->and(Article::whereKey($article->id)->hasContentIn('en')->exists())->toBeTrue();
+});
