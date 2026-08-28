@@ -17,6 +17,23 @@ use Illuminate\Support\Str;
 
 class ArticleForm
 {
+    /**
+     * Fill the slug from whichever locale's title the author writes first.
+     *
+     * An article only needs one language to publish, so nothing here can
+     * assume English (or any other locale) is the one that gets filled in.
+     * Only acts while the slug is still blank, so it never fights the
+     * author once they have typed or customised it themselves.
+     */
+    protected static function autoSlugFromTitle(): \Closure
+    {
+        return function (Set $set, Get $get, ?string $state) {
+            if (blank($get('slug'))) {
+                $set('slug', Str::slug($state ?? ''));
+            }
+        };
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -24,6 +41,10 @@ class ArticleForm
             ->components([
 
                 // ── Translatable Content ──────────────────────────────────────
+                // No locale tab is required: an article can be written in as
+                // few as one language and still be published (see
+                // ArticleContent::publishBlockers, which only requires 50+
+                // words in *some* locale, not a specific one).
                 Section::make('Content')
                     ->columnSpan(2)
                     ->schema([
@@ -34,11 +55,8 @@ class ArticleForm
                                     ->schema([
                                         TextInput::make('title.en')
                                             ->label('Title (English)')
-                                            ->required()
                                             ->live(debounce: 500)
-                                            ->afterStateUpdated(function (Set $set, ?string $state) {
-                                                $set('slug', Str::slug($state ?? ''));
-                                            })
+                                            ->afterStateUpdated(static::autoSlugFromTitle())
                                             ->columnSpanFull(),
                                         RichEditor::make('content.en')
                                             ->label('Content (English)')
@@ -50,6 +68,8 @@ class ArticleForm
                                     ->schema([
                                         TextInput::make('title.id')
                                             ->label('Title (Bahasa Indonesia)')
+                                            ->live(debounce: 500)
+                                            ->afterStateUpdated(static::autoSlugFromTitle())
                                             ->columnSpanFull(),
                                         RichEditor::make('content.id')
                                             ->label('Content (Bahasa Indonesia)')
@@ -61,6 +81,8 @@ class ArticleForm
                                     ->schema([
                                         TextInput::make('title.ms')
                                             ->label('Title (Bahasa Melayu)')
+                                            ->live(debounce: 500)
+                                            ->afterStateUpdated(static::autoSlugFromTitle())
                                             ->columnSpanFull(),
                                         RichEditor::make('content.ms')
                                             ->label('Content (Bahasa Melayu)')
@@ -72,6 +94,8 @@ class ArticleForm
                                     ->schema([
                                         TextInput::make('title.ja')
                                             ->label('Title (日本語)')
+                                            ->live(debounce: 500)
+                                            ->afterStateUpdated(static::autoSlugFromTitle())
                                             ->columnSpanFull(),
                                         RichEditor::make('content.ja')
                                             ->label('Content (日本語)')
@@ -90,7 +114,7 @@ class ArticleForm
                             ->label('Slug')
                             ->required()
                             ->unique(ignoreRecord: true)
-                            ->helperText('Auto-generated from English title. Edit to customise.'),
+                            ->helperText('Auto-generated from whichever title you fill in first. Edit to customise.'),
 
                         Select::make('status')
                             ->options(fn (?\App\Models\Article $record) => ArticlePublishRules::statusOptions($record))

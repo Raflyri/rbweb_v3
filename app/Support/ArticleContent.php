@@ -20,9 +20,6 @@ class ArticleContent
     /** At or below this word count an article is considered throwaway test data. */
     public const TEST_DATA_MAX_WORDS = 10;
 
-    /** Locales an article must be written in before it can go live. */
-    public const PRIMARY_LOCALES = ['id', 'en'];
-
     /**
      * Count words in an HTML fragment.
      *
@@ -111,6 +108,34 @@ class ArticleContent
     }
 
     /**
+     * The first non-empty value across the given locales, tried in order.
+     *
+     * Used anywhere the UI needs to show "a" title/summary for an article
+     * regardless of which single language it happens to be written in —
+     * e.g. the admin articles list, where an ms-only or ja-only article
+     * should still show something instead of a blank cell.
+     *
+     * @param  array<string, mixed>|mixed $value
+     * @param  array<int, string>|null    $locales Defaults to ArticleLocale::SUPPORTED.
+     */
+    public static function bestTranslation(mixed $value, ?array $locales = null): ?string
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        foreach ($locales ?? ArticleLocale::SUPPORTED as $locale) {
+            $text = $value[$locale] ?? null;
+
+            if (is_string($text) && trim(strip_tags($text)) !== '') {
+                return $text;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Is a Filament FileUpload / model attribute holding an actual file?
      * FileUpload state is an array keyed by upload UUID while editing and a
      * plain path string once saved, so both shapes have to be accepted.
@@ -144,11 +169,14 @@ class ArticleContent
     {
         $blockers = [];
 
-        $words = static::bestWordCount($state['content'] ?? null, static::PRIMARY_LOCALES);
+        // Any one of the four supported locales is enough — an article does
+        // not have to be translated everywhere before it can go live, it
+        // just needs real content in at least one language.
+        $words = static::bestWordCount($state['content'] ?? null, ArticleLocale::SUPPORTED);
 
         if ($words < static::MIN_PUBLISH_WORDS) {
             $blockers[] = sprintf(
-                'Konten belum layak terbit: minimal %d kata pada salah satu bahasa utama (ID atau EN), saat ini %d kata.',
+                'Konten belum layak terbit: minimal %d kata pada salah satu bahasa (EN/ID/MS/JA), saat ini %d kata.',
                 static::MIN_PUBLISH_WORDS,
                 $words,
             );

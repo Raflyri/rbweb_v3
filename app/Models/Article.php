@@ -65,18 +65,25 @@ class Article extends Model
             // The slug column is stored as JSON by Spatie Translatable, so
             // we must query it with whereJsonContains, not a plain where().
             if (empty($article->slug) || $article->slug === '{}' || $article->slug === 'null') {
-                $titleEn = $article->getTranslation('title', 'en', false)
-                        ?: $article->getTranslation('title', 'id', false)
-                        ?: 'article';
+                // An article may legitimately be written in only one locale —
+                // walk every supported locale, not just en/id, so a title
+                // written solely in Malay or Japanese still yields a real
+                // slug instead of falling through to the literal "article".
+                $sourceTitle = 'article';
 
-                $baseSlug = static::generateUniqueSlug($titleEn);
+                foreach (ArticleLocale::SUPPORTED as $locale) {
+                    $value = $article->getTranslation('title', $locale, false);
+
+                    if (is_string($value) && trim($value) !== '') {
+                        $sourceTitle = $value;
+
+                        break;
+                    }
+                }
+
+                $baseSlug = static::generateUniqueSlug($sourceTitle);
 
                 // Store the same slug for every locale so all URL lookups work.
-                $article->slug = array_fill_keys(
-                    $article->translatable,
-                    null
-                );
-                // Only slug is relevant here:
                 $slugMap = [];
                 foreach (ArticleLocale::SUPPORTED as $locale) {
                     $slugMap[$locale] = $baseSlug;
@@ -150,6 +157,25 @@ class Article extends Model
     public function scopePendingReview(Builder $query): Builder
     {
         return $query->where('status', 'Pending Review');
+    }
+
+    /**
+     * Restrict to articles actually written in the given locale.
+     *
+     * An article does not have to cover all four languages — one is enough
+     * to publish. This scope is what keeps that flexible: it checks the real
+     * per-locale generated column (content_en/id/ms/ja) rather than relying
+     * on Spatie's translation fallback, so an English-only article shows up
+     * on /blog for English visitors but stays invisible on the Indonesian,
+     * Malay, and Japanese listings instead of leaking through as translated
+     * English text.
+     */
+    public function scopeHasContentIn(Builder $query, string $locale): Builder
+    {
+        $locale = ArticleLocale::normalize($locale);
+        $column = "content_{$locale}";
+
+        return $query->whereNotNull($column)->where($column, '!=', '');
     }
 
     /**

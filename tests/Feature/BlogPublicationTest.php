@@ -71,10 +71,16 @@ it('returns 404 for a draft article accessed directly by slug', function () {
 });
 
 it('renders an article that has no thumbnail, tags or body without crashing', function () {
+    // Markup with no visible text, not a bare empty string: content_en still
+    // has to be non-blank for the article to be considered "written in
+    // English" and stay reachable at /blog/{slug} at all (see
+    // Article::scopeHasContentIn) — this is testing that empty *visible*
+    // content degrades gracefully, not that a locale with nothing in it
+    // does.
     Article::factory()->published()->create([
         'title'     => ['en' => 'Bare Bones Article', 'id' => 'Bare Bones Article'],
         'slug'      => ['en' => 'bare-bones-article', 'id' => 'bare-bones-article'],
-        'content'   => ['en' => '', 'id' => ''],
+        'content'   => ['en' => '<p></p>', 'id' => '<p></p>'],
         'excerpt'   => ['en' => '', 'id' => ''],
         'thumbnail' => null,
     ]);

@@ -5,6 +5,7 @@ namespace App\Filament\ClientArea\Resources;
 use App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
 use App\Filament\Support\ArticlePublishRules;
 use App\Models\Article;
+use App\Support\ArticleContent;
 use App\Support\ArticleLocale;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -80,7 +81,9 @@ class ClientArticleResource extends Resource
                                         TextInput::make("title.{$langCode}")
                                             ->hiddenLabel()
                                             ->placeholder('Judul artikel Anda ('. strtoupper($langCode) .')...')
-                                            ->required($langCode === 'id') // Only require ID
+                                            // No locale is mandatory — one language is enough to
+                                            // publish (see ArticleContent::publishBlockers), so
+                                            // authors are free to write in whichever they choose.
                                             ->maxLength(255)
                                             ->live(debounce: 500)
                                             ->extraAttributes(['class' => 'article-title-field'])
@@ -92,7 +95,6 @@ class ClientArticleResource extends Resource
                                         RichEditor::make("content.{$langCode}")
                                             ->hiddenLabel()
                                             ->placeholder('Mulai menulis artikel Anda di sini ('. strtoupper($langCode) .')...')
-                                            ->required($langCode === 'id')
                                             ->extraInputAttributes([
                                                 'style' => 'min-height: 560px; box-shadow: none; max-width: 100%;',
                                             ])
@@ -197,7 +199,8 @@ class ClientArticleResource extends Resource
                     ->label('Title')
                     ->searchable()
                     ->limit(60)
-                    ->tooltip(fn ($record) => $record->getTranslation('title', 'en', true)),
+                    ->formatStateUsing(fn ($record) => ArticleContent::bestTranslation($record->getTranslations('title')) ?? '(untitled)')
+                    ->tooltip(fn ($record) => ArticleContent::bestTranslation($record->getTranslations('title')) ?? '(untitled)'),
 
                 TextColumn::make('status')
                     ->badge()

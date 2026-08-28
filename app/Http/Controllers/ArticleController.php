@@ -25,6 +25,10 @@ class ArticleController extends Controller
         $search = $request->query('search');
 
         $articles = Article::visiblePublic()
+            // An article only has to be written in one locale to publish, and
+            // only shows up on the /blog of the locale(s) it actually has —
+            // no falling back to another language's text here.
+            ->hasContentIn($locale)
             ->with(['user', 'tags'])
             // Relevance ordering is applied by ArticleSearch when full text is
             // used, so recency is only the tie-breaker on a search.
@@ -49,7 +53,12 @@ class ArticleController extends Controller
     {
         $locale = ArticleLocale::current();
 
+        // hasContentIn($locale) here means an article with no content in the
+        // current locale 404s even if its slug happens to match under a
+        // legacy key — visiting it in a language it was never written in is
+        // not a valid URL, not a redirect target.
         $article = Article::visiblePublic()
+            ->hasContentIn($locale)
             ->with(['user', 'tags'])
             ->where(function ($query) use ($slug, $locale) {
                 // Primary: match the active locale key inside the JSON column.
@@ -67,6 +76,7 @@ class ArticleController extends Controller
 
         // Related articles — exclude current, newest first
         $related = Article::visiblePublic()
+            ->hasContentIn($locale)
             ->with(['user', 'tags'])
             ->where('id', '!=', $article->id)
             ->latest('published_at')
