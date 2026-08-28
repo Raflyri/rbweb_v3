@@ -311,22 +311,37 @@ it('fills in missing locale keys when editing an article written in only one lan
         'status'  => 'Draft',
     ]);
 
-    $component = Livewire::test(EditClientArticle::class, ['record' => $article->getKey()]);
+    // Loading the form must not error out — RichEditor's own live-state
+    // shape for `content` isn't asserted directly (Filament re-serializes
+    // stored HTML through TipTap on load, and that internal representation
+    // isn't a stable contract to test against); title/meta_title/
+    // meta_description are plain TextInput/Textarea fields, so their shape
+    // is predictable.
+    $component = Livewire::test(EditClientArticle::class, ['record' => $article->getKey()])
+        ->assertSuccessful()
+        ->assertSet('data.title.en', 'English Only Client Article');
 
-    // The locale it was actually written in is untouched. content.en isn't
-    // asserted byte-for-byte: Filament's RichEditor re-serializes stored
-    // HTML through TipTap when loading the field's initial state, which
-    // does not guarantee an identical string back — only that the text
-    // survives.
-    $component->assertSet('data.title.en', 'English Only Client Article')
-        ->assertSet('data.content.en', fn ($state) => is_string($state) && str_contains($state, 'Written only in English'));
-
-    // ...and every other locale exists (not missing) instead of throwing
-    // an entangle error for those tabs.
+    // Every other locale exists (not missing) instead of throwing an
+    // entangle error for those tabs.
     foreach (['id', 'ms', 'ja'] as $locale) {
         $component->assertSet("data.title.{$locale}", '')
-            ->assertSet("data.content.{$locale}", null)
             ->assertSet("data.meta_title.{$locale}", '')
             ->assertSet("data.meta_description.{$locale}", '');
+    }
+
+    // Saving without touching anything must not lose the original text...
+    $component->call('save')->assertHasNoFormErrors();
+
+    expect($article->fresh()->getTranslation('content', 'en', false))
+        ->toContain('Written only in English');
+
+    // ...and must not make the untouched locales look "written" — RichEditor
+    // dehydrating a null field can produce empty-but-technically-non-blank
+    // markup (e.g. "<p></p>"). If that leaked through, an article that was
+    // only ever written in English would start appearing on the
+    // Indonesian/Malay/Japanese /blog too, defeating the whole point of
+    // Article::scopeHasContentIn().
+    foreach (['id', 'ms', 'ja'] as $locale) {
+        expect(Article::whereKey($article->id)->hasContentIn($locale)->exists())->toBeFalse();
     }
 });
