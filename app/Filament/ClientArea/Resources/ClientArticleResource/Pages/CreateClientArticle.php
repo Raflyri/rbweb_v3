@@ -79,7 +79,14 @@ class CreateClientArticle extends CreateRecord
                 ->visible(fn () => ArticlePolicy::userCanPublish(Auth::user()))
                 ->action(function () {
                     $this->data['status'] = 'Published';
-                    $this->data['published_at'] = now()->format('Y-m-d H:i:s');
+                    // Respect a date the author already picked (backdating a
+                    // historical post is a legitimate use case) — only
+                    // default to right now when they left the field empty.
+                    // blank(), not ??=: Filament leaves an untouched date
+                    // field as '' rather than null.
+                    if (blank($this->data['published_at'] ?? null)) {
+                        $this->data['published_at'] = now()->format('Y-m-d H:i:s');
+                    }
                     $this->create();
                     
                     \Filament\Notifications\Notification::make()

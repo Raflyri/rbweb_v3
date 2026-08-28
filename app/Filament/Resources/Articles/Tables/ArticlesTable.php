@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Articles\Tables;
 
 use App\Policies\ArticlePolicy;
 use App\Support\ArticleContent;
+use App\Support\ArticleType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -49,6 +50,12 @@ class ArticlesTable
                         default          => 'gray',
                     }),
 
+                TextColumn::make('type')
+                    ->label('Tipe')
+                    ->badge()
+                    ->color(fn (?string $state) => ArticleType::color($state))
+                    ->toggleable(),
+
                 TextColumn::make('user.name')
                     ->label('Submitted By')
                     ->searchable()
@@ -89,6 +96,10 @@ class ArticlesTable
                         'Scheduled'      => 'Scheduled',
                         'Published'      => 'Published',
                     ]),
+
+                SelectFilter::make('type')
+                    ->label('Tipe')
+                    ->options(ArticleType::options()),
             ])
             ->recordActions([
                 EditAction::make(),

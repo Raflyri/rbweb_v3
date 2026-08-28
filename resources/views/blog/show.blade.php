@@ -144,20 +144,15 @@
                 <span class="article-breadcrumb__current">{{ Str::limit($displayTitle, 38) }}</span>
             </nav>
 
-            {{-- Tags --}}
-            @if($article->tags->count() > 0)
-                <div class="article-header__tags">
-                    @foreach($article->tags as $tag)
-                        <span class="article-header__tag">
-                            {{ $tag->getTranslation('name', $locale, false) ?: $tag->name }}
-                        </span>
-                    @endforeach
-                </div>
-            @else
-                <div class="article-header__tags">
-                    <span class="article-header__tag">Article</span>
-                </div>
-            @endif
+            {{-- Type + Tags --}}
+            <div class="article-header__tags">
+                <span class="article-header__tag article-header__tag--type">{{ $article->type }}</span>
+                @foreach($article->tags as $tag)
+                    <span class="article-header__tag">
+                        {{ $tag->getTranslation('name', $locale, false) ?: $tag->name }}
+                    </span>
+                @endforeach
+            </div>
 
             {{-- Title --}}
             <h1 class="article-header__title">{{ $displayTitle }}</h1>

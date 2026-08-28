@@ -25,6 +25,7 @@ class Article extends Model
         'meta_title',
         'meta_description',
         'thumbnail',
+        'type',
         'status',
         'published_at',
         'reviewed_at'
