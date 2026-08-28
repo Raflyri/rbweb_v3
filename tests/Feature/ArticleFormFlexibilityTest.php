@@ -1,10 +1,12 @@
 <?php
 
 use App\Filament\ClientArea\Resources\ClientArticleResource\Pages\CreateClientArticle;
+use App\Filament\ClientArea\Resources\ClientArticleResource\Pages\EditClientArticle;
 use App\Filament\Resources\Articles\Pages\EditArticle;
 use App\Models\Article;
 use App\Models\User;
 use App\Support\ArticleContent;
+use App\Support\ArticleLocale;
 use App\Support\ArticleType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -261,4 +263,66 @@ it('keeps the slug identical across every locale after re-saving an edited artic
         'ms' => 'renamed-slug',
         'ja' => 'renamed-slug',
     ]);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Every locale key must exist in Client Area's live form state
+|--------------------------------------------------------------------------
+| The hand-rolled Alpine locale tabs (App\Filament\ClientArea\...) need
+| data.{field}.{locale} to already be present for every locale, not just
+| the one tab shown by default — RichEditor and any ->live() field
+| entangle with that path, and a missing key throws "Livewire property
+| cannot be found on component" for every other tab. Uncaught, that broke
+| the page badly enough that every subsequent Livewire request — on any
+| component sharing the page, not just this form — failed outright with
+| net::ERR_CONNECTION_CLOSED. This is what made the unrelated email
+| verification banner's "Resend" button look completely dead.
+*/
+it('initializes every locale (not just id) in a new Client Area article so RichEditor can entangle with all four tabs', function () {
+    $client = User::factory()->create();
+    $client->assignRole('regular_user');
+    test()->actingAs($client);
+
+    \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('client-area'));
+
+    $component = Livewire::test(CreateClientArticle::class);
+
+    foreach (ArticleLocale::SUPPORTED as $locale) {
+        $component->assertSet("data.title.{$locale}", '')
+            ->assertSet("data.content.{$locale}", null)
+            ->assertSet("data.meta_title.{$locale}", '')
+            ->assertSet("data.meta_description.{$locale}", '');
+    }
+});
+
+it('fills in missing locale keys when editing an article written in only one language', function () {
+    $client = User::factory()->create();
+    $client->assignRole('regular_user');
+    test()->actingAs($client);
+
+    \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('client-area'));
+
+    $article = Article::create([
+        'user_id' => $client->id,
+        'title'   => ['en' => 'English Only Client Article'],
+        'slug'    => ['en' => 'english-only-client-article'],
+        'content' => ['en' => '<p>Written only in English.</p>'],
+        'status'  => 'Draft',
+    ]);
+
+    $component = Livewire::test(EditClientArticle::class, ['record' => $article->getKey()]);
+
+    // The locale it was actually written in is untouched...
+    $component->assertSet('data.title.en', 'English Only Client Article')
+        ->assertSet('data.content.en', '<p>Written only in English.</p>');
+
+    // ...and every other locale exists (not missing) instead of throwing
+    // an entangle error for those tabs.
+    foreach (['id', 'ms', 'ja'] as $locale) {
+        $component->assertSet("data.title.{$locale}", '')
+            ->assertSet("data.content.{$locale}", null)
+            ->assertSet("data.meta_title.{$locale}", '')
+            ->assertSet("data.meta_description.{$locale}", '');
+    }
 });

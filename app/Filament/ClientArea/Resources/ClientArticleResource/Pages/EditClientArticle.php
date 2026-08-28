@@ -4,6 +4,7 @@ namespace App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
 
 use App\Filament\ClientArea\Resources\ClientArticleResource;
 use App\Models\Article;
+use App\Support\ArticleLocale;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
@@ -40,6 +41,28 @@ class EditClientArticle extends EditRecord
         // The form uses dot-notation fields (title.id, title.en, content.id, …) which
         // Filament resolves from the nested array automatically.
         // Do NOT flatten the arrays here — doing so wipes every other locale on save.
+        //
+        // Every locale key still has to be PRESENT, though, even when the
+        // article was only ever written in one language (the normal case
+        // now — see ArticleContent::publishBlockers). A missing key throws
+        // a Livewire entangle error for that tab and takes down every
+        // Livewire request on the page with it — not just this form,
+        // unrelated components sharing the page too (e.g. the email
+        // verification banner's "Resend" button going dead). array_merge
+        // fills in only the locales the record doesn't already have;
+        // nothing existing is overwritten.
+        foreach (['title', 'meta_title', 'meta_description'] as $field) {
+            $data[$field] = array_merge(
+                array_fill_keys(ArticleLocale::SUPPORTED, ''),
+                $data[$field] ?? [],
+            );
+        }
+
+        $data['content'] = array_merge(
+            array_fill_keys(ArticleLocale::SUPPORTED, null),
+            $data['content'] ?? [],
+        );
+
         return $data;
     }
 
