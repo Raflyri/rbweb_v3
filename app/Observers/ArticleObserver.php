@@ -49,11 +49,16 @@ class ArticleObserver
     protected function pruneBlankLocales(Article $article): void
     {
         foreach (['title', 'content', 'meta_title', 'meta_description'] as $field) {
-            $translations = $article->getTranslations($field);
-            $kept = array_filter($translations, fn (mixed $value) => $this->isFilled($value));
-
-            if ($kept !== $translations) {
-                $article->setTranslations($field, $kept);
+            foreach ($article->getTranslations($field) as $locale => $value) {
+                if (! $this->isFilled($value)) {
+                    // setTranslations($field, $kept) will NOT do — it only
+                    // iterates the array it is given, re-reading and
+                    // re-merging existing translations per key, so a locale
+                    // simply absent from that array is never actually
+                    // removed. forgetTranslation() is the method that drops
+                    // a key from the stored JSON.
+                    $article->forgetTranslation($field, $locale);
+                }
             }
         }
     }
