@@ -56,18 +56,35 @@ it('shows an article written in two locales on both, and only those', function (
     app()->setLocale('en');
 });
 
-it('returns 404 for a published article viewed in a locale it was never written in', function () {
-    Article::factory()->published()->create([
-        'title'   => ['ja' => '日本語だけの記事'],
-        'slug'    => ['ja' => 'nihongo-dake'],
-        'content' => ['ja' => '<p>日本語のコンテンツです。</p>'],
+it('finds an article by its own locale slug and excludes it from another locale via the query scope', function () {
+    $article = Article::factory()->published()->create([
+        'title'   => ['ms' => 'Artikel Bahasa Melayu Sahaja'],
+        'slug'    => ['ms' => 'artikel-bahasa-melayu-sahaja'],
+        'content' => ['ms' => '<p>' . implode(' ', array_fill(0, 20, 'kandungan')) . '</p>'],
     ]);
 
-    app()->setLocale('ja');
-    $this->get('/blog/nihongo-dake')->assertOk();
+    // hasContentIn is what show() adds on top of the existing slug match —
+    // exercise it directly so this does not depend on the full HTTP/view
+    // pipeline to prove the scope itself is doing its job.
+    expect(Article::visiblePublic()->hasContentIn('ms')->whereKey($article->id)->exists())->toBeTrue()
+        ->and(Article::visiblePublic()->hasContentIn('en')->whereKey($article->id)->exists())->toBeFalse()
+        ->and(Article::visiblePublic()->hasContentIn('ja')->whereKey($article->id)->exists())->toBeFalse();
+});
+
+it('returns 404 for a published article viewed in a locale it was never written in', function () {
+    Article::factory()->published()->create([
+        'title'   => ['id' => 'Artikel Bahasa Indonesia Saja'],
+        'slug'    => ['id' => 'artikel-bahasa-indonesia-saja'],
+        'content' => ['id' => '<p>' . implode(' ', array_fill(0, 20, 'konten')) . '</p>'],
+    ]);
+
+    app()->setLocale('id');
+    $this->get('/blog/artikel-bahasa-indonesia-saja')->assertOk();
+
+    app()->setLocale('ms');
+    $this->get('/blog/artikel-bahasa-indonesia-saja')->assertNotFound();
 
     app()->setLocale('en');
-    $this->get('/blog/nihongo-dake')->assertNotFound();
 });
 
 it('does not recommend a related article that has no content in the current locale', function () {
