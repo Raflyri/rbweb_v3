@@ -21,16 +21,27 @@ class ArticleContent
     public const TEST_DATA_MAX_WORDS = 10;
 
     /**
-     * Count words in an HTML fragment.
+     * Count words in an HTML fragment — or a live RichEditor value.
      *
      * str_word_count() returns 0 for Japanese/Chinese text because those
      * scripts are not space separated, which would wrongly flag a perfectly
      * good JA article as empty. CJK codepoints are therefore counted
      * individually and the remaining text is counted by whitespace groups.
+     *
+     * Filament's RichEditor keeps its *live* form state (what $get() sees
+     * before the record is saved) as a TipTap JSON document, not HTML —
+     * RichEditorStateCast only converts to HTML on dehydrate. Reading that
+     * shape as a plain string always produced 0 words and wrongly blocked
+     * publishing, so an array here is walked for its text nodes instead of
+     * being treated as unusable.
      */
-    public static function wordCount(?string $html): int
+    public static function wordCount(mixed $html): int
     {
-        $text = html_entity_decode(strip_tags((string) $html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = is_array($html)
+            ? static::extractTipTapText($html)
+            : (string) $html;
+
+        $text = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
 
         if ($text === '') {
@@ -69,7 +80,10 @@ class ArticleContent
                 continue;
             }
 
-            if (! is_string($html)) {
+            // A per-locale value can be an unsaved RichEditor's TipTap JSON
+            // document as easily as it can be a string — wordCount() handles
+            // both; only genuinely unusable types (bool, int, ...) skip.
+            if (! is_string($html) && ! is_array($html)) {
                 continue;
             }
 
@@ -77,6 +91,30 @@ class ArticleContent
         }
 
         return $best;
+    }
+
+    /**
+     * Concatenate every text node in a TipTap JSON document (or fragment)
+     * into a plain string, depth-first. Marks/attrs are ignored — only the
+     * visible text matters for a word count.
+     *
+     * @param  array<string, mixed> $node
+     */
+    protected static function extractTipTapText(array $node): string
+    {
+        $parts = [];
+
+        if (is_string($node['text'] ?? null)) {
+            $parts[] = $node['text'];
+        }
+
+        foreach ($node['content'] ?? [] as $child) {
+            if (is_array($child)) {
+                $parts[] = static::extractTipTapText($child);
+            }
+        }
+
+        return implode(' ', $parts);
     }
 
     /**
