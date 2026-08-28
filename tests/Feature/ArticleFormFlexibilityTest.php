@@ -252,7 +252,10 @@ it('keeps the slug identical across every locale after re-saving an edited artic
 
     $updated = $article->fresh();
 
-    expect($updated->getTranslations('slug'))->toBe([
+    // toEqual (==), not toBe (===): key order isn't guaranteed to
+    // round-trip through the JSON column the same way it was written —
+    // only that every locale ended up with the same value.
+    expect($updated->getTranslations('slug'))->toEqual([
         'en' => 'renamed-slug',
         'id' => 'renamed-slug',
         'ms' => 'renamed-slug',
