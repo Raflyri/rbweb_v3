@@ -3,24 +3,21 @@
 namespace App\Filament\ClientArea\Resources;
 
 use App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
+use App\Filament\Support\ArticleFields;
 use App\Filament\Support\ArticlePublishRules;
 use App\Models\Article;
 use App\Support\ArticleContent;
 use App\Support\ArticleLocale;
+use App\Support\ArticleType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Infolists\Components\TextEntry;
 use Illuminate\Support\Facades\Auth;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Schemas\Components\Tabs;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Resources\Resource;
@@ -60,14 +57,12 @@ class ClientArticleResource extends Resource
                             // Language Tabs View
                             \Filament\Schemas\Components\View::make('filament.components.locale-tabs'),
 
-                            // Featured image / thumbnail (16:9)
-                            FileUpload::make('thumbnail')
+                            // Featured image / thumbnail (16:9) — same builder, same
+                            // storage directory as the Admin panel, so a thumbnail
+                            // uploaded here and one uploaded in /rbdashboard live in
+                            // the same place instead of two separate folders.
+                            ArticleFields::thumbnailField()
                                 ->hiddenLabel()
-                                ->image()
-                                ->disk('public')
-                                ->directory('articles/thumbnails')
-                                ->imageEditor()
-                                ->imageEditorAspectRatioOptions(['16:9' => '16:9 (Landscape)'])
                                 ->nullable(),
 
                             // Build Dynamic Lokale Inputs
@@ -78,30 +73,22 @@ class ClientArticleResource extends Resource
                                         'style' => $langCode === 'id' ? '' : 'display: none;',
                                     ])
                                     ->schema([
-                                        TextInput::make("title.{$langCode}")
+                                        ArticleFields::titleField($langCode, '')
                                             ->hiddenLabel()
                                             ->placeholder('Judul artikel Anda ('. strtoupper($langCode) .')...')
-                                            // No locale is mandatory — one language is enough to
-                                            // publish (see ArticleContent::publishBlockers), so
-                                            // authors are free to write in whichever they choose.
-                                            ->maxLength(255)
                                             ->live(debounce: 500)
+                                            ->afterStateUpdated(ArticleFields::autoSlugFromTitle())
                                             ->extraAttributes(['class' => 'article-title-field'])
                                             ->extraInputAttributes([
                                                 'class' => 'text-3xl font-bold bg-transparent border-0 ring-0 focus:ring-0 px-0 shadow-none',
                                                 'style' => 'box-shadow: none;',
                                             ]),
 
-                                        RichEditor::make("content.{$langCode}")
+                                        ArticleFields::contentField($langCode, '')
                                             ->hiddenLabel()
                                             ->placeholder('Mulai menulis artikel Anda di sini ('. strtoupper($langCode) .')...')
                                             ->extraInputAttributes([
                                                 'style' => 'min-height: 560px; box-shadow: none; max-width: 100%;',
-                                            ])
-                                            ->toolbarButtons([
-                                                'attachFiles', 'blockquote', 'bold', 'bulletList', 'codeBlock',
-                                                'h2', 'h3', 'italic', 'link', 'orderedList', 'redo',
-                                                'strike', 'table', 'underline', 'undo',
                                             ]),
                                     ]);
                             }, ArticleLocale::editorLocales()),
@@ -110,7 +97,7 @@ class ClientArticleResource extends Resource
                     // ── Settings Area (Bottom) ──────────────────────────
                     Section::make('Pengaturan & Properti Artikel')
                         ->schema([
-                            Grid::make(3)
+                            Grid::make(4)
                                 ->schema([
                                     TextEntry::make('author')
                                         ->label('Penulis')
@@ -126,10 +113,10 @@ class ClientArticleResource extends Resource
                                         ->afterStateUpdated(fn (Get $get, $state) => ArticlePublishRules::notifyOnStatusChange($get, $state))
                                         ->helperText(fn (Get $get): string => ArticlePublishRules::helperText($get)),
 
-                                    DateTimePicker::make('published_at')
+                                    ArticleFields::typeField(),
+
+                                    ArticleFields::publishedAtField()
                                         ->label('Jadwal Publish')
-                                        ->native(false)
-                                        ->displayFormat('d/m/Y H:i')
                                         ->placeholder('Pilih tanggal')
                                         ->nullable(),
                                 ]),
@@ -147,7 +134,11 @@ class ClientArticleResource extends Resource
                                                 ->placeholder('Nama tag baru...')
                                                 ->maxLength(255),
                                         ])
-                                        ->placeholder('+ Tambah tag'),
+                                        ->placeholder('+ Tambah tag')
+                                        ->hintIcon(
+                                            'heroicon-o-question-mark-circle',
+                                            'Opsional — topik/kategori untuk membantu pengelompokan dan pencarian. Boleh pilih lebih dari satu atau buat tag baru.',
+                                        ),
 
                                     TextEntry::make('estimated_read_time')
                                         ->label('Estimasi Membaca')
@@ -176,13 +167,12 @@ class ClientArticleResource extends Resource
                                         'style' => $langCode === 'id' ? '' : 'display: none;',
                                     ])
                                     ->schema([
-                                        Textarea::make("meta_description.{$langCode}")
-                                            ->label('Meta Description ('. strtoupper($langCode) .')')
+                                        ArticleFields::metaTitleField($langCode, 'Meta Title ('. strtoupper($langCode) .')')
+                                            ->placeholder('Judul untuk hasil pencarian...')
+                                            ->nullable(),
+
+                                        ArticleFields::metaDescriptionField($langCode, 'Meta Description ('. strtoupper($langCode) .')')
                                             ->placeholder('Panduan lengkap tren desain UI tahun 2025...')
-                                            ->maxLength(160)
-                                            ->live(debounce: 500)
-                                            ->helperText(fn ($state) => mb_strlen(is_string($state) ? $state : '') . ' / 160')
-                                            ->rows(3)
                                             ->nullable(),
                                     ]);
                             }, ArticleLocale::editorLocales()),
@@ -211,6 +201,11 @@ class ClientArticleResource extends Resource
                         'Draft'          => 'gray',
                         default          => 'gray',
                     }),
+
+                TextColumn::make('type')
+                    ->label('Tipe')
+                    ->badge()
+                    ->color(fn (?string $state) => ArticleType::color($state)),
 
                 TextColumn::make('created_at')
                     ->label('Submitted')

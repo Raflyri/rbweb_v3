@@ -139,8 +139,9 @@
                             {{-- ── Card Body ────────────────────────────────── --}}
                             <div class="article-card__body">
 
-                                {{-- Tags row --}}
-                                <div class="article-card__tags" aria-label="Tags">
+                                {{-- Type + tags row --}}
+                                <div class="article-card__tags" aria-label="Category and tags">
+                                    <span class="article-tag article-tag--type">{{ $article->type }}</span>
                                     @if($firstTag)
                                         <span class="article-tag">
                                             {{ $firstTag->getTranslation('name', $locale, false) ?: $firstTag->name }}
@@ -150,8 +151,6 @@
                                                 +{{ $article->tags->count() - 1 }}
                                             </span>
                                         @endif
-                                    @else
-                                        <span class="article-tag">Article</span>
                                     @endif
                                 </div>
 
