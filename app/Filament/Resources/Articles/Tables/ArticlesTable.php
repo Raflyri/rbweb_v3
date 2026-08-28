@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Articles\Tables;
 
 use App\Policies\ArticlePolicy;
+use App\Support\ArticleContent;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -27,7 +28,11 @@ class ArticlesTable
                     ->label('Title')
                     ->searchable()
                     ->limit(60)
-                    ->tooltip(fn ($record) => $record->getTranslation('title', app()->getLocale(), true)),
+                    // An article may only exist in one non-English locale, so
+                    // don't rely on the current locale + Spatie's fallback —
+                    // show whichever translation actually exists.
+                    ->formatStateUsing(fn ($record) => ArticleContent::bestTranslation($record->getTranslations('title')) ?? '(untitled)')
+                    ->tooltip(fn ($record) => ArticleContent::bestTranslation($record->getTranslations('title')) ?? '(untitled)'),
 
                 TextColumn::make('slug')
                     ->searchable()

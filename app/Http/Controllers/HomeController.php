@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Models\LaunchpadLink;
 use App\Settings\GeneralSettings;
+use App\Support\ArticleLocale;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -32,14 +33,19 @@ class HomeController extends Controller
             ?? $settings->web_tagline['en']
             ?? 'Your Partner in the Digital Age';
 
-        // ── 3. Fetch published articles from DB (locale-aware, EN fallback) ─
+        // ── 3. Fetch published articles from DB, only ones written in this
+        //      locale — no fallback teaser for a language the article was
+        //      never translated into (the linked /blog/{slug} would 404).
+        $normalisedLocale = ArticleLocale::normalize($locale);
+
         $articles = Article::published()
+            ->hasContentIn($normalisedLocale)
             ->latest('published_at')
             ->take(4)
             ->get()
-            ->map(function (Article $article) use ($locale) {
-                $title   = $article->getTranslation('title', $locale, true);
-                $content = $article->getTranslation('content', $locale, true);
+            ->map(function (Article $article) use ($normalisedLocale) {
+                $title   = $article->getTranslation('title', $normalisedLocale, true);
+                $content = $article->getTranslation('content', $normalisedLocale, true);
 
                 return [
                     'category'       => 'Article',
@@ -47,7 +53,7 @@ class HomeController extends Controller
                     'title'          => $title,
                     'excerpt'        => Str::limit(strip_tags($content), 130),
                     'date'           => $article->published_at?->format('M d, Y') ?? '',
-                    'href'           => route('blog.show', $article->slug),
+                    'href'           => route('blog.show', $article->getTranslation('slug', $normalisedLocale, true)),
                     'thumbnail'      => $article->thumbnail
                         ? asset('storage/' . $article->thumbnail)
                         : null,
