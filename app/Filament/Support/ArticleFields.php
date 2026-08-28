@@ -2,6 +2,8 @@
 
 namespace App\Filament\Support;
 
+use App\Support\ArticleContent;
+use App\Support\ArticleLocale;
 use App\Support\ArticleType;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
@@ -112,6 +114,18 @@ class ArticleFields
             ->label('Slug')
             ->required()
             ->unique(ignoreRecord: true)
+            // 'slug' is stored as one JSON value per locale (Spatie
+            // Translatable), but every locale shares the identical value
+            // (see Article::boot()). This is a single flat TextInput, not
+            // slug.{locale} — without formatStateUsing, Filament hands it
+            // the raw per-locale array when editing an existing record, and
+            // it renders as "[object Object]" instead of the slug text.
+            // dehydrateStateUsing rebuilds that array on save so every
+            // locale keeps resolving to the same slug.
+            ->formatStateUsing(fn (mixed $state) => is_array($state)
+                ? (ArticleContent::bestTranslation($state) ?? '')
+                : $state)
+            ->dehydrateStateUsing(fn (?string $state) => array_fill_keys(ArticleLocale::SUPPORTED, $state))
             ->hintIcon(
                 self::HINT_ICON,
                 'Wajib — bagian akhir URL artikel (contoh: rbeverything.com/blog/slug-ini). Terisi otomatis dari judul bahasa manapun yang pertama kamu tulis; boleh diedit manual.',
