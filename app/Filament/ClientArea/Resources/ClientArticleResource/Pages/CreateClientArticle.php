@@ -3,6 +3,7 @@
 namespace App\Filament\ClientArea\Resources\ClientArticleResource\Pages;
 
 use App\Filament\ClientArea\Resources\ClientArticleResource;
+use App\Support\ArticleLocale;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Actions\Action;
 use App\Policies\ArticlePolicy;
@@ -28,12 +29,24 @@ class CreateClientArticle extends CreateRecord
     {
         parent::mount();
 
-        // Initialize translatable fields for the "id" (Indonesian) locale.
-        // Use null (not '') for RichEditor — Filament v4's TipTap StateCast
-        // crashes when it tries to parse an empty string as a JSON document.
-        $this->data['title']            = ['id' => ''];
-        $this->data['content']          = ['id' => null];
-        $this->data['meta_description'] = ['id' => ''];
+        // Initialize every locale, not just "id" — Livewire's entangle
+        // (used by RichEditor and any ->live() field, e.g. meta_title/
+        // meta_description's character counters) needs the key to already
+        // exist in the component's data array before the browser can bind
+        // to it. Leaving en/ms/ja unset threw "property cannot be found on
+        // component" for those tabs and corrupted the page's Livewire AJAX
+        // payload badly enough that every subsequent Livewire request on
+        // the page — including completely unrelated components like the
+        // email verification banner's "Resend" button — failed outright
+        // with net::ERR_CONNECTION_CLOSED.
+        //
+        // content uses null (not '') per locale — Filament v4's TipTap
+        // StateCast crashes when it tries to parse an empty string as a
+        // JSON document.
+        $this->data['title']            = array_fill_keys(ArticleLocale::SUPPORTED, '');
+        $this->data['content']          = array_fill_keys(ArticleLocale::SUPPORTED, null);
+        $this->data['meta_title']       = array_fill_keys(ArticleLocale::SUPPORTED, '');
+        $this->data['meta_description'] = array_fill_keys(ArticleLocale::SUPPORTED, '');
         $this->data['status'] = 'Pending Review';
         $this->data['tags']   = [];
     }
