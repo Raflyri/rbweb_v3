@@ -79,16 +79,9 @@ class CreateClientArticle extends CreateRecord
                 ->visible(fn () => ArticlePolicy::userCanPublish(Auth::user()))
                 ->action(function () {
                     $this->data['status'] = 'Published';
-                    // Respect a date the author already picked (backdating a
-                    // historical post is a legitimate use case) — only
-                    // default to right now when they left the field empty.
-                    // blank(), not ??=: Filament leaves an untouched date
-                    // field as '' rather than null.
-                    if (blank($this->data['published_at'] ?? null)) {
-                        $this->data['published_at'] = now()->format('Y-m-d H:i:s');
-                    }
+                    $this->data['published_at'] = static::resolvePublishNowDate($this->data['published_at'] ?? null);
                     $this->create();
-                    
+
                     \Filament\Notifications\Notification::make()
                         ->success()
                         ->title('Berhasil diterbitkan')
@@ -104,6 +97,21 @@ class CreateClientArticle extends CreateRecord
                 }),
             $this->getCancelFormAction(),
         ];
+    }
+
+    /**
+     * The date "Publish Now" saves. Pulled out of the action closure so it
+     * can be tested directly instead of through Filament's action-testing
+     * machinery — a backdated date the author already picked (a legitimate
+     * way to publish a historical post) is preserved; an empty field
+     * defaults to right now.
+     *
+     * blank(), not ??=: Filament leaves an untouched date field as '' rather
+     * than null.
+     */
+    public static function resolvePublishNowDate(?string $publishedAt): string
+    {
+        return blank($publishedAt) ? now()->format('Y-m-d H:i:s') : $publishedAt;
     }
 
     protected function getHeaderWidgets(): array { return []; }
