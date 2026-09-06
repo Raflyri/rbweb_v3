@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Support\Str;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Translatable\HasTranslations;
@@ -26,17 +27,18 @@ class Product extends Model
     use HasFactory, HasSlug, HasTranslations, LogsActivity;
 
     /**
-     * Locales a product is actually written in.
+     * Locales a product may be written in — the same four the site's language
+     * switcher offers, so a visitor who picked Malay or Japanese can be served
+     * real copy rather than a translation of convenience.
      *
-     * The site serves four languages, but the market for these items is local:
-     * copy is maintained in Indonesian and English only. Visitors browsing in
-     * Malay or Japanese get the fallback chain in translate() rather than an
-     * empty page — unlike articles, which hide themselves in locales they were
-     * never written in.
+     * Writing all four is never required. Unlike articles, which hide
+     * themselves in locales they were never translated into, a product always
+     * stays visible: translate() falls back through LOCALE_FALLBACKS so a
+     * Japanese visitor sees the Indonesian listing instead of a blank page.
      *
      * @var array<int, string>
      */
-    public const LOCALES = ['id', 'en'];
+    public const LOCALES = ArticleLocale::SUPPORTED;
 
     /** Order in which translate() looks for a usable value. */
     public const LOCALE_FALLBACKS = ['id', 'en'];
@@ -89,21 +91,29 @@ class Product extends Model
             ->doNotGenerateSlugsOnUpdate();
     }
 
-    /** Indonesian name first, English second, then whatever exists. */
+    /**
+     * Indonesian name first, English second, then whatever exists.
+     *
+     * A candidate only counts if it actually slugifies to something. A product
+     * named only in Japanese would otherwise hand Str::slug() a string of
+     * characters it strips entirely, and the empty result turns into a
+     * permalink like "-1" — so such a name is skipped in favour of a Latin one,
+     * and 'produk' is the last resort.
+     */
     public function slugSource(): string
     {
         $names = $this->getTranslations('name');
 
-        foreach (self::LOCALE_FALLBACKS as $locale) {
-            $value = $names[$locale] ?? null;
+        $ordered = array_merge(
+            array_filter(array_map(
+                fn (string $locale) => $names[$locale] ?? null,
+                self::LOCALE_FALLBACKS,
+            )),
+            $names,
+        );
 
-            if (is_string($value) && trim($value) !== '') {
-                return $value;
-            }
-        }
-
-        foreach ($names as $value) {
-            if (is_string($value) && trim($value) !== '') {
+        foreach ($ordered as $value) {
+            if (is_string($value) && Str::slug($value) !== '') {
                 return $value;
             }
         }

@@ -32,13 +32,22 @@ class ProductDemoSeeder extends Seeder
 
         $samples = [
             [
+                // Written in all four site languages on purpose: this is the row
+                // to click through the EN/ID/MY/JA switcher against.
                 'type'  => ProductType::BARANG,
                 'price' => 450000,
                 'stock' => 12,
-                'name'  => ['id' => 'Paket Router Wi-Fi 6 Terpasang', 'en' => 'Wi-Fi 6 Router Bundle (Installed)'],
+                'name'  => [
+                    'id' => 'Paket Router Wi-Fi 6 Terpasang',
+                    'en' => 'Wi-Fi 6 Router Bundle (Installed)',
+                    'ms' => 'Pakej Penghala Wi-Fi 6 (Dipasang)',
+                    'ja' => 'Wi-Fi 6 ルーター設置パッケージ',
+                ],
                 'short' => [
                     'id' => 'Router Wi-Fi 6 dual-band lengkap dengan konfigurasi awal dan pemasangan di lokasi.',
                     'en' => 'Dual-band Wi-Fi 6 router including initial configuration and on-site installation.',
+                    'ms' => 'Penghala Wi-Fi 6 dwijalur lengkap dengan konfigurasi awal dan pemasangan di lokasi.',
+                    'ja' => 'デュアルバンド Wi-Fi 6 ルーター。初期設定と現地設置を含みます。',
                 ],
             ],
             [
@@ -99,10 +108,12 @@ class ProductDemoSeeder extends Seeder
                 [
                     'name'              => $sample['name'],
                     'short_description' => $sample['short'],
-                    'description'       => [
-                        'id' => '<p>' . $sample['short']['id'] . '</p><p>Ini data contoh untuk pengembangan lokal.</p>',
-                        'en' => '<p>' . $sample['short']['en'] . '</p><p>This is sample data for local development.</p>',
-                    ],
+                    // One paragraph per language the sample was written in, so a
+                    // row with Malay/Japanese copy has a Malay/Japanese detail
+                    // page too rather than falling back to Indonesian there.
+                    'description'       => collect($sample['short'])
+                        ->map(fn (string $text) => '<p>' . $text . '</p><p>[data contoh — development only]</p>')
+                        ->all(),
                     'type'              => $sample['type'],
                     'price'             => $sample['price'],
                     'currency'          => 'IDR',

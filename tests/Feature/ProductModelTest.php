@@ -123,11 +123,59 @@ it('serves the Indonesian copy to visitors browsing in an untranslated locale', 
         'name' => ['id' => 'Kabel LAN Cat6'],
     ]);
 
-    // Malay and Japanese are supported site-wide but products are only written
-    // in id/en, so those visitors get Indonesian rather than an empty page.
+    // A product does not have to be written in all four languages. Whatever is
+    // missing falls back rather than rendering an empty page.
     expect($product->translate('name', 'ms'))->toBe('Kabel LAN Cat6')
         ->and($product->translate('name', 'ja'))->toBe('Kabel LAN Cat6')
         ->and($product->translate('name', 'en'))->toBe('Kabel LAN Cat6');
+});
+
+it('stores and serves all four languages the site offers', function () {
+    $product = Product::factory()->create([
+        'name' => [
+            'id' => 'Audit Keamanan Website',
+            'en' => 'Website Security Audit',
+            'ms' => 'Audit Keselamatan Laman Web',
+            'ja' => 'ウェブサイトセキュリティ監査',
+        ],
+    ]);
+
+    expect(Product::LOCALES)->toBe(['en', 'id', 'ms', 'ja'])
+        ->and($product->translate('name', 'id'))->toBe('Audit Keamanan Website')
+        ->and($product->translate('name', 'en'))->toBe('Website Security Audit')
+        ->and($product->translate('name', 'ms'))->toBe('Audit Keselamatan Laman Web')
+        ->and($product->translate('name', 'ja'))->toBe('ウェブサイトセキュリティ監査');
+});
+
+it('normalises legacy locale codes when reading a translation', function () {
+    $product = Product::factory()->create([
+        'name' => ['id' => 'Kabel LAN Cat6', 'ms' => 'Kabel LAN Cat6 (MY)'],
+    ]);
+
+    // 'my' and 'jp' are the wrong codes this project has been bitten by before;
+    // ArticleLocale folds them onto ms/ja before the lookup.
+    expect($product->translate('name', 'my'))->toBe('Kabel LAN Cat6 (MY)')
+        ->and($product->translate('name', 'ms_MY'))->toBe('Kabel LAN Cat6 (MY)');
+});
+
+it('still produces a usable slug for a product named only in Japanese', function () {
+    $product = Product::create([
+        'name' => ['ja' => 'ウェブサイトセキュリティ監査'],
+        'type' => ProductType::JASA,
+    ]);
+
+    // Str::slug() strips those characters entirely; without a guard the slug
+    // would come out as "-1" rather than something typeable.
+    expect($product->slug)->toBe('produk');
+});
+
+it('prefers a Latin name over a Japanese one when generating the slug', function () {
+    $product = Product::create([
+        'name' => ['ja' => 'ウェブサイト監査', 'en' => 'Website Audit'],
+        'type' => ProductType::JASA,
+    ]);
+
+    expect($product->slug)->toBe('website-audit');
 });
 
 it('prefers the requested locale when it exists', function () {

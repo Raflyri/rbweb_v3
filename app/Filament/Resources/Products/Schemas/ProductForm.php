@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Filament\Support\ProductFields;
+use App\Support\ArticleLocale;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Schema;
@@ -12,14 +13,18 @@ class ProductForm
     /**
      * [locale => Tab label] — order also drives display order.
      *
-     * Indonesian first, the reverse of ArticleForm: these items are sold to a
-     * local market, so the Indonesian copy is the one that is always written
-     * and the English one is the optional extra.
+     * The same four languages the public switcher offers, taken from
+     * ArticleLocale so there is one list to keep current rather than two.
+     * Indonesian leads (the reverse of ArticleForm): these items are sold to a
+     * local market, so the Indonesian copy is the one always written and the
+     * other three are optional.
      */
-    protected const LOCALE_TABS = [
-        'id' => 'Indonesia (ID)',
-        'en' => 'English (EN)',
-    ];
+    protected static function localeTabs(): array
+    {
+        return collect(ArticleLocale::LABELS)
+            ->map(fn (string $label, string $locale) => $label . ' (' . strtoupper($locale) . ')')
+            ->all();
+    }
 
     public static function configure(Schema $schema): Schema
     {
@@ -29,17 +34,17 @@ class ProductForm
 
                 // ── Translatable content ─────────────────────────────────
                 Section::make('Nama & Deskripsi')
-                    ->description('Nama Bahasa Indonesia wajib diisi. Bahasa Inggris opsional — kalau kosong, pengunjung berbahasa Inggris melihat versi Indonesia.')
+                    ->description('Nama Bahasa Indonesia wajib diisi. Bahasa lain opsional — kalau kosong, pengunjung yang memilih bahasa itu melihat versi Indonesia (lalu Inggris).')
                     ->columnSpan(2)
                     ->schema([
                         Tabs::make('Bahasa')
                             ->contained(false)
                             ->tabs(
-                                collect(self::LOCALE_TABS)->map(
+                                collect(self::localeTabs())->map(
                                     fn (string $label, string $locale) => Tabs\Tab::make($label)
                                         ->schema([
                                             // Only the Indonesian name drives the slug, so only
-                                            // it needs to be live — the English field would
+                                            // it needs to be live — the other three would
                                             // otherwise fire a round-trip per keystroke for
                                             // nothing.
                                             $locale === 'id'

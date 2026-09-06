@@ -120,8 +120,23 @@
                 <a href="/#about"    class="rb-nav-link">About Us</a>
             </nav>
 
-            {{-- CTA --}}
+            {{-- Language switcher + CTA --}}
             <div class="rb-desktop-nav" style="display:flex;align-items:center;gap:0.875rem;">
+                {{-- Plain links, not buttons: scroll-effects.js (which powers the
+                     homepage switcher) is only loaded on the homepage, and the
+                     copy on these pages is rendered server-side anyway — so the
+                     language has to change with a real request. --}}
+                <div class="rb-lang-switcher" role="group" aria-label="Language selector">
+                    @foreach(\App\Support\ArticleLocale::LABELS as $code => $label)
+                        <a href="{{ route('lang.switch', $code) }}"
+                           class="rb-lang-btn {{ \App\Support\ArticleLocale::current() === $code ? 'active' : '' }}"
+                           style="text-decoration:none;display:inline-block;"
+                           data-set-locale="{{ $code }}"
+                           rel="nofollow"
+                           aria-label="{{ $label }}">{{ $code === 'ms' ? 'MY' : strtoupper($code) }}</a>
+                    @endforeach
+                </div>
+
                 <a href="mailto:hello@rbeverything.com" class="rb-btn-primary">
                     Let's Collaborate
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -147,6 +162,17 @@
             <a href="/blog"      style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Blog</a>
             <a href="/#about"    style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">About Us</a>
         </nav>
+        <div class="rb-lang-switcher" style="margin-top:1.5rem;width:fit-content;">
+            @foreach(\App\Support\ArticleLocale::LABELS as $code => $label)
+                <a href="{{ route('lang.switch', $code) }}"
+                   class="rb-lang-btn {{ \App\Support\ArticleLocale::current() === $code ? 'active' : '' }}"
+                   style="text-decoration:none;display:inline-block;"
+                   data-set-locale="{{ $code }}"
+                   rel="nofollow"
+                   aria-label="{{ $label }}">{{ $code === 'ms' ? 'MY' : strtoupper($code) }}</a>
+            @endforeach
+        </div>
+
         <a href="mailto:hello@rbeverything.com" class="rb-btn-hero" style="margin-top:1.25rem;width:fit-content;">
             Let's Collaborate
         </a>
@@ -192,6 +218,15 @@
             menu?.classList.toggle('open');
             this.setAttribute('aria-expanded', menu?.classList.contains('open') ? 'true' : 'false');
         });
+        // The homepage switcher remembers the choice in localStorage and applies
+        // it client-side. These links change the server session instead, so mirror
+        // the value across or the homepage would snap back to the old language.
+        document.querySelectorAll('[data-set-locale]').forEach(link => {
+            link.addEventListener('click', () => {
+                try { localStorage.setItem('rb_locale', link.dataset.setLocale); } catch (e) {}
+            });
+        });
+
         document.querySelectorAll('#rb-mobile-menu a').forEach(a => {
             a.addEventListener('click', () => {
                 document.getElementById('rb-hamburger')?.classList.remove('open');

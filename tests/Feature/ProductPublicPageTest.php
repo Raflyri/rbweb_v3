@@ -148,6 +148,71 @@ it('renders the sanitised description without escaping its markup', function () 
 
 /*
 |--------------------------------------------------------------------------
+| Languages
+|--------------------------------------------------------------------------
+*/
+
+it('renders the catalogue in whichever language the visitor picked', function () {
+    Product::factory()->create([
+        'name' => [
+            'id' => 'Audit Keamanan Website',
+            'en' => 'Website Security Audit',
+            'ms' => 'Audit Keselamatan Laman Web',
+            'ja' => 'ウェブサイトセキュリティ監査',
+        ],
+    ]);
+
+    foreach ([
+        'ms' => 'Audit Keselamatan Laman Web',
+        'ja' => 'ウェブサイトセキュリティ監査',
+        'en' => 'Website Security Audit',
+        'id' => 'Audit Keamanan Website',
+    ] as $locale => $expected) {
+        $this->withSession(['locale' => $locale])
+            ->get(route('products.index'))
+            ->assertOk()
+            ->assertSee($expected, false);
+    }
+});
+
+it('falls back instead of going blank in a language the product lacks', function () {
+    $product = Product::factory()->indonesianOnly()->create([
+        'name' => ['id' => 'Kabel LAN Cat6'],
+    ]);
+
+    // Articles hide themselves in an untranslated locale; a product must not.
+    $this->withSession(['locale' => 'ja'])
+        ->get(route('products.show', $product->slug))
+        ->assertOk()
+        ->assertSee('Kabel LAN Cat6');
+});
+
+it('offers the four site languages on the catalogue pages', function () {
+    $product = Product::factory()->create();
+
+    foreach ([route('products.index'), route('products.show', $product->slug)] as $url) {
+        $response = get($url)->assertOk();
+
+        foreach (['en', 'id', 'ms', 'ja'] as $locale) {
+            $response->assertSee(route('lang.switch', $locale), false);
+        }
+    }
+});
+
+it('actually switches the rendered language through the switcher route', function () {
+    Product::factory()->create([
+        'name' => ['id' => 'Audit Keamanan Website', 'ms' => 'Audit Keselamatan Laman Web'],
+    ]);
+
+    $this->get(route('lang.switch', 'ms'))->assertRedirect();
+
+    get(route('products.index'))
+        ->assertOk()
+        ->assertSee('Audit Keselamatan Laman Web');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Navigation & sitemap
 |--------------------------------------------------------------------------
 */

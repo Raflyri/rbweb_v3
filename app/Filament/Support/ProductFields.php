@@ -50,7 +50,7 @@ class ProductFields
                 self::HINT_ICON,
                 $locale === 'id'
                     ? 'Wajib — nama produk/layanan dalam Bahasa Indonesia. Dipakai untuk membuat slug URL.'
-                    : 'Opsional — nama untuk bahasa ini. Kalau kosong, pengunjung berbahasa Inggris akan melihat nama Bahasa Indonesia.',
+                    : 'Opsional — nama untuk bahasa ini. Kalau kosong, pengunjung yang memilih bahasa ini akan melihat nama Bahasa Indonesia (lalu Inggris).',
             );
     }
 
