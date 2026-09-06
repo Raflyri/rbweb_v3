@@ -150,7 +150,22 @@
                         @endif
                     </div>
 
+                    @if(session('order_error'))
+                        <div class="pdp-order-error" role="alert">{{ session('order_error') }}</div>
+                    @endif
+
                     <div class="pdp-actions">
+                        @if($product->hasPrice() && $product->isInStock())
+                            <a href="{{ route('order.create', $product->slug) }}" class="rb-btn-primary pdp-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                </svg>
+                                Pesan Sekarang
+                            </a>
+                        @endif
+
                         @if($contact['whatsapp'])
                             <a href="{{ $contact['whatsapp'] }}?text={{ $waMessage }}"
                                class="rb-btn-primary pdp-btn" target="_blank" rel="noopener">
@@ -172,13 +187,16 @@
                         </a>
                     </div>
 
-                    @if($product->hasPrice())
-                        {{-- Phase 3 replaces this note with the real "Pesan Sekarang"
-                             button. Saying so plainly beats a dead button that
-                             looks clickable. --}}
+                    @if($product->hasPrice() && $product->isInStock())
                         <p class="pdp-note">
-                            Pemesanan online sedang disiapkan. Sementara ini, pesanan diproses lewat
-                            WhatsApp atau email — kami balas secepatnya.
+                            Mengisi formulir pemesanan belum berarti membayar. Kami konfirmasi dulu
+                            {{ $product->isBarang() ? 'ketersediaan dan ongkos kirim' : 'jadwal pengerjaan' }},
+                            baru pembayaran.
+                        </p>
+                    @elseif($product->hasPrice())
+                        <p class="pdp-note">
+                            Stok sedang habis, jadi pemesanan online ditutup sementara. Hubungi kami untuk
+                            menanyakan ketersediaan berikutnya.
                         </p>
                     @endif
                 </div>
@@ -376,6 +394,16 @@
     color: var(--color-muted);
     line-height: 1.65;
     margin: 0;
+}
+
+.pdp-order-error {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(220,38,38,0.3);
+    background: rgba(220,38,38,0.07);
+    border-radius: 0.75rem;
+    color: #FCA5A5;
+    font-size: 0.85rem;
+    line-height: 1.6;
 }
 
 .product-badge--featured {
