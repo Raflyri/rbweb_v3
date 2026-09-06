@@ -175,16 +175,46 @@ class ArticleContent
 
     /**
      * Is a Filament FileUpload / model attribute holding an actual file?
-     * FileUpload state is an array keyed by upload UUID while editing and a
-     * plain path string once saved, so both shapes have to be accepted.
+     *
+     * The state takes three different shapes depending on when it is read:
+     *
+     *   'article-thumbnails/x.jpg'                    saved model attribute
+     *   ['<uuid>' => 'article-thumbnails/x.jpg']      hydrated for editing
+     *   TemporaryUploadedFile                         just uploaded, not yet saved
+     *
+     * That last one is the shape $get('thumbnail') returns during validation
+     * right after an upload, and missing it meant a freshly uploaded
+     * thumbnail read as absent — so the publish gate rejected an article the
+     * author could plainly see a thumbnail on. Arrays are walked rather than
+     * array_filter'd so a uuid-keyed array of file objects also counts.
      */
     public static function hasThumbnail(mixed $value): bool
     {
-        if (is_array($value)) {
-            return count(array_filter($value)) > 0;
+        if ($value === null || $value === false) {
+            return false;
         }
 
-        return is_string($value) && trim($value) !== '';
+        if (is_string($value)) {
+            return trim($value) !== '';
+        }
+
+        // UploadedFile and TemporaryUploadedFile both extend SplFileInfo; any
+        // other object here is still a file handle Filament put in the state.
+        if (is_object($value)) {
+            return true;
+        }
+
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                if (static::hasThumbnail($item)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return (bool) $value;
     }
 
     /** Build a plain-text excerpt from an HTML body. */
