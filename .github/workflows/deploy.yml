@@ -268,7 +268,65 @@ jobs:
           echo "✅ Migrations applied."
 
       # ----------------------------------------------------------------
-      # STAGE 6: RUN DATABASE SEEDERS (Idempotent — safe to re-run)
+      # STAGE 6: LINK STORAGE
+      #
+      # public/index.php calls $app->usePublicPath(__DIR__), so over HTTP
+      # public_path() is the real docroot (public_html) rather than the
+      # core directory. Running storage:link through the endpoint therefore
+      # creates the link where the web server can actually see it — which
+      # a CLI run would not, and shell_exec is disabled here anyway.
+      #
+      # Nothing had ever created this link, so every uploaded thumbnail
+      # 404'd even though the file was stored correctly.
+      # ----------------------------------------------------------------
+      - name: 🔗 Link Storage (Production)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🔗 Linking storage on production..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=storage:link" \
+            -w "\n%{http_code}" \
+            "https://rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 storage:link response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️  storage:link returned HTTP $HTTP_CODE — uploaded images will 404 until this succeeds."
+            echo "    If the body mentions symlink(), this host forbids symlinks and the public disk needs rethinking."
+          else
+            echo "✅ storage symlink in place."
+          fi
+          # Non-fatal: a missing symlink breaks images, but failing the job here
+          # would not repair it and would mask an otherwise good deploy.
+          true
+
+      - name: 🔗 Link Storage (Staging)
+        if: github.ref == 'refs/heads/sandbox'
+        run: |
+          echo "🔗 Linking storage on staging..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=storage:link" \
+            -w "\n%{http_code}" \
+            "https://web-sbox.rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 storage:link response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️  storage:link returned HTTP $HTTP_CODE — uploaded images will 404 until this succeeds."
+            echo "    If the body mentions symlink(), this host forbids symlinks and the public disk needs rethinking."
+          else
+            echo "✅ storage symlink in place."
+          fi
+          # Non-fatal: a missing symlink breaks images, but failing the job here
+          # would not repair it and would mask an otherwise good deploy.
+          true
+
+      # ----------------------------------------------------------------
+      # STAGE 7: RUN DATABASE SEEDERS (Idempotent — safe to re-run)
       # ----------------------------------------------------------------
       - name: 🌱 Run Database Seeders (Production)
         if: github.ref == 'refs/heads/main'

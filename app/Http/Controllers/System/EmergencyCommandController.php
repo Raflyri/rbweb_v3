@@ -107,6 +107,9 @@ class EmergencyCommandController extends Controller
     {
         return match ($command) {
             'migrate', 'db:seed', 'articles:fix-locale-keys' => ['--force' => true],
+            // Without --force this errors out the moment the link exists, so
+            // every deploy after the first would report a failure.
+            'storage:link' => ['--force' => true],
             'articles:cleanup-test-data' => [
                 '--force' => true,
                 '--mode'  => in_array($request->input('mode'), ['draft', 'delete'], true)
