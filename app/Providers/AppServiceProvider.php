@@ -7,9 +7,11 @@ use App\Listeners\LogSuccessfulLogin;
 use App\Listeners\LogSuccessfulLogout;
 use App\Models\Article;
 use App\Models\Post;
+use App\Models\Product;
 use App\Models\Profile;
 use App\Observers\ArticleObserver;
 use App\Observers\PostObserver;
+use App\Observers\ProductObserver;
 use App\Observers\ProfileObserver;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -47,5 +49,8 @@ class AppServiceProvider extends ServiceProvider
 
         // ✅ Jaga sitemap.xml tetap sinkron dengan profil publik /@{slug}
         Profile::observe(ProfileObserver::class);
+
+        // ✅ Sanitasi deskripsi produk saat disimpan + jaga sitemap tetap sinkron
+        Product::observe(ProductObserver::class);
     }
 }
