@@ -38,14 +38,17 @@ class ProductForm
                                 collect(self::LOCALE_TABS)->map(
                                     fn (string $label, string $locale) => Tabs\Tab::make($label)
                                         ->schema([
-                                            ProductFields::nameField($locale, "Nama ({$label})")
-                                                ->live(debounce: 500)
-                                                ->afterStateUpdated(
-                                                    $locale === 'id'
-                                                        ? ProductFields::autoSlugFromName()
-                                                        : fn () => null,
-                                                )
-                                                ->columnSpanFull(),
+                                            // Only the Indonesian name drives the slug, so only
+                                            // it needs to be live — the English field would
+                                            // otherwise fire a round-trip per keystroke for
+                                            // nothing.
+                                            $locale === 'id'
+                                                ? ProductFields::nameField($locale, "Nama ({$label})")
+                                                    ->live(debounce: 500)
+                                                    ->afterStateUpdated(ProductFields::autoSlugFromName())
+                                                    ->columnSpanFull()
+                                                : ProductFields::nameField($locale, "Nama ({$label})")
+                                                    ->columnSpanFull(),
                                             ProductFields::shortDescriptionField($locale, "Deskripsi Singkat ({$label})")
                                                 ->columnSpanFull(),
                                             ProductFields::descriptionField($locale, "Deskripsi Lengkap ({$label})")

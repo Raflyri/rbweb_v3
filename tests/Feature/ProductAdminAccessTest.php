@@ -64,6 +64,20 @@ it('opens the admin product list for an admin', function () {
         ->assertSuccessful();
 });
 
+it('renders the create and edit forms without blowing up', function () {
+    $product = Product::factory()->create();
+
+    // Cheap insurance for the form schema itself: a wrong component call only
+    // surfaces when the page actually renders, not when the class is loaded.
+    actingAs(productUserWithRole('admin'))
+        ->get(ProductResource::getUrl('create'))
+        ->assertSuccessful();
+
+    actingAs(productUserWithRole('admin'))
+        ->get(ProductResource::getUrl('edit', ['record' => $product]))
+        ->assertSuccessful();
+});
+
 it('blocks a client-area user from the admin product list', function () {
     actingAs(productUserWithRole('regular_user'))
         ->get(ProductResource::getUrl('index'))

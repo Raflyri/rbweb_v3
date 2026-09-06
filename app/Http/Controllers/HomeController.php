@@ -115,8 +115,11 @@ class HomeController extends Controller
                     $settings->github_link    ? ['name' => 'GitHub',    'href' => $settings->github_link,    'icon' => 'github']    : null,
                 ]),
                 'quick_links' => [
-                    ['label_key' => 'nav.products', 'href' => '#products'],
-                    ['label_key' => 'nav.services', 'href' => '#services'],
+                    // Products/Services now lead to the real catalogue rather
+                    // than to anchors on this page; the homepage sections stay
+                    // where they are, they are simply no longer the menu.
+                    ['label_key' => 'nav.products', 'href' => route('products.index', ['type' => 'barang'])],
+                    ['label_key' => 'nav.services', 'href' => route('products.index', ['type' => 'jasa'])],
                     ['label_key' => 'nav.about',    'href' => '#about'],
                     ['label_key' => 'nav.blog',     'href' => '/blog'],
                     ['label'     => 'Admin Panel',  'href' => '/rbdashboard'],

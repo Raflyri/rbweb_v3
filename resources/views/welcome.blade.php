@@ -60,8 +60,8 @@
 
             {{-- DESKTOP NAV --}}
             <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
-                <a href="#products" class="rb-nav-link" data-i18n="nav.products">Products</a>
-                <a href="#services" class="rb-nav-link" data-i18n="nav.services">Services</a>
+                <a href="{{ route('products.index', ['type' => 'barang']) }}" class="rb-nav-link" data-i18n="nav.products">Products</a>
+                <a href="{{ route('products.index', ['type' => 'jasa']) }}" class="rb-nav-link" data-i18n="nav.services">Services</a>
                 <a href="/blog" class="rb-nav-link" data-i18n="nav.blog">Blog</a>
                 <a href="#about" class="rb-nav-link" data-i18n="nav.about">About Us</a>
             </nav>
@@ -97,10 +97,10 @@
     {{-- ── MOBILE MENU ── --}}
     <div id="rb-mobile-menu" class="rb-mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
         <nav style="display:flex;flex-direction:column;gap:0.25rem;">
-            <a href="#products"
+            <a href="{{ route('products.index', ['type' => 'barang']) }}"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.products">Products</a>
-            <a href="#services"
+            <a href="{{ route('products.index', ['type' => 'jasa']) }}"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.services">Services</a>
             <a href="/blog"
