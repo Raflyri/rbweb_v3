@@ -33,7 +33,15 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Laravel registers GET /storage/{path} for every local disk with
+            // serve => true, and this one was claiming that URI first — a
+            // route that demands a signed URL and answers 404 in production
+            // without one. That, not a missing symlink alone, is what made
+            // every uploaded thumbnail 404: the request never reached a file.
+            //
+            // Nothing here serves private files over HTTP, so the disk keeps
+            // its storage role and gives up the route to StorageFileController.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],
