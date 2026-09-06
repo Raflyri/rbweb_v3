@@ -216,7 +216,59 @@ jobs:
           fi
 
       # ----------------------------------------------------------------
-      # STAGE 5: RUN DATABASE SEEDERS (Idempotent — safe to re-run)
+      # STAGE 5: RUN MIGRATIONS
+      #
+      # deploy-unzip.php also attempts `php artisan migrate`, but only when
+      # shell_exec is available — and it is DISABLED on this host, so that
+      # branch has never actually run. Migrations therefore never reached
+      # either environment from CI, which is how the sandbox database ended
+      # up missing columns the deployed code queries.
+      #
+      # Fatal on failure, unlike the seeder below: code that expects a column
+      # its database does not have serves 500s, so this must be loud.
+      # ----------------------------------------------------------------
+      - name: 🗄️ Run Migrations (Production)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🗄️ Running migrations on production..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 300 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=migrate" \
+            -w "\n%{http_code}" \
+            "https://rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 Migration response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Migrations failed with HTTP $HTTP_CODE."
+            echo "   401 means EMERGENCY_ROUTE_TOKEN in the production .env does not match DEPLOY_SECRET."
+            exit 1
+          fi
+          echo "✅ Migrations applied."
+
+      - name: 🗄️ Run Migrations (Staging)
+        if: github.ref == 'refs/heads/sandbox'
+        run: |
+          echo "🗄️ Running migrations on staging..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 300 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=migrate" \
+            -w "\n%{http_code}" \
+            "https://web-sbox.rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 Migration response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Migrations failed with HTTP $HTTP_CODE."
+            echo "   401 means EMERGENCY_ROUTE_TOKEN in the sandbox .env does not match DEPLOY_SECRET."
+            exit 1
+          fi
+          echo "✅ Migrations applied."
+
+      # ----------------------------------------------------------------
+      # STAGE 6: RUN DATABASE SEEDERS (Idempotent — safe to re-run)
       # ----------------------------------------------------------------
       - name: 🌱 Run Database Seeders (Production)
         if: github.ref == 'refs/heads/main'
