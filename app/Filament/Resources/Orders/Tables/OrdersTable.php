@@ -3,12 +3,15 @@
 namespace App\Filament\Resources\Orders\Tables;
 
 use App\Models\Order;
+use App\Services\Payment\PaymentActions;
 use App\Support\OrderStatus;
 use App\Support\PaymentStatus;
 use App\Support\ProductType;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -68,6 +71,17 @@ class OrdersTable
                     ->formatStateUsing(fn (?string $state) => PaymentStatus::label($state))
                     ->color(fn (?string $state) => PaymentStatus::color($state)),
 
+                IconColumn::make('payment_proof')
+                    ->label('Bukti')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-paper-clip')
+                    ->falseIcon('heroicon-o-minus-small')
+                    ->trueColor('info')
+                    ->falseColor('gray')
+                    ->tooltip(fn (Order $record) => $record->payment_proof
+                        ? 'Bukti transfer sudah diunggah'
+                        : 'Belum ada bukti transfer'),
+
                 TextColumn::make('paid_at')
                     ->label('Dibayar')
                     ->dateTime('d M Y H:i')
@@ -84,6 +98,64 @@ class OrdersTable
                     ->options(PaymentStatus::options()),
             ])
             ->recordActions([
+                // ── Money first: the queue exists to answer "has this been
+                // paid?", so those two actions lead.
+                Action::make('confirm_payment')
+                    ->label('Konfirmasi Lunas')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Konfirmasi pembayaran diterima?')
+                    ->modalDescription(fn (Order $record) => 'Pastikan dana '
+                        . $record->formattedTotal()
+                        . ' benar-benar sudah masuk ke rekening. Pembeli akan menerima email konfirmasi.')
+                    ->visible(fn (Order $record) => ! $record->isPaid()
+                        && ! $record->isCancelled()
+                        && auth()->user()?->can('confirmPayment', $record))
+                    ->action(function (Order $record, PaymentActions $payments) {
+                        $payments->confirm($record);
+
+                        Notification::make()
+                            ->title('Pembayaran ' . $record->order_number . ' ditandai lunas.')
+                            ->body('Email konfirmasi dikirim ke ' . $record->customer_email . '.')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('reject_proof')
+                    ->label('Tolak Bukti')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('warning')
+                    ->modalHeading('Tolak bukti transfer')
+                    ->modalDescription('Pesanan kembali ke status menunggu pembayaran, dan alasannya dikirim ke pembeli agar mereka tahu apa yang harus diperbaiki.')
+                    ->schema([
+                        Textarea::make('reason')
+                            ->label('Alasan')
+                            ->required()
+                            ->maxLength(500)
+                            ->rows(3)
+                            ->placeholder('Contoh: nominal transfer kurang, atau bukti tidak terbaca.'),
+                    ])
+                    ->visible(fn (Order $record) => $record->payment_status === PaymentStatus::MENUNGGU_VERIFIKASI
+                        && auth()->user()?->can('confirmPayment', $record))
+                    ->action(function (Order $record, array $data, PaymentActions $payments) {
+                        $payments->rejectProof($record, $data['reason']);
+
+                        Notification::make()
+                            ->title('Bukti transfer ' . $record->order_number . ' ditolak.')
+                            ->body('Pembeli diberi tahu lewat email beserta alasannya.')
+                            ->warning()
+                            ->send();
+                    }),
+
+                Action::make('view_proof')
+                    ->label('Lihat Bukti')
+                    ->icon('heroicon-o-photo')
+                    ->color('gray')
+                    ->visible(fn (Order $record) => filled($record->payment_proof))
+                    ->url(fn (Order $record) => route('order.proof', $record->public_token))
+                    ->openUrlInNewTab(),
+
                 // One click for the move an order actually makes next, so the
                 // common case never needs the full edit form.
                 Action::make('process')

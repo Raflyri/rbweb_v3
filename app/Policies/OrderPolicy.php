@@ -55,6 +55,19 @@ class OrderPolicy
         return static::userIsManager($authUser);
     }
 
+    /**
+     * May this user declare money received, or send a receipt back?
+     *
+     * Its own ability rather than a lean on update(): confirming a payment is
+     * the moment an order becomes something the shop owes goods for, and it
+     * deserves a gate that can be tightened without touching everything else
+     * an admin does to an order.
+     */
+    public function confirmPayment(AuthUser $authUser, Order $order): bool
+    {
+        return static::userIsManager($authUser);
+    }
+
     public function delete(AuthUser $authUser, Order $order): bool
     {
         // Cancelling is a status change, not a deletion: an order that

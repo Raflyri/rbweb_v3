@@ -3,15 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UploadPaymentProofRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Notifications\NewOrderReceived;
+use App\Policies\OrderPolicy;
+use App\Services\Payment\PaymentActions;
+use App\Services\Payment\PaymentGatewayResolver;
 use App\Settings\GeneralSettings;
 use App\Support\ArticleLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
 {
@@ -79,12 +85,68 @@ class OrderController extends Controller
      * this page shows a name, a phone number and a home address, and a
      * sequential RB-20260906-0001 in the URL would let anyone walk the list.
      */
-    public function pending(Order $order): View
+    public function pending(Order $order, PaymentGatewayResolver $gateways): View
     {
         return view('orders.pending', [
             'order'   => $order,
             'contact' => $this->contactLinks(),
+            // Whatever the active gateway needs the page to say. The controller
+            // does not know or care which method that is.
+            'payment' => $gateways->resolve()->charge($order),
         ]);
+    }
+
+    /**
+     * Accept the buyer's transfer receipt.
+     *
+     * Guarded by the same secret token as the page it is posted from, plus a
+     * throttle on the route: the endpoint is unauthenticated by design, because
+     * the person paying does not have an account.
+     */
+    public function uploadProof(
+        UploadPaymentProofRequest $request,
+        Order $order,
+        PaymentActions $payments,
+    ): RedirectResponse {
+        if ($order->isCancelled()) {
+            return back()->with('payment_error', 'Pesanan ini sudah dibatalkan, jadi bukti transfer tidak bisa diunggah.');
+        }
+
+        if ($order->isPaid()) {
+            return back()->with('payment_error', 'Pembayaran pesanan ini sudah lunas — tidak perlu mengunggah bukti lagi.');
+        }
+
+        // Private disk, not public: a transfer receipt carries the buyer's own
+        // name and account number, and storage/app/public is served to anyone
+        // who guesses the filename.
+        $path = $request->file('proof')->store(
+            PaymentActions::PROOF_DIRECTORY,
+            PaymentActions::PROOF_DISK,
+        );
+
+        $payments->attachProof($order, $path);
+
+        return back()->with('payment_success', 'Bukti transfer diterima. Kami akan memeriksanya dan mengabari kamu lewat email.');
+    }
+
+    /**
+     * Serve an uploaded receipt to staff only.
+     *
+     * The file lives outside the web root precisely so that there is no URL to
+     * guess; this is the one door to it, and it is locked to the roles that
+     * fulfil orders.
+     */
+    public function proof(Order $order): StreamedResponse
+    {
+        abort_unless(OrderPolicy::userIsManager(auth()->user()), 403);
+        abort_unless(filled($order->payment_proof), 404);
+
+        $disk = Storage::disk(PaymentActions::PROOF_DISK);
+
+        abort_unless($disk->exists($order->payment_proof), 404);
+
+        // Inline so it previews in the admin panel rather than downloading.
+        return $disk->response($order->payment_proof);
     }
 
     /**

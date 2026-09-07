@@ -72,6 +72,20 @@ it('opens the order screens for an admin', function () {
         ->assertSuccessful();
 });
 
+it('renders the payment section for an order that has a receipt', function () {
+    // Exercises the proof preview components, which only appear once a file
+    // has been uploaded and would otherwise never be rendered by a test.
+    $order = Order::factory()->create([
+        'payment_status' => \App\Support\PaymentStatus::MENUNGGU_VERIFIKASI,
+        'payment_proof'  => 'payment-proofs/bukti.jpg',
+    ]);
+
+    actingAs(orderUserWithRole('admin'))
+        ->get(OrderResource::getUrl('edit', ['record' => $order]))
+        ->assertSuccessful()
+        ->assertSee(route('order.proof', $order->public_token), false);
+});
+
 it('blocks a client-area user from the order screens', function () {
     actingAs(orderUserWithRole('regular_user'))
         ->get(OrderResource::getUrl('index'))

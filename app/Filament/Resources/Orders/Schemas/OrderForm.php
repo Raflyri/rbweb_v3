@@ -2,18 +2,22 @@
 
 namespace App\Filament\Resources\Orders\Schemas;
 
+use App\Models\Order;
 use App\Support\OrderStatus;
 use App\Support\PaymentStatus;
 use App\Support\ProductType;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Image;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 /**
  * The order edit screen.
@@ -159,6 +163,27 @@ class OrderForm
                             ->rows(3)
                             ->maxLength(1000)
                             ->helperText('Mis. alasan penolakan bukti transfer, atau nomor referensi.'),
+
+                        // The file itself lives outside the web root, so this
+                        // points at the staff-only route rather than a storage
+                        // URL — there is deliberately no public link to it.
+                        Image::make(
+                            fn (?Order $record): string => $record?->payment_proof
+                                ? route('order.proof', $record->public_token)
+                                : '',
+                            'Bukti transfer',
+                        )
+                            ->imageHeight(280)
+                            ->visible(fn (?Order $record): bool => filled($record?->payment_proof)
+                                && ! str_ends_with(strtolower((string) $record?->payment_proof), '.pdf')),
+
+                        Placeholder::make('payment_proof_link')
+                            ->label('Bukti Transfer')
+                            ->content(fn (?Order $record) => filled($record?->payment_proof)
+                                ? new HtmlString(
+                                    '<a href="' . e(route('order.proof', $record->public_token)) . '" target="_blank" rel="noopener" class="fi-link fi-size-sm">Buka berkas bukti transfer</a>'
+                                )
+                                : 'Belum ada bukti transfer yang diunggah pembeli.'),
                     ]),
 
             ]);

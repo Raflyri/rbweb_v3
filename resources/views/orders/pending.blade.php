@@ -102,17 +102,99 @@
                     </dl>
                 </div>
 
-                {{-- Phase 4 replaces this block with real payment instructions
-                     (bank transfer details + proof upload). Until then, saying
-                     plainly what happens next beats a payment button that does
-                     nothing. --}}
                 <div class="receipt-payment">
-                    <h2 class="receipt-block__title">Pembayaran</h2>
-                    <p>
-                        Pembayaran online belum aktif. Kami akan mengirimkan instruksi pembayaran
-                        (transfer bank) setelah pesanan ini dikonfirmasi. Sebutkan nomor
-                        <strong>{{ $order->order_number }}</strong> saat menghubungi kami.
-                    </p>
+                    <h2 class="receipt-block__title">Pembayaran — {{ $payment['name'] }}</h2>
+
+                    @if(session('payment_success'))
+                        <div class="receipt-alert receipt-alert--ok" role="status">{{ session('payment_success') }}</div>
+                    @endif
+                    @if(session('payment_error'))
+                        <div class="receipt-alert receipt-alert--warn" role="alert">{{ session('payment_error') }}</div>
+                    @endif
+                    @if($order->payment_note && ! $order->isPaid())
+                        {{-- An admin sent the last receipt back; the reason is the
+                             most useful thing on this page right now. --}}
+                        <div class="receipt-alert receipt-alert--warn" role="alert">
+                            <strong>Bukti transfer sebelumnya belum bisa kami verifikasi.</strong><br>
+                            {{ $order->payment_note }}
+                        </div>
+                    @endif
+
+                    @if($order->isPaid())
+                        <p>
+                            Pembayaran pesanan ini sudah <strong>lunas</strong>@if($order->paid_at) pada
+                            {{ $order->paid_at->format('d/m/Y H:i') }}@endif. Terima kasih!
+                        </p>
+                    @elseif($order->isCancelled())
+                        <p>Pesanan ini dibatalkan, jadi tidak ada pembayaran yang perlu diselesaikan.</p>
+                    @elseif($payment['type'] === 'manual_transfer' && $payment['configured'])
+
+                        <div class="pay-account">
+                            <div class="pay-account__row">
+                                <span>Bank</span>
+                                <strong>{{ $payment['account']['bank_name'] }}</strong>
+                            </div>
+                            <div class="pay-account__row">
+                                <span>Nomor rekening</span>
+                                <strong class="pay-account__number">{{ $payment['account']['account_number'] }}</strong>
+                            </div>
+                            <div class="pay-account__row">
+                                <span>Atas nama</span>
+                                <strong>{{ $payment['account']['account_holder'] }}</strong>
+                            </div>
+                            <div class="pay-account__row pay-account__row--amount">
+                                <span>Jumlah transfer</span>
+                                <strong>{{ $payment['formatted_amount'] }}</strong>
+                            </div>
+                        </div>
+
+                        <ol class="pay-steps">
+                            @foreach($payment['instructions'] as $step)
+                                <li>{{ $step }}</li>
+                            @endforeach
+                        </ol>
+
+                        @if($order->needsShipping() && $order->shipping_cost === null)
+                            <p class="pay-warning">
+                                Ongkos kirim belum masuk hitungan di atas. Sebaiknya tunggu kami konfirmasi
+                                total akhirnya sebelum transfer.
+                            </p>
+                        @endif
+
+                        {{-- ── Upload bukti transfer ───────────────────── --}}
+                        <form method="POST" action="{{ route('order.proof.upload', $order->public_token) }}"
+                              enctype="multipart/form-data" class="pay-upload">
+                            @csrf
+
+                            @error('proof')
+                                <div class="receipt-alert receipt-alert--warn" role="alert">{{ $message }}</div>
+                            @enderror
+
+                            <label for="proof">Unggah bukti transfer</label>
+                            <input type="file" id="proof" name="proof" required
+                                   accept=".jpg,.jpeg,.png,.webp,.pdf">
+                            <small>Gambar (JPG/PNG/WEBP) atau PDF, maksimal 4 MB.</small>
+
+                            <button type="submit" class="rb-btn-primary receipt-btn">
+                                @if($order->payment_proof) Ganti Bukti Transfer @else Kirim Bukti Transfer @endif
+                            </button>
+                        </form>
+
+                        @if($order->payment_proof)
+                            <p class="pay-uploaded">
+                                Bukti transfer sudah kami terima dan sedang menunggu pemeriksaan.
+                                Kabar berikutnya kami kirim ke {{ $order->customer_email }}.
+                            </p>
+                        @endif
+
+                    @else
+                        {{-- No account configured yet: better to say so than to print
+                             a placeholder that looks like a real bank account. --}}
+                        <p>
+                            Instruksi pembayaran akan kami kirimkan langsung. Sebutkan nomor
+                            <strong>{{ $order->order_number }}</strong> saat menghubungi kami.
+                        </p>
+                    @endif
 
                     <div class="receipt-actions">
                         @if($contact['whatsapp'])
@@ -221,6 +303,90 @@
 .receipt-payment { border-top: 1px solid var(--color-border); padding-top: 1.5rem; }
 .receipt-payment p { font-size: 0.9rem; color: var(--color-muted); line-height: 1.75; margin: 0 0 1.25rem; }
 .receipt-payment strong { color: var(--color-text); }
+
+/* ── Payment ────────────────────────────────────────── */
+.receipt-alert {
+    padding: 0.85rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+}
+.receipt-alert--ok {
+    border: 1px solid rgba(52,211,153,0.28);
+    background: rgba(52,211,153,0.07);
+    color: #6EE7B7;
+}
+.receipt-alert--warn {
+    border: 1px solid rgba(251,191,36,0.28);
+    background: rgba(251,191,36,0.07);
+    color: #FBBF24;
+}
+
+.pay-account {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 1.25rem;
+}
+.pay-account__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+.pay-account__row strong { color: #F5F5F5; font-size: 0.95rem; text-align: right; }
+.pay-account__number { font-family: var(--font-mono, monospace); letter-spacing: 0.05em; font-size: 1.05rem !important; }
+.pay-account__row--amount {
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--color-border);
+}
+.pay-account__row--amount strong { font-size: 1.25rem !important; font-weight: 900; }
+
+.pay-steps {
+    margin: 0 0 1.25rem 1.1rem;
+    padding: 0;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+    line-height: 1.75;
+}
+.pay-steps li { margin-bottom: 0.35rem; }
+
+.pay-warning {
+    font-size: 0.82rem !important;
+    color: #FBBF24 !important;
+    margin-bottom: 1.25rem !important;
+}
+
+.pay-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 1rem;
+    margin-bottom: 1.25rem;
+}
+.pay-upload label { font-size: 0.82rem; font-weight: 700; color: var(--color-text); }
+.pay-upload input[type="file"] {
+    font-size: 0.82rem;
+    color: var(--color-muted);
+    padding: 0.5rem 0;
+}
+.pay-upload small { font-size: 0.75rem; color: var(--color-muted); }
+.pay-upload button { margin-top: 0.5rem; width: fit-content; cursor: pointer; }
+
+.pay-uploaded {
+    font-size: 0.82rem !important;
+    color: var(--color-muted) !important;
+    margin-bottom: 1.25rem !important;
+}
 
 .receipt-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .receipt-btn {

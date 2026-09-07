@@ -39,6 +39,17 @@ Route::post('/produk-layanan/{product:slug}/pesan', [OrderController::class, 'st
 Route::get('/pesanan/{order:public_token}', [OrderController::class, 'pending'])
     ->name('order.pending');
 
+// Uploading a transfer receipt. Unauthenticated by design — the person paying
+// has no account — so the token is the key and the throttle is the fence.
+Route::post('/pesanan/{order:public_token}/bukti-transfer', [OrderController::class, 'uploadProof'])
+    ->middleware('throttle:6,1')
+    ->name('order.proof.upload');
+
+// Reading one back. The file is stored off the web root, so this route is the
+// only way to it, and OrderController::proof() locks it to staff.
+Route::get('/pesanan/{order:public_token}/bukti-transfer', [OrderController::class, 'proof'])
+    ->name('order.proof');
+
 Route::get('/produk-layanan/{slug}', [ProductController::class, 'show'])->name('products.show');
 
 // Emergency route to execute commands without SSH
