@@ -13,16 +13,15 @@ class ProductForm
     /**
      * [locale => Tab label] — order also drives display order.
      *
-     * The same four languages the public switcher offers, taken from
+     * Whatever languages the public switcher currently offers, taken from
      * ArticleLocale so there is one list to keep current rather than two.
-     * Indonesian leads (the reverse of ArticleForm): these items are sold to a
-     * local market, so the Indonesian copy is the one always written and the
-     * other three are optional.
+     * Indonesian leads: these items are sold to a local market, so the
+     * Indonesian copy is the one always written and the rest are optional.
      */
     protected static function localeTabs(): array
     {
-        return collect(ArticleLocale::LABELS)
-            ->map(fn (string $label, string $locale) => $label . ' (' . strtoupper($locale) . ')')
+        return collect(ArticleLocale::enabledLabels())
+            ->map(fn (string $label, string $locale) => $label . ' (' . ArticleLocale::badge($locale) . ')')
             ->all();
     }
 

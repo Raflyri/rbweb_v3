@@ -32,8 +32,11 @@ class ProductDemoSeeder extends Seeder
 
         $samples = [
             [
-                // Written in all four site languages on purpose: this is the row
-                // to click through the EN/ID/MY/JA switcher against.
+                // Carries copy in all four locales on purpose. Only ID and EN
+                // are switched on right now, so this row also demonstrates that
+                // disabling a language hides it without touching what is stored:
+                // put 'ms' back in ArticleLocale::ENABLED and the Malay text is
+                // simply there again.
                 'type'  => ProductType::BARANG,
                 'price' => 450000,
                 'stock' => 12,

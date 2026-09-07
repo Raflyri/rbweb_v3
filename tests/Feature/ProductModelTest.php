@@ -130,21 +130,35 @@ it('serves the Indonesian copy to visitors browsing in an untranslated locale', 
         ->and($product->translate('name', 'en'))->toBe('Kabel LAN Cat6');
 });
 
-it('stores and serves all four languages the site offers', function () {
+it('stores and serves every language the site currently offers', function () {
     $product = Product::factory()->create([
         'name' => [
             'id' => 'Audit Keamanan Website',
             'en' => 'Website Security Audit',
+        ],
+    ]);
+
+    expect(Product::LOCALES)->toBe(['id', 'en'])
+        ->and($product->translate('name', 'id'))->toBe('Audit Keamanan Website')
+        ->and($product->translate('name', 'en'))->toBe('Website Security Audit');
+});
+
+it('keeps copy written in a language that was later switched off', function () {
+    $product = Product::factory()->create([
+        'name' => [
+            'id' => 'Audit Keamanan Website',
             'ms' => 'Audit Keselamatan Laman Web',
             'ja' => 'ウェブサイトセキュリティ監査',
         ],
     ]);
 
-    expect(Product::LOCALES)->toBe(['en', 'id', 'ms', 'ja'])
-        ->and($product->translate('name', 'id'))->toBe('Audit Keamanan Website')
-        ->and($product->translate('name', 'en'))->toBe('Website Security Audit')
-        ->and($product->translate('name', 'ms'))->toBe('Audit Keselamatan Laman Web')
-        ->and($product->translate('name', 'ja'))->toBe('ウェブサイトセキュリティ監査');
+    // Disabling a language must hide it, not erase it: the text is still there
+    // for the day 'ms' goes back into ArticleLocale::ENABLED.
+    $stored = $product->fresh()->getTranslations('name');
+
+    expect($stored)->toHaveKey('ms')
+        ->and($stored)->toHaveKey('ja')
+        ->and($stored['ms'])->toBe('Audit Keselamatan Laman Web');
 });
 
 it('normalises legacy locale codes when reading a translation', function () {

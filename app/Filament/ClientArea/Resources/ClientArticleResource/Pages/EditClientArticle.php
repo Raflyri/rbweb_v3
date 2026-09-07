@@ -50,16 +50,19 @@ class EditClientArticle extends EditRecord
         // unrelated components sharing the page too (e.g. the email
         // verification banner's "Resend" button going dead). array_merge
         // fills in only the locales the record doesn't already have;
-        // nothing existing is overwritten.
+        // nothing existing is overwritten. Only the locales the form actually
+        // renders are seeded — blank-filling a switched-off language would
+        // hand ArticleObserver an empty translation to prune, quietly
+        // deleting copy the editor cannot even see.
         foreach (['title', 'meta_title', 'meta_description'] as $field) {
             $data[$field] = array_merge(
-                array_fill_keys(ArticleLocale::SUPPORTED, ''),
+                array_fill_keys(ArticleLocale::editorLocales(), ''),
                 $data[$field] ?? [],
             );
         }
 
         $data['content'] = array_merge(
-            array_fill_keys(ArticleLocale::SUPPORTED, null),
+            array_fill_keys(ArticleLocale::editorLocales(), null),
             $data['content'] ?? [],
         );
 

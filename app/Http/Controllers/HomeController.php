@@ -19,9 +19,12 @@ class HomeController extends Controller
         $locale = app()->getLocale();
 
         // ── 1. Load all locale translations for client-side i18n switcher ──
-        $supportedLocales = ['en', 'id', 'ms', 'ja'];
+        // Only the enabled locales: shipping a Malay dictionary the switcher
+        // has no button for is bytes every visitor downloads for nothing.
+        // lang/ms.json and lang/ja.json stay on disk, ready for the day they
+        // go back into ArticleLocale::ENABLED.
         $i18n = [];
-        foreach ($supportedLocales as $lang) {
+        foreach (ArticleLocale::ENABLED as $lang) {
             $path = lang_path("{$lang}.json");
             if (File::exists($path)) {
                 $i18n[$lang] = json_decode(File::get($path), true);

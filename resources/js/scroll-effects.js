@@ -23,13 +23,18 @@ if (typeof Lenis !== 'undefined') {
 /* ════════════════════════════════════════════════════════
    2. i18n ENGINE
 ════════════════════════════════════════════════════════ */
-const SUPPORTED_LOCALES = ['en', 'id', 'ms', 'ja'];
+// Keep in step with App\Support\ArticleLocale::ENABLED — Malay and Japanese
+// are switched off for now, and offering them here would set a locale the
+// server then refuses and resets on the next request.
+const SUPPORTED_LOCALES = ['id', 'en'];
 const BROWSER_MAP = {
+    'en': 'en',                        // English
     'id': 'id', 'in': 'id',            // Indonesian
-    'ms': 'ms', 'my': 'ms',            // Malay
-    'ja': 'ja', 'jp': 'ja',            // Japanese
 };
-let currentLocale = 'en';
+// Indonesian is the site default: everyone whose browser does not explicitly
+// ask for English starts here.
+const DEFAULT_LOCALE = 'id';
+let currentLocale = DEFAULT_LOCALE;
 
 /**
  * Deep-get a value from a nested object using a dot-key like "hero.subtitle".
@@ -78,14 +83,18 @@ function applyTranslations(locale) {
 
 /**
  * Detect the best locale for this visitor.
- * Priority: localStorage → navigator.language → 'en'
+ * Priority: localStorage → navigator.language → Indonesian
+ *
+ * A stored value for a language that has since been switched off is ignored
+ * rather than honoured, so nobody stays stuck in a locale the switcher no
+ * longer has a button for.
  */
 function detectLocale() {
     const stored = localStorage.getItem('rb_locale');
     if (stored && SUPPORTED_LOCALES.includes(stored)) return stored;
 
-    const browser = (navigator.language || 'en').slice(0, 2).toLowerCase();
-    return BROWSER_MAP[browser] || 'en';
+    const browser = (navigator.language || DEFAULT_LOCALE).slice(0, 2).toLowerCase();
+    return BROWSER_MAP[browser] || DEFAULT_LOCALE;
 }
 
 /**

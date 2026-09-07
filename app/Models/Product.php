@@ -27,18 +27,22 @@ class Product extends Model
     use HasFactory, HasSlug, HasTranslations, LogsActivity;
 
     /**
-     * Locales a product may be written in — the same four the site's language
-     * switcher offers, so a visitor who picked Malay or Japanese can be served
-     * real copy rather than a translation of convenience.
+     * Locales a product may be written in — whatever the site's language
+     * switcher currently offers, so a visitor is served real copy rather than a
+     * translation of convenience.
      *
-     * Writing all four is never required. Unlike articles, which hide
+     * Filling every one is never required. Unlike articles, which hide
      * themselves in locales they were never translated into, a product always
-     * stays visible: translate() falls back through LOCALE_FALLBACKS so a
-     * Japanese visitor sees the Indonesian listing instead of a blank page.
+     * stays visible: translate() falls back through LOCALE_FALLBACKS rather
+     * than rendering a blank page.
+     *
+     * Copy stored under a locale that has since been switched off is left
+     * alone — translate() will still hand it back if something asks for it by
+     * name — so turning a language back on brings the old text with it.
      *
      * @var array<int, string>
      */
-    public const LOCALES = ArticleLocale::SUPPORTED;
+    public const LOCALES = ArticleLocale::ENABLED;
 
     /** Order in which translate() looks for a usable value. */
     public const LOCALE_FALLBACKS = ['id', 'en'];

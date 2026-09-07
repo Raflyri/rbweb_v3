@@ -127,13 +127,13 @@
                      copy on these pages is rendered server-side anyway — so the
                      language has to change with a real request. --}}
                 <div class="rb-lang-switcher" role="group" aria-label="Language selector">
-                    @foreach(\App\Support\ArticleLocale::LABELS as $code => $label)
+                    @foreach(\App\Support\ArticleLocale::enabledLabels() as $code => $label)
                         <a href="{{ route('lang.switch', $code) }}"
                            class="rb-lang-btn {{ \App\Support\ArticleLocale::current() === $code ? 'active' : '' }}"
                            style="text-decoration:none;display:inline-block;"
                            data-set-locale="{{ $code }}"
                            rel="nofollow"
-                           aria-label="{{ $label }}">{{ $code === 'ms' ? 'MY' : strtoupper($code) }}</a>
+                           aria-label="{{ $label }}">{{ \App\Support\ArticleLocale::badge($code) }}</a>
                     @endforeach
                 </div>
 
@@ -163,13 +163,13 @@
             <a href="/#about"    style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">About Us</a>
         </nav>
         <div class="rb-lang-switcher" style="margin-top:1.5rem;width:fit-content;">
-            @foreach(\App\Support\ArticleLocale::LABELS as $code => $label)
+            @foreach(\App\Support\ArticleLocale::enabledLabels() as $code => $label)
                 <a href="{{ route('lang.switch', $code) }}"
                    class="rb-lang-btn {{ \App\Support\ArticleLocale::current() === $code ? 'active' : '' }}"
                    style="text-decoration:none;display:inline-block;"
                    data-set-locale="{{ $code }}"
                    rel="nofollow"
-                   aria-label="{{ $label }}">{{ $code === 'ms' ? 'MY' : strtoupper($code) }}</a>
+                   aria-label="{{ $label }}">{{ \App\Support\ArticleLocale::badge($code) }}</a>
             @endforeach
         </div>
 

@@ -72,8 +72,6 @@
                 <div class="rb-lang-switcher" role="group" aria-label="Language selector">
                     <button class="rb-lang-btn" data-lang="en" aria-label="Switch to English">EN</button>
                     <button class="rb-lang-btn" data-lang="id" aria-label="Ganti ke Bahasa Indonesia">ID</button>
-                    <button class="rb-lang-btn" data-lang="ms" aria-label="Tukar ke Bahasa Malaysia">MY</button>
-                    <button class="rb-lang-btn" data-lang="ja" aria-label="日本語に切り替え">JA</button>
                 </div>
 
                 <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-primary"
@@ -114,8 +112,6 @@
         <div class="rb-lang-switcher" style="margin-top:1.5rem;width:fit-content;">
             <button class="rb-lang-btn" data-lang="en">EN</button>
             <button class="rb-lang-btn" data-lang="id">ID</button>
-            <button class="rb-lang-btn" data-lang="ms">MY</button>
-            <button class="rb-lang-btn" data-lang="ja">JA</button>
         </div>
         <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-hero"
             style="margin-top:1.25rem;width:fit-content;" data-i18n="nav.cta">

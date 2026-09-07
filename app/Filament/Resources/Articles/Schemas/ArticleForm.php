@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Articles\Schemas;
 
 use App\Filament\Support\ArticleFields;
 use App\Filament\Support\ArticlePublishRules;
+use App\Support\ArticleLocale;
 use App\Models\Article;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,13 +15,21 @@ use Filament\Schemas\Schema;
 
 class ArticleForm
 {
-    /** [locale => Tab label] — order also drives display order. */
-    protected const LOCALE_TABS = [
-        'en' => 'English (EN)',
-        'id' => 'Indonesian (ID)',
-        'ms' => 'Malay (MS)',
-        'ja' => 'Japanese (JA)',
-    ];
+    /**
+     * [locale => Tab label] — order also drives display order.
+     *
+     * Derived from ArticleLocale::ENABLED rather than hardcoded, so switching a
+     * language off removes its tab everywhere at once instead of leaving an
+     * editor writing copy no visitor can select.
+     *
+     * @return array<string, string>
+     */
+    protected static function localeTabs(): array
+    {
+        return collect(ArticleLocale::enabledLabels())
+            ->map(fn (string $label, string $locale) => $label . ' (' . ArticleLocale::badge($locale) . ')')
+            ->all();
+    }
 
     public static function configure(Schema $schema): Schema
     {
@@ -42,7 +51,7 @@ class ArticleForm
                         Tabs::make('Locales')
                             ->contained(false)
                             ->tabs(
-                                collect(self::LOCALE_TABS)->map(
+                                collect(self::localeTabs())->map(
                                     fn (string $label, string $locale) => Tabs\Tab::make($label)
                                         ->schema([
                                             ArticleFields::titleField($locale, "Title ({$label})")

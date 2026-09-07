@@ -25,8 +25,31 @@ class ArticleLocale
     /** The only locale keys that may be written to the database. */
     public const SUPPORTED = ['en', 'id', 'ms', 'ja'];
 
-    /** Used when a locale cannot be mapped to anything supported. */
-    public const FALLBACK = 'en';
+    /**
+     * The locales currently offered to visitors and editors — Indonesian first,
+     * because it is the site default.
+     *
+     * Malay and Japanese are switched off for now, not removed: they stay in
+     * SUPPORTED, their lang/*.json files stay on disk, and any translation
+     * already stored under 'ms' or 'ja' is left untouched in the database. Put
+     * them back in this list and they light up again exactly as they were.
+     *
+     * Everything that offers a language to a human reads this list: the public
+     * switcher, the editor tabs, the homepage i18n bundle, and SetLocale, which
+     * refuses a session still holding a locale that is no longer on it.
+     *
+     * @var array<int, string>
+     */
+    public const ENABLED = ['id', 'en'];
+
+    /**
+     * Used when a locale cannot be mapped to an enabled one.
+     *
+     * Indonesian, matching APP_LOCALE: this is an Indonesian business whose
+     * visitors mostly read Indonesian, and English is the deliberate choice
+     * rather than the assumed default.
+     */
+    public const FALLBACK = 'id';
 
     /**
      * Wrong or region-qualified codes mapped to their canonical key.
@@ -119,18 +142,54 @@ class ArticleLocale
     }
 
     /**
-     * Supported locales in editor display order.
+     * Locales an editor may write in, in display order.
+     *
+     * Only the enabled ones: writing copy in a language no visitor can select
+     * is work nobody can read.
      *
      * @return array<int, string>
      */
     public static function editorLocales(): array
     {
-        return array_keys(static::LABELS);
+        return static::ENABLED;
+    }
+
+    /**
+     * [locale => label] for the enabled locales only, in ENABLED order.
+     *
+     * @return array<string, string>
+     */
+    public static function enabledLabels(): array
+    {
+        $labels = [];
+
+        foreach (static::ENABLED as $locale) {
+            $labels[$locale] = static::LABELS[$locale] ?? strtoupper($locale);
+        }
+
+        return $labels;
+    }
+
+    /**
+     * The two-letter badge shown on a switcher button.
+     *
+     * Malay is 'ms' in code but reads as MY to the people who speak it, which
+     * is why the button and the storage key disagree.
+     */
+    public static function badge(string $locale): string
+    {
+        return $locale === 'ms' ? 'MY' : strtoupper($locale);
     }
 
     /** Is this already a canonical key? */
     public static function isSupported(?string $locale): bool
     {
         return in_array((string) $locale, static::SUPPORTED, true);
+    }
+
+    /** Is this locale currently offered to visitors and editors? */
+    public static function isEnabled(?string $locale): bool
+    {
+        return in_array((string) $locale, static::ENABLED, true);
     }
 }
