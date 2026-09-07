@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\PaymentGatewayException;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UploadPaymentProofRequest;
 use App\Models\Order;
@@ -87,12 +88,33 @@ class OrderController extends Controller
      */
     public function pending(Order $order, PaymentGatewayResolver $gateways): View
     {
+        $gateway = $gateways->resolve();
+
+        try {
+            // Whatever the active gateway needs the page to say. The controller
+            // does not know or care which method that is.
+            $payment = $gateway->charge($order);
+        } catch (PaymentGatewayException $e) {
+            // A provider being down must not cost someone the page holding
+            // their order number. Say so plainly and leave the contact buttons.
+            Log::error('Payment gateway unavailable on the order page', [
+                'order_number' => $order->order_number,
+                'gateway'      => $e->gateway,
+                'error'        => $e->getMessage(),
+            ]);
+
+            $payment = [
+                'type'    => 'unavailable',
+                'gateway' => $e->gateway,
+                'name'    => $gateway->name(),
+                'message' => $e->userMessage(),
+            ];
+        }
+
         return view('orders.pending', [
             'order'   => $order,
             'contact' => $this->contactLinks(),
-            // Whatever the active gateway needs the page to say. The controller
-            // does not know or care which method that is.
-            'payment' => $gateways->resolve()->charge($order),
+            'payment' => $payment,
         ]);
     }
 

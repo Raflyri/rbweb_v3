@@ -7,6 +7,7 @@ use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Payment\MidtransNotificationController;
 use App\Http\Controllers\ProductController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -51,6 +52,16 @@ Route::get('/pesanan/{order:public_token}/bukti-transfer', [OrderController::cla
     ->name('order.proof');
 
 Route::get('/produk-layanan/{slug}', [ProductController::class, 'show'])->name('products.show');
+
+// ── Payment webhook ─────────────────────────────────────────────
+// Called by Midtrans' servers, not a browser, so it is exempt from CSRF the
+// same way the emergency-command endpoint is. It refuses everything while
+// MIDTRANS_IS_ACTIVE is false, and verifies the SHA512 signature before it
+// reads anything else out of the request.
+Route::post('/payment/midtrans/notification', [MidtransNotificationController::class, 'handle'])
+    ->name('payment.midtrans.notification')
+    ->middleware('throttle:60,1')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // Emergency route to execute commands without SSH
 Route::post('/system/emergency-command', [EmergencyCommandController::class, 'run'])

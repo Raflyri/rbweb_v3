@@ -127,6 +127,25 @@
                         </p>
                     @elseif($order->isCancelled())
                         <p>Pesanan ini dibatalkan, jadi tidak ada pembayaran yang perlu diselesaikan.</p>
+                    @elseif($payment['type'] === 'unavailable')
+                        {{-- The gateway threw; the buyer gets a sentence they can
+                             act on instead of a 500. --}}
+                        <p>{{ $payment['message'] }} Sebutkan nomor <strong>{{ $order->order_number }}</strong> saat menghubungi kami.</p>
+                    @elseif($payment['type'] === 'redirect')
+                        <p>
+                            Total tagihan <strong>{{ $payment['formatted_amount'] }}</strong>. Klik tombol di bawah
+                            untuk memilih metode pembayaran dan menyelesaikannya lewat {{ $payment['name'] }}.
+                        </p>
+
+                        <div class="receipt-actions" style="margin-bottom:1.25rem;">
+                            <a href="{{ $payment['url'] }}" class="rb-btn-primary receipt-btn" rel="noopener">
+                                Bayar Sekarang
+                            </a>
+                        </div>
+
+                        <p class="pay-uploaded">
+                            Status pesanan diperbarui otomatis setelah pembayaran berhasil.
+                        </p>
                     @elseif($payment['type'] === 'manual_transfer' && $payment['configured'])
 
                         <div class="pay-account">

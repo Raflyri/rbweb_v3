@@ -57,6 +57,21 @@ class PaymentActions
     }
 
     /**
+     * Record that a payment did not go through.
+     *
+     * No email: an expired payment window is noise to a buyer who simply
+     * changed their mind, and the ones who did try will ask. The note is what
+     * the shop needs to answer them.
+     */
+    public function markFailed(Order $order, string $reason): void
+    {
+        $order->forceFill([
+            'payment_status' => PaymentStatus::GAGAL,
+            'payment_note'   => $reason,
+        ])->save();
+    }
+
+    /**
      * Store a buyer's receipt and put the order in the verification queue.
      *
      * Any previous file is deleted — a rejected receipt has served its purpose

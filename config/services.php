@@ -67,4 +67,21 @@ return [
         'account_holder' => 'ISI_ATAS_NAMA',
     ],
 
+    /*
+    | Midtrans — prepared, deliberately switched off.
+    |
+    | 'is_active' is the master switch and defaults to false. Until it is
+    | explicitly true in the environment, PaymentGatewayResolver will not hand
+    | out MidtransGateway no matter what 'payment.active_gateway' says, and the
+    | notification webhook refuses every request it receives. See
+    | docs/MIDTRANS_ACTIVATION.md for the steps to turn it on.
+    */
+
+    'midtrans' => [
+        'server_key'    => env('MIDTRANS_SERVER_KEY'),
+        'client_key'    => env('MIDTRANS_CLIENT_KEY'),
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+        'is_active'     => env('MIDTRANS_IS_ACTIVE', false),
+    ],
+
 ];
