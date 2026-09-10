@@ -22,8 +22,6 @@
     /* ── Article display fields ──────────────────────────── */
     $displayTitle   = $article->getTranslation('title',   $locale, true);
     $displayContent = $article->getTranslation('content', $locale, true);
-    $displayExcerpt = $article->getTranslation('excerpt', $locale, false)
-                   ?: Str::limit(strip_tags($displayContent), 200);
 
     /* ── Meta ────────────────────────────────────────────── */
     $wordCount   = \App\Support\ArticleContent::wordCount($displayContent);
@@ -156,9 +154,6 @@
 
             {{-- Title --}}
             <h1 class="article-header__title">{{ $displayTitle }}</h1>
-
-            {{-- Lead / excerpt --}}
-            <p class="article-header__lead">{{ $displayExcerpt }}</p>
 
             {{-- Meta row — Author · Read time · Date --}}
             <div class="article-header__meta">
@@ -483,19 +478,7 @@
     letter-spacing: -0.03em;
     line-height: 1.12;
     color: var(--color-text);
-    margin: 0 0 1.25rem;
-}
-
-/* Lead */
-.article-header__lead {
-    font-size: 1.05rem;
-    color: var(--color-muted);
-    font-weight: 300;
-    line-height: 1.75;
     margin: 0 0 2rem;
-    max-width: 36rem;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 /* Meta row */
