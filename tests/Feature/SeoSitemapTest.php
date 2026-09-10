@@ -30,7 +30,8 @@ it('includes published articles in the sitemap using the right slug', function (
 
     $xml = file_get_contents(public_path('sitemap.xml'));
 
-    expect($xml)->toContain('https://rbeverything.com/blog/indexed-article')
+    // The sitemap lists the URL the default locale serves, and that is Indonesian.
+    expect($xml)->toContain('https://rbeverything.com/blog/artikel-terindeks')
         ->and($xml)->toContain('https://rbeverything.com/blog')
         ->and($xml)->not->toContain('localhost');
 });

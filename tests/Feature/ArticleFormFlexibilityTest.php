@@ -133,27 +133,27 @@ it('creates an article from the admin panel with a single locale, a type, and a 
     // is already covered by ArticleContent tests elsewhere.
     Livewire::test(\App\Filament\Resources\Articles\Pages\CreateArticle::class)
         ->fillForm([
-            'title.ms'             => 'Artikel Bahasa Melayu Dari Admin',
-            'content.ms'           => str_repeat('kandungan ', 60),
-            'meta_description.ms'  => str_repeat('Perihal produk ini secara terperinci. ', 5),
+            'title.en'             => 'English Only Article From Admin',
+            'content.en'           => str_repeat('content ', 60),
+            'meta_description.en'  => str_repeat('A detailed account of this product. ', 5),
             'type'                 => ArticleType::BLOG,
             'status'               => 'Draft',
         ])
         ->call('create')
         ->assertHasNoFormErrors();
 
-    $article = Article::whereJsonContains('title->ms', 'Artikel Bahasa Melayu Dari Admin')->first();
+    $article = Article::whereJsonContains('title->en', 'English Only Article From Admin')->first();
 
     // The admin Meta section has one flat `slug` field (not slug.{locale}),
     // so Spatie Translatable stores it under whatever the app's current
-    // locale is at submit time — not necessarily 'ms'. That's a pre-existing
+    // locale is at submit time — not necessarily 'en'. That's a pre-existing
     // characteristic of this form, not something this change affects; the
     // article stays reachable either way via ArticleController::show()'s
     // fallback across every locale key. Assert a slug exists at all, not
     // which specific key it landed under.
     expect($article)->not->toBeNull()
         ->and($article->type)->toBe(ArticleType::BLOG)
-        ->and($article->getTranslation('meta_description', 'ms', false))->not->toBeEmpty()
+        ->and($article->getTranslation('meta_description', 'en', false))->not->toBeEmpty()
         ->and($article->getTranslations('slug'))->not->toBe([]);
 });
 
@@ -321,9 +321,11 @@ it('fills in missing locale keys when editing an article written in only one lan
         ->assertSuccessful()
         ->assertSet('data.title.en', 'English Only Client Article');
 
-    // Every other locale exists (not missing) instead of throwing an
-    // entangle error for those tabs.
-    foreach (['id', 'ms', 'ja'] as $locale) {
+    // Every other locale the form renders exists (not missing) instead of
+    // throwing an entangle error for that tab. Only the enabled locales are
+    // seeded — blank-filling a switched-off language would give the observer
+    // an empty translation to prune, deleting copy nobody can see to restore.
+    foreach (array_diff(\App\Support\ArticleLocale::editorLocales(), ['en']) as $locale) {
         $component->assertSet("data.title.{$locale}", '')
             ->assertSet("data.meta_title.{$locale}", '')
             ->assertSet("data.meta_description.{$locale}", '');

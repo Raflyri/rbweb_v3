@@ -33,7 +33,7 @@ class CreateClientArticle extends CreateRecord
         // (used by RichEditor and any ->live() field, e.g. meta_title/
         // meta_description's character counters) needs the key to already
         // exist in the component's data array before the browser can bind
-        // to it. Leaving en/ms/ja unset threw "property cannot be found on
+        // to it. Leaving a rendered locale unset threw "property cannot be found on
         // component" for those tabs and corrupted the page's Livewire AJAX
         // payload badly enough that every subsequent Livewire request on
         // the page — including completely unrelated components like the
@@ -43,10 +43,10 @@ class CreateClientArticle extends CreateRecord
         // content uses null (not '') per locale — Filament v4's TipTap
         // StateCast crashes when it tries to parse an empty string as a
         // JSON document.
-        $this->data['title']            = array_fill_keys(ArticleLocale::SUPPORTED, '');
-        $this->data['content']          = array_fill_keys(ArticleLocale::SUPPORTED, null);
-        $this->data['meta_title']       = array_fill_keys(ArticleLocale::SUPPORTED, '');
-        $this->data['meta_description'] = array_fill_keys(ArticleLocale::SUPPORTED, '');
+        $this->data['title']            = array_fill_keys(ArticleLocale::editorLocales(), '');
+        $this->data['content']          = array_fill_keys(ArticleLocale::editorLocales(), null);
+        $this->data['meta_title']       = array_fill_keys(ArticleLocale::editorLocales(), '');
+        $this->data['meta_description'] = array_fill_keys(ArticleLocale::editorLocales(), '');
         $this->data['status'] = 'Pending Review';
         $this->data['tags']   = [];
     }

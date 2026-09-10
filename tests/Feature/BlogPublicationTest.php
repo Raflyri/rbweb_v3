@@ -16,7 +16,7 @@ it('returns 200 on /blog when there are no articles at all', function () {
 
     $this->get(route('blog.index'))
         ->assertOk()
-        ->assertSee('No articles yet')
+        ->assertSee('Artikel Belum Tersedia')
         ->assertSee(route('home'));
 });
 
@@ -28,7 +28,8 @@ it('lists a published article on /blog', function () {
 
     $this->get(route('blog.index'))
         ->assertOk()
-        ->assertSee('Visible Published Article');
+        // The site default is Indonesian, so the card shows the Indonesian title.
+        ->assertSee('Artikel Terbit');
 });
 
 it('hides draft and pending review articles from /blog', function () {
@@ -46,7 +47,7 @@ it('hides draft and pending review articles from /blog', function () {
         ->assertOk()
         ->assertDontSee('Hidden Draft Article')
         ->assertDontSee('Hidden Pending Article')
-        ->assertSee('No articles yet');
+        ->assertSee('Artikel Belum Tersedia');
 });
 
 it('shows a published article at /blog/{slug}', function () {

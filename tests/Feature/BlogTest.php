@@ -53,9 +53,10 @@ class BlogTest extends TestCase
 
         $response = $this->get(route('blog.index'));
 
+        // Default locale is Indonesian, so /blog renders the Indonesian title.
         $response->assertStatus(200)
-                 ->assertSee('Test Article Title')
-                 ->assertDontSee('Draft Article');
+                 ->assertSee('Judul Artikel Test')
+                 ->assertDontSee('Draft Artikel');
     }
 
 
@@ -64,7 +65,7 @@ class BlogTest extends TestCase
     {
         $this->get(route('blog.index'))
              ->assertStatus(200)
-             ->assertSee('No articles yet');
+             ->assertSee('Artikel Belum Tersedia');
     }
 
 
@@ -103,7 +104,7 @@ class BlogTest extends TestCase
 
         $this->get(route('blog.show', $article->slug))
              ->assertStatus(200)
-             ->assertSee('Test Article Title');
+             ->assertSee('Judul Artikel Test');
     }
 
     /** @test */
@@ -132,7 +133,7 @@ class BlogTest extends TestCase
 
         $this->get(route('blog.show', $article->slug))
              ->assertStatus(200)
-             ->assertSee('Unique content for testing.', false);  // false = don't escape
+             ->assertSee('Konten unik untuk pengujian.', false);  // false = don't escape
     }
 
     /** @test */
@@ -146,7 +147,7 @@ class BlogTest extends TestCase
 
         $this->get(route('blog.show', $main->slug))
              ->assertStatus(200)
-             ->assertSee('Related Article Title');
+             ->assertSee('Judul Artikel Terkait');
     }
 
     // ── Navigation Tests ─────────────────────────────────────────

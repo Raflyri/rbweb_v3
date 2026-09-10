@@ -7,7 +7,7 @@
     </style>
     <div class="flex space-x-1 rounded-xl bg-gray-100/80 p-1 dark:bg-gray-800">
         @php
-            $locales = \App\Support\ArticleLocale::LABELS;
+            $locales = \App\Support\ArticleLocale::enabledLabels();
         @endphp
         @foreach($locales as $code => $label)
             <button

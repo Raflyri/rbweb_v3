@@ -41,9 +41,11 @@ it('finds an article by a word in the title', function () {
 it('finds an article by a word in the body', function () {
     seedSearchable();
 
-    $this->get(route('blog.index', ['search' => 'dataframes']))
+    // Searching in the default locale searches the Indonesian columns, so the
+    // term and the expected title are both the Indonesian ones.
+    $this->get(route('blog.index', ['search' => 'dataframe']))
         ->assertOk()
-        ->assertSee('Python for Data Science')
+        ->assertSee('Python untuk Sains Data')
         ->assertDontSee('Laravel Queue Internals');
 });
 
@@ -60,7 +62,7 @@ it('returns an empty result set, not an error, for a word that matches nothing',
 
     $this->get(route('blog.index', ['search' => 'kubernetes']))
         ->assertOk()
-        ->assertSee('No articles found')
+        ->assertSee('Artikel Tidak Ditemukan')
         ->assertDontSee('Laravel Queue Internals');
 });
 

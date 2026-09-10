@@ -23,8 +23,14 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <!--env name="DB_CONNECTION" value="mysql"/-->
-        <!--env name="DB_DATABASE" value=":memory:"/-->
+        <!-- Tests run against their own MySQL schema, never the database in
+             .env: tests/FullText uses DatabaseTruncation, which empties every
+             table it touches. Pointing the suite at the development database
+             would wipe it. Create it once with:
+                 CREATE DATABASE rbeverything_testing
+                     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+             The name matches the one CI provisions in deploy.yml. -->
+        <env name="DB_DATABASE" value="rbeverything_testing"/>
         <env name="MAIL_MAILER" value="array"/>
         <!-- Off by default so every article-creating test does not rewrite
              public/sitemap.xml; SeoSitemapTest enables it explicitly. -->

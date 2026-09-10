@@ -19,9 +19,12 @@ class HomeController extends Controller
         $locale = app()->getLocale();
 
         // ── 1. Load all locale translations for client-side i18n switcher ──
-        $supportedLocales = ['en', 'id', 'ms', 'ja'];
+        // Only the enabled locales: shipping a Malay dictionary the switcher
+        // has no button for is bytes every visitor downloads for nothing.
+        // lang/ms.json and lang/ja.json stay on disk, ready for the day they
+        // go back into ArticleLocale::ENABLED.
         $i18n = [];
-        foreach ($supportedLocales as $lang) {
+        foreach (ArticleLocale::ENABLED as $lang) {
             $path = lang_path("{$lang}.json");
             if (File::exists($path)) {
                 $i18n[$lang] = json_decode(File::get($path), true);
@@ -115,8 +118,11 @@ class HomeController extends Controller
                     $settings->github_link    ? ['name' => 'GitHub',    'href' => $settings->github_link,    'icon' => 'github']    : null,
                 ]),
                 'quick_links' => [
-                    ['label_key' => 'nav.products', 'href' => '#products'],
-                    ['label_key' => 'nav.services', 'href' => '#services'],
+                    // Products/Services now lead to the real catalogue rather
+                    // than to anchors on this page; the homepage sections stay
+                    // where they are, they are simply no longer the menu.
+                    ['label_key' => 'nav.products', 'href' => route('products.index', ['type' => 'barang'])],
+                    ['label_key' => 'nav.services', 'href' => route('products.index', ['type' => 'jasa'])],
                     ['label_key' => 'nav.about',    'href' => '#about'],
                     ['label_key' => 'nav.blog',     'href' => '/blog'],
                     ['label'     => 'Admin Panel',  'href' => '/rbdashboard'],

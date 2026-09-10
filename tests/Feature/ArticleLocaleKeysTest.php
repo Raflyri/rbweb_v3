@@ -18,7 +18,8 @@ it('normalises every locale variant onto a supported key', function () {
         ->and(ArticleLocale::normalize('my'))->toBe('ms')
         ->and(ArticleLocale::normalize('jp'))->toBe('ja')
         ->and(ArticleLocale::normalize('ja'))->toBe('ja')
-        ->and(ArticleLocale::normalize(null))->toBe('en');
+        // Nothing usable maps onto the site default, which is Indonesian.
+        ->and(ArticleLocale::normalize(null))->toBe('id');
 });
 
 it('keeps every translation when an admin-created article is edited by a client', function () {
@@ -41,8 +42,12 @@ it('keeps every translation when an admin-created article is edited by a client'
         ->and($fresh->getTranslation('title', 'ja', false))->toBe('Admin JA');
 });
 
-it('exposes the same four locales to both editors', function () {
-    expect(ArticleLocale::editorLocales())->toEqualCanonicalizing(ArticleLocale::SUPPORTED)
+it('exposes the same enabled locales to both editors', function () {
+    // SUPPORTED is what may be stored; ENABLED is what is currently offered.
+    // Editors only ever see the second list — writing copy in a language no
+    // visitor can select is work nobody can read.
+    expect(ArticleLocale::editorLocales())->toEqualCanonicalizing(ArticleLocale::ENABLED)
+        ->and(ArticleLocale::ENABLED)->toBe(['id', 'en'])
         ->and(ArticleLocale::SUPPORTED)->toBe(['en', 'id', 'ms', 'ja']);
 });
 

@@ -77,7 +77,12 @@ it('does not render a script tag on the public article page', function () {
     Article::factory()->published()->create([
         'title'   => ['en' => 'XSS Probe', 'id' => 'XSS Probe'],
         'slug'    => ['en' => 'xss-probe', 'id' => 'xss-probe'],
-        'content' => ['en' => '<p>safe</p><script>alert(document.cookie)</script>'],
+        // Indonesian too: /blog only shows an article in a locale it was
+        // actually written in, and Indonesian is now the site default.
+        'content' => [
+            'en' => '<p>safe</p><script>alert(document.cookie)</script>',
+            'id' => '<p>aman</p><script>alert(document.cookie)</script>',
+        ],
     ]);
 
     $this->get('/blog/xss-probe')

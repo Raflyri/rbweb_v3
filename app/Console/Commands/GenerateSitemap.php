@@ -56,6 +56,10 @@ class GenerateSitemap extends Command
             ->setPriority(0.8)
             ->setLastModificationDate(now()));
 
+        $sitemap->add(Url::create('/produk-layanan')
+            ->setPriority(0.9)
+            ->setLastModificationDate(now()));
+
         // b. Dynamic routes for Articles
         //
         // `slug` is a translatable JSON column, so $article->slug returns the
@@ -78,7 +82,19 @@ class GenerateSitemap extends Command
                 ->setLastModificationDate($article->updated_at ?? now()));
         }
 
-        // c. Dynamic routes for Portfolios
+        // c. Dynamic routes for Products
+        //
+        // Only active products: a hidden one 404s for the public, and listing a
+        // URL that answers 404 is exactly the kind of stale sitemap entry this
+        // command exists to avoid. The slug is a plain string here, so there is
+        // no per-locale resolution to get wrong.
+        foreach (\App\Models\Product::active()->get() as $product) {
+            $sitemap->add(Url::create("/produk-layanan/{$product->slug}")
+                ->setPriority(0.7)
+                ->setLastModificationDate($product->updated_at ?? now()));
+        }
+
+        // d. Dynamic routes for Portfolios
         $profiles = \App\Models\Profile::whereNotNull('custom_url_slug')->get();
         foreach ($profiles as $profile) {
             $sitemap->add(Url::create("/@{$profile->custom_url_slug}")

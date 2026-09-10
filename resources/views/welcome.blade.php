@@ -60,8 +60,8 @@
 
             {{-- DESKTOP NAV --}}
             <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
-                <a href="#products" class="rb-nav-link" data-i18n="nav.products">Products</a>
-                <a href="#services" class="rb-nav-link" data-i18n="nav.services">Services</a>
+                <a href="{{ route('products.index', ['type' => 'barang']) }}" class="rb-nav-link" data-i18n="nav.products">Products</a>
+                <a href="{{ route('products.index', ['type' => 'jasa']) }}" class="rb-nav-link" data-i18n="nav.services">Services</a>
                 <a href="/blog" class="rb-nav-link" data-i18n="nav.blog">Blog</a>
                 <a href="#about" class="rb-nav-link" data-i18n="nav.about">About Us</a>
             </nav>
@@ -72,8 +72,6 @@
                 <div class="rb-lang-switcher" role="group" aria-label="Language selector">
                     <button class="rb-lang-btn" data-lang="en" aria-label="Switch to English">EN</button>
                     <button class="rb-lang-btn" data-lang="id" aria-label="Ganti ke Bahasa Indonesia">ID</button>
-                    <button class="rb-lang-btn" data-lang="ms" aria-label="Tukar ke Bahasa Malaysia">MY</button>
-                    <button class="rb-lang-btn" data-lang="ja" aria-label="日本語に切り替え">JA</button>
                 </div>
 
                 <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-primary"
@@ -97,10 +95,10 @@
     {{-- ── MOBILE MENU ── --}}
     <div id="rb-mobile-menu" class="rb-mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
         <nav style="display:flex;flex-direction:column;gap:0.25rem;">
-            <a href="#products"
+            <a href="{{ route('products.index', ['type' => 'barang']) }}"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.products">Products</a>
-            <a href="#services"
+            <a href="{{ route('products.index', ['type' => 'jasa']) }}"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.services">Services</a>
             <a href="/blog"
@@ -114,8 +112,6 @@
         <div class="rb-lang-switcher" style="margin-top:1.5rem;width:fit-content;">
             <button class="rb-lang-btn" data-lang="en">EN</button>
             <button class="rb-lang-btn" data-lang="id">ID</button>
-            <button class="rb-lang-btn" data-lang="ms">MY</button>
-            <button class="rb-lang-btn" data-lang="ja">JA</button>
         </div>
         <a href="mailto:{{ $settings->contact_email ?: 'hello@rbeverything.com' }}" class="rb-btn-hero"
             style="margin-top:1.25rem;width:fit-content;" data-i18n="nav.cta">

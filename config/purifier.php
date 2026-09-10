@@ -58,6 +58,34 @@ return [
             'HTML.TargetBlank'         => true,
         ],
 
+        /*
+         * Profile for Product descriptions.
+         *
+         * Same toolbar as the article editor minus the media-heavy parts a
+         * product description has no use for, so the allowed set stays as
+         * small as the content actually needs. Sanitising happens on save
+         * (App\Observers\ProductObserver), the same as for articles.
+         */
+        'product' => [
+            'HTML.Doctype'          => 'HTML 4.01 Transitional',
+            'HTML.Allowed'          => 'p[style],br,hr,'
+                . 'strong,b,em,i,u,s,strike,del,sub,sup,mark,small,'
+                . 'span[style],div[style],'
+                . 'a[href|title|target|rel],'
+                . 'ul,ol,li,'
+                . 'h2,h3,h4,h5,h6,'
+                . 'blockquote[cite],pre,code,'
+                . 'img[src|alt|title|width|height],figure,figcaption,'
+                . 'table,thead,tbody,tfoot,caption,colgroup,col[span],'
+                . 'tr,th[colspan|rowspan|scope|style],td[colspan|rowspan|style]',
+            'CSS.AllowedProperties' => 'color,background-color,text-align,font-weight,font-style,'
+                . 'text-decoration,padding-left,margin-left,width,height',
+            'Attr.AllowedFrameTargets' => ['_blank'],
+            'AutoFormat.AutoParagraph' => false,
+            'AutoFormat.RemoveEmpty'   => false,
+            'HTML.TargetBlank'         => true,
+        ],
+
         'test'    => [
             'Attr.EnableID' => 'true',
         ],
