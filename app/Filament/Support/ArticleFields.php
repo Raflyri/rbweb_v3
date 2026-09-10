@@ -15,6 +15,8 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Illuminate\Support\Str;
 
+use Filament\Forms\Components\RichEditor\ToolbarButtonGroup;
+
 /**
  * Single source of truth for every Article form field: labels, limits,
  * WYSIWYG toolbar, and the (?) hint tooltips explaining what each field does
@@ -28,12 +30,49 @@ class ArticleFields
     protected const HINT_ICON = 'heroicon-o-question-mark-circle';
 
     /**
-     * A full WYSIWYG toolbar — headings, formatting, lists, media, tables,
-     * undo/redo — used identically in both panels so "what the editor can
-     * do" never differs by which door the author walked through.
+     * Comprehensive WYSIWYG toolbar — headings, text formatting, text color & highlight,
+     * text alignment, lists, code, tables, callouts, emojis, and media.
+     *
+     * @return array<array<string|\Filament\Forms\Components\RichEditor\ToolbarButtonGroup>>
+     */
+    public static function toolbarButtons(): array
+    {
+        return [
+            ['undo', 'redo'],
+            [
+                ToolbarButtonGroup::make('Heading', [
+                    'paragraph', 'h1', 'h2', 'h3', 'h4',
+                ])->textualButtons(),
+            ],
+            ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript'],
+            ['textColor', 'highlight', 'clearFormatting'],
+            [
+                ToolbarButtonGroup::make('Perataan', [
+                    'alignStart', 'alignCenter', 'alignEnd', 'alignJustify',
+                ]),
+            ],
+            ['bulletList', 'orderedList', 'blockquote', 'code', 'codeBlock', 'horizontalRule'],
+            ['link', 'attachFiles'],
+            [
+                ToolbarButtonGroup::make('Tabel', [
+                    'table',
+                    'insertTablePreset',
+                    'tableAddRowBefore', 'tableAddRowAfter', 'tableDeleteRow',
+                    'tableAddColumnBefore', 'tableAddColumnAfter', 'tableDeleteColumn',
+                    'tableMergeCells', 'tableSplitCell',
+                    'tableToggleHeaderRow', 'tableDelete',
+                ]),
+            ],
+            ['details', 'insertCallout', 'insertEmoji'],
+        ];
+    }
+
+    /**
+     * Backward-compatible fallback toolbar.
      */
     public const RICH_EDITOR_TOOLBAR = [
-        'h2', 'h3', 'bold', 'italic', 'underline', 'strike',
+        'paragraph', 'h1', 'h2', 'h3', 'bold', 'italic', 'underline', 'strike',
+        'alignStart', 'alignCenter', 'alignEnd', 'alignJustify',
         'bulletList', 'orderedList', 'blockquote', 'codeBlock',
         'link', 'attachFiles', 'table', 'redo', 'undo',
     ];
@@ -53,7 +92,20 @@ class ArticleFields
     {
         return RichEditor::make("content.{$locale}")
             ->label($label)
-            ->toolbarButtons(self::RICH_EDITOR_TOOLBAR)
+            ->plugins([
+                ArticleEditorEnhancementsPlugin::make(),
+            ])
+            ->toolbarButtons(self::toolbarButtons())
+            ->floatingToolbars([
+                'table' => [
+                    'tableAddColumnBefore', 'tableAddColumnAfter', 'tableDeleteColumn',
+                    'tableAddRowBefore', 'tableAddRowAfter', 'tableDeleteRow',
+                    'tableMergeCells', 'tableSplitCell',
+                    'tableToggleHeaderRow', 'tableToggleHeaderCell',
+                    'tableDelete',
+                ],
+            ])
+            ->resizableImages()
             ->fileAttachmentsDisk('public')
             ->fileAttachmentsDirectory('article-attachments')
             ->hintIcon(

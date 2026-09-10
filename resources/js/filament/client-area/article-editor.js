@@ -44,25 +44,47 @@
             .toUpperCase();
     }
 
-    /* ── Module: Word Count ─────────────────────────────────────── */
+    /* ── Module: Word Count (TipTap / ProseMirror) ─────────────── */
     function initWordCount() {
         const badge = document.getElementById('ae-word-count');
         if (!badge) return;
 
-        function update(editor) {
-            const wordCount = countWords(editor.innerHTML || '');
+        function getActiveEditor() {
+            const editors = Array.from(document.querySelectorAll('.fi-fo-rich-editor-content .ProseMirror, .fi-fo-rich-editor-content .tiptap, .ProseMirror'));
+            const visible = editors.find((el) => el.offsetParent !== null);
+            return visible || editors[0] || null;
+        }
+
+        function update() {
+            const editor = getActiveEditor();
+            const wordCount = editor ? countWords(editor.innerHTML || '') : 0;
             const mins = readTimeMinutes(wordCount);
             badge.textContent = `${wordCount.toLocaleString()} kata · ~${mins} mnt baca`;
         }
 
-        // Trix fires trix-change on every keystroke
-        document.addEventListener('trix-change', function (e) {
-            update(e.target);
+        // Listen for input, keyup, and paste on any rich editor
+        document.addEventListener('input', function (e) {
+            if (e.target.closest('.ProseMirror, .tiptap, .fi-fo-rich-editor')) {
+                update();
+            }
         });
 
-        // Initial render if editor already has content
-        const trix = document.querySelector('trix-editor');
-        if (trix) update(trix);
+        document.addEventListener('keyup', function (e) {
+            if (e.target.closest('.ProseMirror, .tiptap, .fi-fo-rich-editor')) {
+                update();
+            }
+        });
+
+        // When switching locale tabs, recalculate for the active tab's editor
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('button, [data-locale-tab]')) {
+                setTimeout(update, 120);
+            }
+        });
+
+        // Initial render checks
+        setTimeout(update, 300);
+        setTimeout(update, 1000);
     }
 
     /* ── Module: Meta Description Counter ──────────────────────── */

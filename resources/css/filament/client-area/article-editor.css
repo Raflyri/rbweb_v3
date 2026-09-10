@@ -103,7 +103,8 @@
 }
 
 .article-editor-page .fi-fo-rich-editor-content,
-.article-editor-page trix-editor {
+.article-editor-page .fi-fo-rich-editor-content .ProseMirror,
+.article-editor-page .fi-fo-rich-editor-content .tiptap {
     min-height: 560px !important;
     padding: 1.75rem 2rem !important;
     font-size: 1.0625rem !important;
@@ -114,7 +115,17 @@
     caret-color: var(--editor-accent);
 }
 
-.article-editor-page trix-editor h2 {
+.article-editor-page .fi-fo-rich-editor-content .ProseMirror h1,
+.article-editor-page .fi-fo-rich-editor-content .tiptap h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: #0f172a;
+}
+
+.article-editor-page .fi-fo-rich-editor-content .ProseMirror h2,
+.article-editor-page .fi-fo-rich-editor-content .tiptap h2 {
     font-size: 1.625rem;
     font-weight: 700;
     margin-top: 2rem;
@@ -122,7 +133,8 @@
     color: #0f172a;
 }
 
-.article-editor-page trix-editor h3 {
+.article-editor-page .fi-fo-rich-editor-content .ProseMirror h3,
+.article-editor-page .fi-fo-rich-editor-content .tiptap h3 {
     font-size: 1.3rem;
     font-weight: 600;
     margin-top: 1.5rem;
@@ -130,21 +142,115 @@
     color: #0f172a;
 }
 
-.article-editor-page trix-editor blockquote {
-    border-left: 3px solid var(--editor-accent);
+.article-editor-page .fi-fo-rich-editor-content .ProseMirror h4,
+.article-editor-page .fi-fo-rich-editor-content .tiptap h4 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+}
+
+.article-editor-page .fi-fo-rich-editor-content .ProseMirror blockquote,
+.article-editor-page .fi-fo-rich-editor-content .tiptap blockquote {
+    border-left: 4px solid var(--editor-accent);
     padding-left: 1.25rem;
     color: var(--editor-muted);
-    font-style: italic;
+    font-style: normal;
+    background: #f8fafc;
+    border-radius: 0 0.5rem 0.5rem 0;
+    padding: 0.875rem 1.25rem;
     margin: 1.25rem 0;
 }
 
-.article-editor-page trix-editor pre {
-    background: #f1f5f9;
+.article-editor-page .fi-fo-rich-editor-content .ProseMirror pre,
+.article-editor-page .fi-fo-rich-editor-content .tiptap pre {
+    background: #0f172a;
+    color: #f8fafc;
     border-radius: 0.5rem;
     padding: 1rem 1.25rem;
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
     font-size: 0.9rem;
     overflow-x: auto;
+}
+
+/* ── Text Alignment in TipTap Editor ─────────────────────────── */
+.article-editor-page .fi-fo-rich-editor-content [style*="text-align: center"] {
+    text-align: center !important;
+}
+.article-editor-page .fi-fo-rich-editor-content [style*="text-align: right"] {
+    text-align: right !important;
+}
+.article-editor-page .fi-fo-rich-editor-content [style*="text-align: justify"] {
+    text-align: justify !important;
+}
+.article-editor-page .fi-fo-rich-editor-content [style*="text-align: left"],
+.article-editor-page .fi-fo-rich-editor-content [style*="text-align: start"] {
+    text-align: left !important;
+}
+
+/* ── Table Styling in TipTap Editor ──────────────────────────── */
+.article-editor-page .fi-fo-rich-editor-content table {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
+    width: 100%;
+    margin: 1.5rem 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+}
+
+.article-editor-page .fi-fo-rich-editor-content td,
+.article-editor-page .fi-fo-rich-editor-content th {
+    min-width: 2em;
+    border: 1px solid #e2e8f0;
+    padding: 0.625rem 0.875rem;
+    vertical-align: top;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.article-editor-page .fi-fo-rich-editor-content th {
+    font-weight: 700;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.article-editor-page .fi-fo-rich-editor-content tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.article-editor-page .fi-fo-rich-editor-content .selectedCell:after {
+    z-index: 2;
+    position: absolute;
+    content: "";
+    inset: 0;
+    background: rgba(14, 165, 233, 0.15);
+    pointer-events: none;
+}
+
+/* ── Details / Accordion in TipTap Editor ────────────────────── */
+.article-editor-page .fi-fo-rich-editor-content details {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    background: #f8fafc;
+}
+
+.article-editor-page .fi-fo-rich-editor-content summary {
+    font-weight: 600;
+    cursor: pointer;
+    color: #0f172a;
+}
+
+/* ── Mark / Highlight in TipTap Editor ───────────────────────── */
+.article-editor-page .fi-fo-rich-editor-content mark {
+    background-color: #fef08a;
+    padding: 0.1em 0.35em;
+    border-radius: 0.25rem;
 }
 
 /* ── Thumbnail upload — enforce 16:9 ─────────────────────────── */

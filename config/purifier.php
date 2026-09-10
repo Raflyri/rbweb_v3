@@ -40,18 +40,22 @@ return [
          */
         'article' => [
             'HTML.Doctype'          => 'HTML 4.01 Transitional',
+            'HTML.DefinitionID'     => 'html5-definitions',
+            'HTML.DefinitionRev'    => 2,
             'HTML.Allowed'          => 'p[style],br,hr,'
-                . 'strong,b,em,i,u,s,strike,del,sub,sup,mark,small,'
-                . 'span[style],div[style],'
+                . 'strong,b,em,i,u,s,strike,del,sub,sup,mark[style],small,'
+                . 'span[style|class],div[style|class],'
                 . 'a[href|title|target|rel],'
-                . 'ul,ol,li,'
-                . 'h1,h2,h3,h4,h5,h6,'
-                . 'blockquote[cite],pre,code,'
+                . 'ul[style],ol[style],li[style],'
+                . 'h1[style],h2[style],h3[style],h4[style],h5[style],h6[style],'
+                . 'blockquote[cite|style],pre[style],code[style],details[open|style],summary[style],'
                 . 'img[src|alt|title|width|height],figure,figcaption,'
-                . 'table,thead,tbody,tfoot,caption,colgroup,col[span],'
-                . 'tr,th[colspan|rowspan|scope|style],td[colspan|rowspan|style]',
-            'CSS.AllowedProperties' => 'color,background-color,text-align,font-weight,font-style,'
-                . 'text-decoration,padding-left,margin-left,width,height',
+                . 'table[style|class],thead[style],tbody[style],tfoot[style],caption[style],colgroup,col[span|style],'
+                . 'tr[style],th[colspan|rowspan|scope|style],td[colspan|rowspan|style]',
+            'CSS.AllowedProperties' => 'color,background-color,text-align,vertical-align,font-weight,font-style,'
+                . 'text-decoration,padding,padding-left,padding-right,padding-top,padding-bottom,'
+                . 'margin,margin-left,margin-right,margin-top,margin-bottom,width,min-width,max-width,height,'
+                . 'border-collapse,border,border-color,border-style,border-width',
             'Attr.AllowedFrameTargets' => ['_blank'],
             'AutoFormat.AutoParagraph' => false,
             'AutoFormat.RemoveEmpty'   => false,
@@ -95,7 +99,7 @@ return [
         ],
         'custom_definition' => [
             'id'  => 'html5-definitions',
-            'rev' => 1,
+            'rev' => 2,
             'debug' => false,
             'elements' => [
                 // http://developers.whatwg.org/sections.html
@@ -140,6 +144,8 @@ return [
 				// http://developers.whatwg.org/edits.html
                 ['ins', 'Block', 'Flow', 'Common', ['cite' => 'URI', 'datetime' => 'CDATA']],
                 ['del', 'Block', 'Flow', 'Common', ['cite' => 'URI', 'datetime' => 'CDATA']],
+                ['details', 'Block', 'Flow', 'Common', ['open' => 'Bool']],
+                ['summary', 'Block', 'Flow', 'Common'],
             ],
             'attributes' => [
                 ['iframe', 'allowfullscreen', 'Bool'],

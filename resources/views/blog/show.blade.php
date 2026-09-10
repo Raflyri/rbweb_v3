@@ -662,10 +662,114 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     width: 100%;
 }
-.article-prose table { border-collapse: collapse; width: 100%; }
-.article-prose thead { background: rgba(255,255,255,0.03); }
-.article-prose th { font-weight: 700; }
-.article-prose tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
+/* Table styling — modern dark-glass theme with accent borders */
+.article-prose table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 2rem 0;
+    border-radius: 0.875rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    font-size: 0.95rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+.article-prose thead {
+    background: linear-gradient(180deg, rgba(220, 38, 38, 0.12) 0%, rgba(220, 38, 38, 0.04) 100%);
+}
+.article-prose th {
+    padding: 0.875rem 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #F8FAFC;
+    border-bottom: 2px solid rgba(220, 38, 38, 0.35);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+.article-prose th:last-child {
+    border-right: none;
+}
+.article-prose td {
+    padding: 0.875rem 1.25rem;
+    color: #CBD5E1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+    vertical-align: top;
+}
+.article-prose td:last-child {
+    border-right: none;
+}
+.article-prose tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.015);
+}
+.article-prose tbody tr:hover {
+    background: rgba(220, 38, 38, 0.04);
+}
+.article-prose tbody tr:last-child td {
+    border-bottom: none;
+}
+
+@media (max-width: 640px) {
+    .article-prose table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Text Alignment support */
+.article-prose [style*="text-align: center"],
+.article-prose .text-center {
+    text-align: center !important;
+}
+.article-prose [style*="text-align: right"],
+.article-prose .text-right {
+    text-align: right !important;
+}
+.article-prose [style*="text-align: justify"],
+.article-prose .text-justify {
+    text-align: justify !important;
+    text-justify: inter-word;
+}
+.article-prose [style*="text-align: left"],
+.article-prose [style*="text-align: start"],
+.article-prose .text-left {
+    text-align: left !important;
+}
+
+/* Details / Collapsible Accordions */
+.article-prose details {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    transition: background 0.2s, border-color 0.2s;
+}
+.article-prose details[open] {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(220, 38, 38, 0.3);
+}
+.article-prose summary {
+    font-weight: 700;
+    cursor: pointer;
+    color: #F1F5F9;
+    outline: none;
+    user-select: none;
+    padding: 0.25rem 0;
+}
+.article-prose summary:hover {
+    color: #EF4444;
+}
+
+/* Mark / Highlight */
+.article-prose mark {
+    background: rgba(220, 38, 38, 0.25);
+    color: #FEE2E2;
+    padding: 0.1em 0.35em;
+    border-radius: 0.25rem;
+}
+
 .article-prose hr {
     border: none;
     height: 1px;

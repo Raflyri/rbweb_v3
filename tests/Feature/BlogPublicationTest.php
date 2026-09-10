@@ -92,5 +92,11 @@ it('renders an article that has no thumbnail or tags without crashing', function
 
     $response->assertOk()
         ->assertSee('Bare Bones Article')
+        ->assertSee('1 menit baca');
+
+    $this->withSession(['locale' => 'en'])
+        ->get('/blog/bare-bones-article')
+        ->assertOk()
+        ->assertSee('Bare Bones Article')
         ->assertSee('1 min read');
 });
