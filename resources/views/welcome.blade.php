@@ -556,30 +556,28 @@
                     RBeverything is a technology studio passionate about building products that are not only powerful
                     but delightful to use.
                 </p>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;border:1px solid rgba(255,255,255,0.06);border-radius:1.25rem;padding:2.5rem;background:rgba(255,255,255,0.02);"
+                <div style="display:grid;grid-template-columns:repeat({{ count($stats) ?: 3 }},1fr);gap:2rem;border:1px solid rgba(255,255,255,0.06);border-radius:1.25rem;padding:2.5rem;background:rgba(255,255,255,0.02);"
                     data-reveal data-reveal-delay="3">
-                    <div>
+                    @foreach($stats as $idx => $stat)
+                    <div @if($idx > 0 && $idx < count($stats) - 1) style="border-left:1px solid rgba(255,255,255,0.06);border-right:1px solid rgba(255,255,255,0.06);" @elseif($idx > 0 && count($stats) === 2) style="border-left:1px solid rgba(255,255,255,0.06);" @endif>
                         <div
                             style="font-size:2.4rem;font-weight:900;letter-spacing:-0.04em;line-height:1;background:linear-gradient(135deg,#38BDF8,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                            10+</div>
+                            {{ $stat['value'] }}</div>
                         <div style="font-size:0.78rem;color:#475569;margin-top:0.4rem;font-weight:500;"
-                            data-i18n="about.stat_products">Products shipped</div>
+                            data-i18n="about.stat_{{ $idx }}">{{ $stat['label_' . app()->getLocale()] ?? $stat['label_id'] ?? $stat['label_en'] ?? '' }}</div>
                     </div>
-                    <div
-                        style="border-left:1px solid rgba(255,255,255,0.06);border-right:1px solid rgba(255,255,255,0.06);">
-                        <div
-                            style="font-size:2.4rem;font-weight:900;letter-spacing:-0.04em;line-height:1;background:linear-gradient(135deg,#38BDF8,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                            3+</div>
-                        <div style="font-size:0.78rem;color:#475569;margin-top:0.4rem;font-weight:500;"
-                            data-i18n="about.stat_years">Years of experience</div>
-                    </div>
-                    <div>
-                        <div
-                            style="font-size:2.4rem;font-weight:900;letter-spacing:-0.04em;line-height:1;background:linear-gradient(135deg,#38BDF8,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                            ∞</div>
-                        <div style="font-size:0.78rem;color:#475569;margin-top:0.4rem;font-weight:500;"
-                            data-i18n="about.stat_quality">Commitment to quality</div>
-                    </div>
+                    @endforeach
+                </div>
+
+                {{-- CTA to dedicated About Page --}}
+                <div style="margin-top:2.5rem;" data-reveal data-reveal-delay="4">
+                    <a href="{{ route('about') }}" class="rb-btn-ghost"
+                        style="display:inline-flex;align-items:center;gap:0.6rem;text-decoration:none;padding:0.75rem 1.6rem;font-size:0.9rem;border-radius:9999px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.03);color:#F1F5F9;transition:all 0.3s ease;">
+                        <span data-i18n="about.learn_more">{{ __('about.learn_more') }}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
                 </div>
             </div>
         </section>

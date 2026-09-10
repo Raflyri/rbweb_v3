@@ -10,8 +10,13 @@ use App\Http\Controllers\StorageFileController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Payment\MidtransNotificationController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AboutController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// ── About Public Routes ─────────────────────────────────────────
+Route::get('/tentang-kami', [AboutController::class, 'index'])->name('about');
+Route::redirect('/about', '/tentang-kami');
 
 // ── Blog Public Routes ──────────────────────────────────────────
 Route::get('/blog', [ArticleController::class, 'index'])->name('blog.index');

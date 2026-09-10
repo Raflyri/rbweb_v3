@@ -117,7 +117,7 @@
                 <a href="{{ route('products.index', ['type' => 'jasa']) }}"
                    class="rb-nav-link @yield('nav_services_active')">{{ __('nav.services') }}</a>
                 <a href="/blog"      class="rb-nav-link @yield('nav_blog_active')">{{ __('nav.blog') }}</a>
-                <a href="/#about"    class="rb-nav-link">{{ __('nav.about') }}</a>
+                <a href="{{ route('about') }}" class="rb-nav-link @yield('nav_about_active')">{{ __('nav.about') }}</a>
             </nav>
 
             {{-- Language switcher + CTA --}}
@@ -160,7 +160,7 @@
             <a href="{{ route('products.index', ['type' => 'barang']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.products') }}</a>
             <a href="{{ route('products.index', ['type' => 'jasa']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.services') }}</a>
             <a href="/blog"      style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.blog') }}</a>
-            <a href="/#about"    style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.about') }}</a>
+            <a href="{{ route('about') }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.about') }}</a>
         </nav>
         <div class="rb-lang-switcher" style="margin-top:1.5rem;width:fit-content;">
             @foreach(\App\Support\ArticleLocale::enabledLabels() as $code => $label)

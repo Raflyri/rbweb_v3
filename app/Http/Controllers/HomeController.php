@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Models\LaunchpadLink;
 use App\Settings\GeneralSettings;
+use App\Settings\AboutSettings;
 use App\Support\ArticleLocale;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -14,7 +15,7 @@ class HomeController extends Controller
     /**
      * Render the homepage with CMS-driven page data and i18n strings.
      */
-    public function index(GeneralSettings $settings)
+    public function index(GeneralSettings $settings, AboutSettings $aboutSettings)
     {
         $locale = app()->getLocale();
 
@@ -28,6 +29,22 @@ class HomeController extends Controller
             $path = lang_path("{$lang}.json");
             if (File::exists($path)) {
                 $i18n[$lang] = json_decode(File::get($path), true);
+            }
+        }
+
+        // ── 1b. Inject dynamic stats from AboutSettings into i18n dictionary ──
+        $stats = $aboutSettings->stats ?? [
+            ['value' => '10+', 'label_id' => 'Produk diluncurkan', 'label_en' => 'Products shipped'],
+            ['value' => '3+',  'label_id' => 'Tahun pengalaman', 'label_en' => 'Years of experience'],
+            ['value' => '∞',   'label_id' => 'Komitmen terhadap kualitas', 'label_en' => 'Commitment to quality'],
+        ];
+
+        foreach ($stats as $idx => $stat) {
+            if (isset($i18n['id'])) {
+                $i18n['id']['about']['stat_' . $idx] = $stat['label_id'] ?? '';
+            }
+            if (isset($i18n['en'])) {
+                $i18n['en']['about']['stat_' . $idx] = $stat['label_en'] ?? '';
             }
         }
 
@@ -143,6 +160,6 @@ class HomeController extends Controller
         $siteFavicon = $settings->site_favicon ? asset('storage/' . $settings->site_favicon) : null;
         $siteName    = $settings->site_name    ?? config('app.name', 'RBeverything');
 
-        return view('welcome', compact('pageData', 'i18n', 'settings', 'siteLogo', 'siteFavicon', 'siteName', 'products'));
+        return view('welcome', compact('pageData', 'i18n', 'settings', 'aboutSettings', 'stats', 'siteLogo', 'siteFavicon', 'siteName', 'products'));
     }
 }
