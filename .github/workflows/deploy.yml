@@ -368,3 +368,46 @@ jobs:
             echo "✅ Database seeders completed successfully."
           fi
           true
+
+      # ----------------------------------------------------------------
+      # STAGE 8: CLEAR APPLICATION & VIEW CACHE (optimize:clear)
+      # ----------------------------------------------------------------
+      - name: 🧹 Clear Application Cache (Production)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🧹 Clearing application and view cache on production..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=optimize:clear" \
+            -w "\n%{http_code}" \
+            "https://rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 Cache clear response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️ Cache clear returned HTTP $HTTP_CODE — check logs."
+          else
+            echo "✅ Application and view cache cleared successfully."
+          fi
+          true
+
+      - name: 🧹 Clear Application Cache (Staging)
+        if: github.ref == 'refs/heads/sandbox'
+        run: |
+          echo "🧹 Clearing application and view cache on staging..."
+          RESPONSE=$(curl -s --connect-timeout 30 --max-time 120 \
+            -X POST \
+            -d "token=${{ secrets.DEPLOY_SECRET }}&command=optimize:clear" \
+            -w "\n%{http_code}" \
+            "https://web-sbox.rbeverything.com/system/emergency-command")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "📋 Cache clear response (HTTP $HTTP_CODE):"
+          echo "$BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️ Cache clear returned HTTP $HTTP_CODE — check logs."
+          else
+            echo "✅ Application and view cache cleared successfully."
+          fi
+          true

@@ -135,6 +135,27 @@ foreach (['config.php', 'routes-v7.php', 'events.php'] as $compiled) {
     }
 }
 
+// Clear compiled Blade views so template changes take effect immediately
+$viewsDir = $coreDir . '/storage/framework/views';
+if (is_dir($viewsDir)) {
+    $viewFiles = glob($viewsDir . '/*.php');
+    if ($viewFiles) {
+        $clearedViews = 0;
+        foreach ($viewFiles as $vf) {
+            if (@unlink($vf)) {
+                $clearedViews++;
+            }
+        }
+        $output .= "Cleared {$clearedViews} cached view file(s) in storage/framework/views/\n";
+    }
+}
+
+// Reset OPcache if active on the server
+if (function_exists('opcache_reset')) {
+    @opcache_reset();
+    $output .= "OPcache reset executed.\n";
+}
+
 // Execute migrations directly via CLI to bypass Laravel HTTP Kernel boot issues (like MissingSettings exceptions)
 $output .= "\nSystem Updates Logs\n----------------\n";
 if (file_exists($coreDir . '/artisan')) {
