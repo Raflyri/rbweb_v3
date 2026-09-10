@@ -7,35 +7,34 @@
     $summary = $product->translate('short_description', $locale);
 @endphp
 
-@section('meta_title',       'Pesan — ' . $name)
-@section('meta_description', 'Formulir pemesanan ' . $name . ' di RBeverything.')
+@section('meta_title',       __('order_ui.breadcrumb_order') . ' — ' . $name)
+@section('meta_description', __('order_ui.lead'))
 {{-- An order form has nothing to offer a search engine, and indexing it would
      scatter duplicate thin pages across the catalogue. --}}
 @section('meta_robots',      'noindex, nofollow')
 
 @section('content')
 
-    <section aria-label="Formulir pemesanan">
+    <section aria-label="{{ __('order_ui.section_label') }}">
         <div class="rb-section" style="padding-bottom:5rem;">
 
             <nav class="catalog-breadcrumb" aria-label="Breadcrumb">
-                <a href="{{ route('home') }}" class="catalog-breadcrumb__link">Home</a>
+                <a href="{{ route('home') }}" class="catalog-breadcrumb__link">{{ __('nav.home') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-                <a href="{{ route('products.index') }}" class="catalog-breadcrumb__link">Produk &amp; Layanan</a>
+                <a href="{{ route('products.index') }}" class="catalog-breadcrumb__link">{{ __('catalog.title') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                 <a href="{{ route('products.show', $product->slug) }}" class="catalog-breadcrumb__link">{{ Str::limit($name, 30) }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-                <span class="catalog-breadcrumb__current">Pesan</span>
+                <span class="catalog-breadcrumb__current">{{ __('order_ui.breadcrumb_order') }}</span>
             </nav>
 
-            <span class="rb-section-label">Pemesanan</span>
-            <h1 class="order-title">Pesan {{ $name }}</h1>
+            <span class="rb-section-label">{{ __('order_ui.section_label') }}</span>
+            <h1 class="order-title">{{ __('order_ui.title', ['name' => $name]) }}</h1>
             <p class="order-lead">
-                Isi data di bawah ini. Pesanan langsung masuk ke kami dan kamu akan menerima nomor pesanan
-                untuk dipakai saat menghubungi kami.
+                {{ __('order_ui.lead') }}
             </p>
 
             <div class="order-layout">
@@ -46,7 +45,7 @@
 
                     @if($errors->any())
                         <div class="order-alert order-alert--error" role="alert">
-                            <strong>Ada {{ $errors->count() }} isian yang perlu diperbaiki:</strong>
+                            <strong>{{ __('order_ui.errors_title', ['count' => $errors->count()]) }}</strong>
                             <ul>
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -56,58 +55,58 @@
                     @endif
 
                     <div class="order-field">
-                        <label for="customer_name">Nama lengkap <span class="order-req">*</span></label>
+                        <label for="customer_name">{{ __('order_ui.customer_name') }} <span class="order-req">*</span></label>
                         <input type="text" id="customer_name" name="customer_name" required maxlength="120"
                                value="{{ old('customer_name') }}" autocomplete="name">
                     </div>
 
                     <div class="order-row">
                         <div class="order-field">
-                            <label for="customer_email">Email <span class="order-req">*</span></label>
+                            <label for="customer_email">{{ __('order_ui.customer_email') }} <span class="order-req">*</span></label>
                             <input type="email" id="customer_email" name="customer_email" required maxlength="190"
                                    value="{{ old('customer_email') }}" autocomplete="email">
-                            <small>Konfirmasi pesanan dikirim ke alamat ini.</small>
+                            <small>{{ __('order_ui.email_help') }}</small>
                         </div>
 
                         <div class="order-field">
-                            <label for="customer_phone">Nomor WhatsApp <span class="order-req">*</span></label>
+                            <label for="customer_phone">{{ __('order_ui.customer_phone') }} <span class="order-req">*</span></label>
                             <input type="tel" id="customer_phone" name="customer_phone" required maxlength="40"
                                    value="{{ old('customer_phone') }}" autocomplete="tel"
                                    placeholder="0812 3456 7890">
-                            <small>Kami pakai nomor ini untuk konfirmasi{{ $product->isBarang() ? ' dan menghitung ongkos kirim' : '' }}.</small>
+                            <small>{{ $product->isBarang() ? __('order_ui.phone_help_goods') : __('order_ui.phone_help_services') }}</small>
                         </div>
                     </div>
 
                     <div class="order-field order-field--narrow">
-                        <label for="qty">Jumlah <span class="order-req">*</span></label>
+                        <label for="qty">{{ __('order_ui.qty') }} <span class="order-req">*</span></label>
                         <input type="number" id="qty" name="qty" required min="1"
                                max="{{ $product->tracksStock() ? $product->stock : 999 }}"
                                value="{{ old('qty', 1) }}">
                         @if($product->tracksStock())
-                            <small>Stok tersedia: {{ $product->stock }}</small>
+                            <small>{{ __('order_ui.stock_help', ['count' => $product->stock]) }}</small>
                         @endif
                     </div>
 
                     @if($product->isBarang())
                         <div class="order-field">
-                            <label for="shipping_address">Alamat pengiriman <span class="order-req">*</span></label>
+                            <label for="shipping_address">{{ __('order_ui.shipping_address') }} <span class="order-req">*</span></label>
                             <textarea id="shipping_address" name="shipping_address" rows="4" required
-                                      placeholder="Nama jalan, nomor rumah, kelurahan, kecamatan, kota, kode pos">{{ old('shipping_address') }}</textarea>
-                            <small>Ongkos kirim dihitung manual dan kami konfirmasikan lewat WhatsApp setelah pesanan masuk.</small>
+                                      placeholder="{{ __('order_ui.shipping_address_placeholder') }}">{{ old('shipping_address') }}</textarea>
+                            <small>{{ __('order_ui.shipping_help') }}</small>
                         </div>
                     @else
                         <div class="order-field order-field--narrow">
-                            <label for="preferred_date">Tanggal yang diinginkan</label>
+                            <label for="preferred_date">{{ __('order_ui.preferred_date') }}</label>
                             <input type="date" id="preferred_date" name="preferred_date"
                                    min="{{ now()->toDateString() }}" value="{{ old('preferred_date') }}">
-                            <small>Opsional — kami konfirmasikan ketersediaan jadwalnya.</small>
+                            <small>{{ __('order_ui.date_help') }}</small>
                         </div>
                     @endif
 
                     <div class="order-field">
-                        <label for="notes">Catatan tambahan</label>
+                        <label for="notes">{{ __('order_ui.notes') }}</label>
                         <textarea id="notes" name="notes" rows="3"
-                                  placeholder="Spesifikasi khusus, pertanyaan, atau apa pun yang perlu kami tahu">{{ old('notes') }}</textarea>
+                                  placeholder="{{ $product->isBarang() ? __('order_ui.notes_placeholder_goods') : __('order_ui.notes_placeholder_services') }}">{{ old('notes') }}</textarea>
                     </div>
 
                     {{-- Honeypot: hidden from people, irresistible to bots. Anything
@@ -118,7 +117,7 @@
                     </div>
 
                     <button type="submit" class="rb-btn-primary order-submit">
-                        Kirim Pesanan
+                        {{ __('order_ui.proceed_button') }}
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -126,13 +125,12 @@
                     </button>
 
                     <p class="order-disclaimer">
-                        Mengirim formulir ini belum berarti pembayaran. Kami konfirmasi dulu ketersediaan
-                        {{ $product->isBarang() ? 'dan ongkos kirim' : 'dan jadwal' }}, baru kamu bayar.
+                        {{ __('order_ui.disclaimer') }}
                     </p>
                 </form>
 
                 {{-- ── Order summary ─────────────────────────────── --}}
-                <aside class="order-summary" aria-label="Ringkasan pesanan">
+                <aside class="order-summary" aria-label="{{ __('order_ui.summary_title') }}">
                     @if($product->thumbnail)
                         <img src="{{ \Illuminate\Support\Facades\Storage::url($product->thumbnail) }}"
                              alt="{{ $name }}" class="order-summary__img">
@@ -151,25 +149,24 @@
                     @endif
 
                     <div class="order-summary__price-row">
-                        <span>Harga satuan</span>
+                        <span>{{ __('order_ui.unit_price') }}</span>
                         <strong>{{ $product->formattedPrice() }}</strong>
                     </div>
 
                     @if($product->isBarang())
                         <div class="order-summary__price-row order-summary__price-row--muted">
-                            <span>Ongkos kirim</span>
-                            <span>dihitung manual</span>
+                            <span>{{ __('receipt_ui.shipping_fee') }}</span>
+                            <span>{{ __('receipt_ui.not_calculated') }}</span>
                         </div>
                     @endif
 
                     <a href="{{ route('products.show', $product->slug) }}" class="order-summary__back">
-                        &larr; Kembali ke detail produk
+                        &larr; {{ $name }}
                     </a>
                 </aside>
             </div>
         </div>
     </section>
-
 @endsection
 
 @section('styles')

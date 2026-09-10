@@ -23,17 +23,26 @@ class ProductType
     public const OPTIONS = [self::BARANG, self::JASA];
 
     /** Filament Select / public tab-ready [value => label] map. */
-    public static function options(): array
+    public static function options(?string $locale = null): array
     {
+        $loc = ArticleLocale::normalize($locale ?: app()->getLocale());
+
+        if ($loc === 'en') {
+            return [
+                self::BARANG => 'Products',
+                self::JASA   => 'Services',
+            ];
+        }
+
         return [
             self::BARANG => 'Barang',
             self::JASA   => 'Jasa',
         ];
     }
 
-    public static function label(?string $type): string
+    public static function label(?string $type, ?string $locale = null): string
     {
-        return self::options()[$type] ?? '—';
+        return self::options($locale)[$type] ?? '—';
     }
 
     public static function isValid(?string $type): bool

@@ -171,6 +171,28 @@ it('renders the catalogue in whichever language the visitor picked', function ()
     }
 });
 
+it('renders navigation and catalogue chrome consistently in the active language', function () {
+    // Indonesian
+    $this->withSession(['locale' => 'id'])
+        ->get(route('products.index'))
+        ->assertOk()
+        ->assertSee('Produk &amp; Layanan', false)
+        ->assertSee('Semua')
+        ->assertSee('Barang')
+        ->assertSee('Jasa')
+        ->assertSee('Ayo Berkolaborasi');
+
+    // English
+    $this->withSession(['locale' => 'en'])
+        ->get(route('products.index'))
+        ->assertOk()
+        ->assertSee('Products &amp; Services', false)
+        ->assertSee('All')
+        ->assertSee('Products')
+        ->assertSee('Services')
+        ->assertSee("Let&#039;s Collaborate", false);
+});
+
 it('falls back instead of going blank in a language the product lacks', function () {
     $product = Product::factory()->indonesianOnly()->create([
         'name' => ['id' => 'Kabel LAN Cat6'],

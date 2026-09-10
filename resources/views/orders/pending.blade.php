@@ -5,18 +5,20 @@
     use App\Support\PaymentStatus;
     use App\Support\ProductType;
 
-    $waMessage = rawurlencode(
-        "Halo RBeverything, saya mau menanyakan pesanan {$order->order_number} ({$order->product_name_snapshot})."
-    );
+    $waText = __('receipt_ui.wa_inquiry_message', [
+        'number' => $order->order_number,
+        'product' => $order->product_name_snapshot,
+    ]);
+    $waMessage = rawurlencode($waText);
 @endphp
 
-@section('meta_title', 'Pesanan ' . $order->order_number)
+@section('meta_title', __('receipt_ui.meta_title', ['number' => $order->order_number]))
 {{-- Somebody else's order details must never end up in a search index. --}}
 @section('meta_robots', 'noindex, nofollow')
 
 @section('content')
 
-    <section aria-label="Ringkasan pesanan">
+    <section aria-label="{{ __('receipt_ui.section_label') }}">
         <div class="rb-section" style="padding-bottom:5rem;max-width:52rem;">
 
             <div class="receipt-hero">
@@ -26,15 +28,13 @@
                         <path d="M20 6 9 17l-5-5"/>
                     </svg>
                 </div>
-                <h1 class="receipt-title">Pesanan kamu sudah kami terima</h1>
+                <h1 class="receipt-title">{{ __('receipt_ui.received_title') }}</h1>
                 <p class="receipt-lead">
-                    Simpan halaman ini. Kami menghubungi kamu lewat WhatsApp atau email untuk konfirmasi
-                    {{ $order->needsShipping() ? 'ketersediaan dan ongkos kirim' : 'jadwal pengerjaan' }},
-                    lalu memberi instruksi pembayaran.
+                    {{ $order->needsShipping() ? __('receipt_ui.received_lead_goods') : __('receipt_ui.received_lead_services') }}
                 </p>
 
                 <div class="receipt-number">
-                    <span>Nomor pesanan</span>
+                    <span>{{ __('receipt_ui.order_number') }}</span>
                     <strong>{{ $order->order_number }}</strong>
                 </div>
             </div>
@@ -43,13 +43,13 @@
 
                 <div class="receipt-statuses">
                     <div class="receipt-status">
-                        <span class="receipt-status__label">Status pesanan</span>
+                        <span class="receipt-status__label">{{ __('receipt_ui.order_status') }}</span>
                         <span class="receipt-badge receipt-badge--{{ $order->status }}">
                             {{ OrderStatus::label($order->status) }}
                         </span>
                     </div>
                     <div class="receipt-status">
-                        <span class="receipt-status__label">Status pembayaran</span>
+                        <span class="receipt-status__label">{{ __('receipt_ui.payment_status') }}</span>
                         <span class="receipt-badge receipt-badge--payment">
                             {{ PaymentStatus::label($order->payment_status) }}
                         </span>
@@ -58,52 +58,52 @@
 
                 <dl class="receipt-lines">
                     <div class="receipt-line">
-                        <dt>Produk</dt>
+                        <dt>{{ __('receipt_ui.product') }}</dt>
                         <dd>
                             {{ $order->product_name_snapshot }}
                             <span class="receipt-type">{{ ProductType::label($order->product_type_snapshot) }}</span>
                         </dd>
                     </div>
                     <div class="receipt-line">
-                        <dt>Jumlah</dt>
+                        <dt>{{ __('receipt_ui.qty') }}</dt>
                         <dd>{{ $order->qty }}</dd>
                     </div>
                     <div class="receipt-line">
-                        <dt>Subtotal</dt>
+                        <dt>{{ __('receipt_ui.subtotal') }}</dt>
                         <dd>{{ $order->formattedSubtotal() }}</dd>
                     </div>
                     @if($order->needsShipping())
                         <div class="receipt-line">
-                            <dt>Ongkos kirim</dt>
-                            <dd>{{ $order->formattedShipping() ?? 'Belum dihitung' }}</dd>
+                            <dt>{{ __('receipt_ui.shipping_fee') }}</dt>
+                            <dd>{{ $order->formattedShipping() ?? __('receipt_ui.not_calculated') }}</dd>
                         </div>
                     @endif
                     <div class="receipt-line receipt-line--total">
-                        <dt>Total{{ $order->needsShipping() && $order->shipping_cost === null ? ' sementara' : '' }}</dt>
+                        <dt>{{ $order->needsShipping() && $order->shipping_cost === null ? __('receipt_ui.total_provisional') : __('receipt_ui.total') }}</dt>
                         <dd>{{ $order->formattedTotal() }}</dd>
                     </div>
                 </dl>
 
                 <div class="receipt-block">
-                    <h2 class="receipt-block__title">Data pemesan</h2>
+                    <h2 class="receipt-block__title">{{ __('receipt_ui.customer_title') }}</h2>
                     <dl class="receipt-lines receipt-lines--plain">
-                        <div class="receipt-line"><dt>Nama</dt><dd>{{ $order->customer_name }}</dd></div>
-                        <div class="receipt-line"><dt>Email</dt><dd>{{ $order->customer_email }}</dd></div>
-                        <div class="receipt-line"><dt>WhatsApp/HP</dt><dd>{{ $order->customer_phone }}</dd></div>
+                        <div class="receipt-line"><dt>{{ __('receipt_ui.name') }}</dt><dd>{{ $order->customer_name }}</dd></div>
+                        <div class="receipt-line"><dt>{{ __('receipt_ui.email') }}</dt><dd>{{ $order->customer_email }}</dd></div>
+                        <div class="receipt-line"><dt>{{ __('receipt_ui.phone') }}</dt><dd>{{ $order->customer_phone }}</dd></div>
                         @if($order->shipping_address)
-                            <div class="receipt-line"><dt>Alamat</dt><dd>{{ $order->shipping_address }}</dd></div>
+                            <div class="receipt-line"><dt>{{ __('receipt_ui.address') }}</dt><dd>{{ $order->shipping_address }}</dd></div>
                         @endif
                         @if($order->preferred_date)
-                            <div class="receipt-line"><dt>Tanggal diinginkan</dt><dd>{{ $order->preferred_date->format('d/m/Y') }}</dd></div>
+                            <div class="receipt-line"><dt>{{ __('receipt_ui.date') }}</dt><dd>{{ $order->preferred_date->format('d/m/Y') }}</dd></div>
                         @endif
                         @if($order->notes)
-                            <div class="receipt-line"><dt>Catatan</dt><dd>{{ $order->notes }}</dd></div>
+                            <div class="receipt-line"><dt>{{ __('receipt_ui.notes') }}</dt><dd>{{ $order->notes }}</dd></div>
                         @endif
                     </dl>
                 </div>
 
                 <div class="receipt-payment">
-                    <h2 class="receipt-block__title">Pembayaran — {{ $payment['name'] }}</h2>
+                    <h2 class="receipt-block__title">{{ __('receipt_ui.payment_heading', ['name' => $payment['name']]) }}</h2>
 
                     @if(session('payment_success'))
                         <div class="receipt-alert receipt-alert--ok" role="status">{{ session('payment_success') }}</div>
@@ -115,54 +115,55 @@
                         {{-- An admin sent the last receipt back; the reason is the
                              most useful thing on this page right now. --}}
                         <div class="receipt-alert receipt-alert--warn" role="alert">
-                            <strong>Bukti transfer sebelumnya belum bisa kami verifikasi.</strong><br>
+                            <strong>{{ __('receipt_ui.proof_rejected_title') }}</strong><br>
                             {{ $order->payment_note }}
                         </div>
                     @endif
 
                     @if($order->isPaid())
                         <p>
-                            Pembayaran pesanan ini sudah <strong>lunas</strong>@if($order->paid_at) pada
-                            {{ $order->paid_at->format('d/m/Y H:i') }}@endif. Terima kasih!
+                            @php
+                                $paidDateStr = $order->paid_at ? __('receipt_ui.paid_on', ['date' => $order->paid_at->format('d/m/Y H:i')]) : '';
+                            @endphp
+                            {!! __('receipt_ui.paid_message', ['date' => $paidDateStr]) !!}
                         </p>
                     @elseif($order->isCancelled())
-                        <p>Pesanan ini dibatalkan, jadi tidak ada pembayaran yang perlu diselesaikan.</p>
+                        <p>{{ __('receipt_ui.cancelled_message') }}</p>
                     @elseif($payment['type'] === 'unavailable')
                         {{-- The gateway threw; the buyer gets a sentence they can
                              act on instead of a 500. --}}
-                        <p>{{ $payment['message'] }} Sebutkan nomor <strong>{{ $order->order_number }}</strong> saat menghubungi kami.</p>
+                        <p>{{ $payment['message'] }} {!! __('receipt_ui.unavailable_contact', ['number' => $order->order_number]) !!}</p>
                     @elseif($payment['type'] === 'redirect')
                         <p>
-                            Total tagihan <strong>{{ $payment['formatted_amount'] }}</strong>. Klik tombol di bawah
-                            untuk memilih metode pembayaran dan menyelesaikannya lewat {{ $payment['name'] }}.
+                            {!! __('receipt_ui.redirect_lead', ['amount' => $payment['formatted_amount'], 'name' => $payment['name']]) !!}
                         </p>
 
                         <div class="receipt-actions" style="margin-bottom:1.25rem;">
                             <a href="{{ $payment['url'] }}" class="rb-btn-primary receipt-btn" rel="noopener">
-                                Bayar Sekarang
+                                {{ __('receipt_ui.pay_now') }}
                             </a>
                         </div>
 
                         <p class="pay-uploaded">
-                            Status pesanan diperbarui otomatis setelah pembayaran berhasil.
+                            {{ __('receipt_ui.auto_update_note') }}
                         </p>
                     @elseif($payment['type'] === 'manual_transfer' && $payment['configured'])
 
                         <div class="pay-account">
                             <div class="pay-account__row">
-                                <span>Bank</span>
+                                <span>{{ __('receipt_ui.bank_name') }}</span>
                                 <strong>{{ $payment['account']['bank_name'] }}</strong>
                             </div>
                             <div class="pay-account__row">
-                                <span>Nomor rekening</span>
+                                <span>{{ __('receipt_ui.account_number') }}</span>
                                 <strong class="pay-account__number">{{ $payment['account']['account_number'] }}</strong>
                             </div>
                             <div class="pay-account__row">
-                                <span>Atas nama</span>
+                                <span>{{ __('receipt_ui.account_holder') }}</span>
                                 <strong>{{ $payment['account']['account_holder'] }}</strong>
                             </div>
                             <div class="pay-account__row pay-account__row--amount">
-                                <span>Jumlah transfer</span>
+                                <span>{{ __('receipt_ui.transfer_amount') }}</span>
                                 <strong>{{ $payment['formatted_amount'] }}</strong>
                             </div>
                         </div>
@@ -175,8 +176,7 @@
 
                         @if($order->needsShipping() && $order->shipping_cost === null)
                             <p class="pay-warning">
-                                Ongkos kirim belum masuk hitungan di atas. Sebaiknya tunggu kami konfirmasi
-                                total akhirnya sebelum transfer.
+                                {{ __('receipt_ui.shipping_cost_warning') }}
                             </p>
                         @endif
 
@@ -189,20 +189,19 @@
                                 <div class="receipt-alert receipt-alert--warn" role="alert">{{ $message }}</div>
                             @enderror
 
-                            <label for="proof">Unggah bukti transfer</label>
+                            <label for="proof">{{ __('receipt_ui.upload_proof_label') }}</label>
                             <input type="file" id="proof" name="proof" required
                                    accept=".jpg,.jpeg,.png,.webp,.pdf">
-                            <small>Gambar (JPG/PNG/WEBP) atau PDF, maksimal 4 MB.</small>
+                            <small>{{ __('receipt_ui.file_hint') }}</small>
 
                             <button type="submit" class="rb-btn-primary receipt-btn">
-                                @if($order->payment_proof) Ganti Bukti Transfer @else Kirim Bukti Transfer @endif
+                                @if($order->payment_proof) {{ __('receipt_ui.replace_proof_button') }} @else {{ __('receipt_ui.upload_button') }} @endif
                             </button>
                         </form>
 
                         @if($order->payment_proof)
                             <p class="pay-uploaded">
-                                Bukti transfer sudah kami terima dan sedang menunggu pemeriksaan.
-                                Kabar berikutnya kami kirim ke {{ $order->customer_email }}.
+                                {{ __('receipt_ui.proof_submitted_notice', ['email' => $order->customer_email]) }}
                             </p>
                         @endif
 
@@ -210,8 +209,7 @@
                         {{-- No account configured yet: better to say so than to print
                              a placeholder that looks like a real bank account. --}}
                         <p>
-                            Instruksi pembayaran akan kami kirimkan langsung. Sebutkan nomor
-                            <strong>{{ $order->order_number }}</strong> saat menghubungi kami.
+                            {!! __('receipt_ui.manual_instructions_notice', ['number' => $order->order_number]) !!}
                         </p>
                     @endif
 
@@ -219,23 +217,22 @@
                         @if($contact['whatsapp'])
                             <a href="{{ $contact['whatsapp'] }}?text={{ $waMessage }}"
                                class="rb-btn-primary receipt-btn" target="_blank" rel="noopener">
-                                Hubungi via WhatsApp
+                                {{ __('receipt_ui.ask_order_wa') }}
                             </a>
                         @endif
-                        <a href="mailto:{{ $contact['email'] }}?subject={{ rawurlencode('Pesanan ' . $order->order_number) }}"
+                        <a href="mailto:{{ $contact['email'] }}?subject={{ rawurlencode(__('receipt_ui.email_subject', ['number' => $order->order_number])) }}"
                            class="rb-btn-ghost receipt-btn">
-                            Kirim Email
+                            {{ __('receipt_ui.ask_order_email') }}
                         </a>
                     </div>
                 </div>
             </div>
 
             <p class="receipt-footnote">
-                Tautan halaman ini bersifat pribadi — hanya orang yang memilikinya bisa melihat detail pesanan.
-                Jangan dibagikan ke orang lain.
+                {{ __('receipt_ui.footnote') }}
             </p>
 
-            <a href="{{ route('products.index') }}" class="receipt-back">&larr; Kembali ke katalog</a>
+            <a href="{{ route('products.index') }}" class="receipt-back">&larr; {{ __('receipt_ui.back_to_catalog') }}</a>
         </div>
     </section>
 

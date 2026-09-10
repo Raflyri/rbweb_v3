@@ -131,12 +131,12 @@
 
             {{-- Breadcrumb --}}
             <nav class="article-breadcrumb" aria-label="Breadcrumb">
-                <a href="/" class="article-breadcrumb__link">Home</a>
+                <a href="{{ route('home') }}" class="article-breadcrumb__link">{{ __('nav.home') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M9 18l6-6-6-6"/>
                 </svg>
-                <a href="/blog" class="article-breadcrumb__link">Blog</a>
+                <a href="{{ route('blog.index') }}" class="article-breadcrumb__link">{{ __('nav.blog') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M9 18l6-6-6-6"/>
@@ -169,7 +169,7 @@
                     </div>
                     <div class="article-meta-author__info">
                         <span class="article-meta-author__name">{{ $authorName }}</span>
-                        <span class="article-meta-author__role">Author</span>
+                        <span class="article-meta-author__role">{{ __('blog_ui.author_role') }}</span>
                     </div>
                 </div>
 
@@ -181,7 +181,7 @@
                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
-                    <span>{{ $readMinutes }} min read</span>
+                    <span>{{ __('blog_ui.min_read', ['count' => $readMinutes]) }}</span>
                 </div>
 
                 <div class="article-meta-dot" aria-hidden="true">·</div>
@@ -199,7 +199,7 @@
 
                     {{-- Word count --}}
                     <span class="article-meta-stat">
-                        {{ number_format($wordCount) }} words
+                        {{ __('blog_ui.words', ['count' => number_format($wordCount)]) }}
                     </span>
                 @endif
             </div>
@@ -219,7 +219,7 @@
                 {!! $displayContent !!}
             @else
                 <p class="article-body-empty">
-                    {{ __('This article has no content yet. Please check back soon.') }}
+                    {{ __('blog_ui.no_content') }}
                 </p>
             @endif
         </div>
@@ -233,12 +233,12 @@
 
             {{-- Share row --}}
             <div class="article-share">
-                <span class="article-share__label">Share this article</span>
+                <span class="article-share__label">{{ __('blog_ui.share') }}</span>
                 <div class="article-share__btns">
                     {{-- Twitter / X --}}
                     <a href="https://twitter.com/intent/tweet?url={{ urlencode(url()->current()) }}&text={{ urlencode($displayTitle) }}"
                        target="_blank" rel="noopener noreferrer"
-                       class="article-share__btn" aria-label="Share on X (Twitter)">
+                       class="article-share__btn" aria-label="{{ __('blog_ui.share_twitter') }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L2.018 2.25H8.08l4.259 5.63z"/>
                         </svg>
@@ -246,14 +246,14 @@
                     {{-- LinkedIn --}}
                     <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(url()->current()) }}"
                        target="_blank" rel="noopener noreferrer"
-                       class="article-share__btn" aria-label="Share on LinkedIn">
+                       class="article-share__btn" aria-label="{{ __('blog_ui.share_linkedin') }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                             <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
                             <rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>
                         </svg>
                     </a>
                     {{-- Copy link --}}
-                    <button class="article-share__btn" aria-label="Copy link"
+                    <button class="article-share__btn" aria-label="{{ __('blog_ui.copy_link') }}"
                             onclick="navigator.clipboard.writeText('{{ url()->current() }}').then(()=>{ this.classList.add('copied'); setTimeout(()=>this.classList.remove('copied'), 2000) })">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -267,12 +267,12 @@
             <div class="article-footer__sep" aria-hidden="true"></div>
 
             {{-- Back to Blog --}}
-            <a href="/blog" class="article-back">
+            <a href="{{ route('blog.index') }}" class="article-back">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Back to Blog
+                {{ __('blog_ui.back_to_blog') }}
             </a>
         </div>
     </div>
@@ -281,11 +281,11 @@
          RELATED ARTICLES
     ════════════════════════════════════════════════════ --}}
     @if($related->count() > 0)
-        <section class="related-section" aria-label="Related Articles">
+        <section class="related-section" aria-label="{{ __('blog_ui.related_articles') }}">
             <div class="rb-section" style="padding-top:0;">
                 <div class="related-header">
-                    <span class="rb-section-label">Continue Reading</span>
-                    <h2 class="related-header__title">More from our Blog</h2>
+                    <span class="rb-section-label">{{ __('blog_ui.continue_reading') }}</span>
+                    <h2 class="related-header__title">{{ __('blog_ui.more_from_blog') }}</h2>
                 </div>
 
                 <div class="related-grid">
@@ -320,7 +320,7 @@
                             @endif
                             {{-- Body --}}
                             <div class="related-card__body">
-                                <span class="related-card__tag">Article</span>
+                                <span class="related-card__tag">{{ __('blog_ui.article_tag') }}</span>
                                 <h3 class="related-card__title">{{ $relTitle }}</h3>
                                 <p class="related-card__excerpt">{{ $relExcerpt }}</p>
                                 @if($rel->published_at)

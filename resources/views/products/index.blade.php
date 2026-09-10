@@ -3,11 +3,11 @@
 {{-- ════════════════════════════════════════════════════════════
      SEO — Catalogue index
 ════════════════════════════════════════════════════════════ --}}
-@section('meta_title',       'Produk & Layanan')
-@section('meta_description', 'Katalog produk dan layanan RBeverything — perangkat, instalasi, dan jasa teknologi untuk kebutuhan rumah maupun usaha.')
+@section('meta_title',       __('catalog.title'))
+@section('meta_description', __('catalog.subtitle'))
 @section('og_type',          'website')
-@section('og_title',         'Produk & Layanan — RBeverything')
-@section('og_description',   'Katalog produk dan layanan RBeverything — perangkat, instalasi, dan jasa teknologi untuk kebutuhan rumah maupun usaha.')
+@section('og_title',         __('catalog.title') . ' — RBeverything')
+@section('og_description',   __('catalog.subtitle'))
 @section('canonical',        route('products.index'))
 
 {{-- Light up whichever nav item brought the visitor here. --}}
@@ -21,9 +21,9 @@
     use App\Support\ProductType;
 
     $tabs = [
-        ['key' => null,                 'label' => 'Semua', 'count' => $counts['all']],
-        ['key' => ProductType::BARANG,  'label' => 'Barang', 'count' => $counts[ProductType::BARANG]],
-        ['key' => ProductType::JASA,    'label' => 'Jasa',   'count' => $counts[ProductType::JASA]],
+        ['key' => null,                 'label' => __('catalog.tab_all'),     'count' => $counts['all']],
+        ['key' => ProductType::BARANG,  'label' => __('catalog.tab_barang'),  'count' => $counts[ProductType::BARANG]],
+        ['key' => ProductType::JASA,    'label' => __('catalog.tab_jasa'),    'count' => $counts[ProductType::JASA]],
     ];
 @endphp
 
@@ -32,29 +32,28 @@
     {{-- ════════════════════════════════════════════════════════
          HERO
     ════════════════════════════════════════════════════════ --}}
-    <section class="catalog-hero" aria-label="Produk & Layanan">
+    <section class="catalog-hero" aria-label="{{ __('catalog.title') }}">
         <div class="rb-section" style="padding-bottom:2.5rem;">
 
             <nav class="catalog-breadcrumb" aria-label="Breadcrumb">
-                <a href="{{ route('home') }}" class="catalog-breadcrumb__link">Home</a>
+                <a href="{{ route('home') }}" class="catalog-breadcrumb__link">{{ __('nav.home') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-                <span class="catalog-breadcrumb__current">Produk &amp; Layanan</span>
+                <span class="catalog-breadcrumb__current">{{ __('catalog.title') }}</span>
             </nav>
 
             <div class="catalog-hero__inner">
                 <div>
-                    <span class="rb-section-label">Katalog</span>
-                    <h1 class="rb-section-title" style="margin-bottom:0.75rem;">Produk &amp; Layanan</h1>
+                    <span class="rb-section-label">{{ __('catalog.badge') }}</span>
+                    <h1 class="rb-section-title" style="margin-bottom:0.75rem;">{{ __('catalog.title') }}</h1>
                     <p class="catalog-hero__subtitle">
-                        Perangkat, instalasi, dan jasa teknologi yang kami kerjakan sendiri — untuk kebutuhan
-                        rumah maupun usaha.
+                        {{ __('catalog.subtitle') }}
                     </p>
                 </div>
             </div>
 
             {{-- ── Filter tabs ─────────────────────────────────── --}}
-            <div class="catalog-tabs" role="tablist" aria-label="Saring berdasarkan jenis">
+            <div class="catalog-tabs" role="tablist" aria-label="Filter tabs">
                 @foreach($tabs as $tab)
                     @php
                         $isActive = $type === $tab['key'];
@@ -113,7 +112,7 @@
                                 @endif
 
                                 @if($product->is_featured)
-                                    <span class="product-card__ribbon">Unggulan</span>
+                                    <span class="product-card__ribbon">{{ __('catalog.featured') }}</span>
                                 @endif
                             </a>
 
@@ -124,7 +123,7 @@
                                         {{ ProductType::label($product->type) }}
                                     </span>
                                     @if(! $product->isInStock())
-                                        <span class="product-badge product-badge--empty">Stok habis</span>
+                                        <span class="product-badge product-badge--empty">{{ __('catalog.out_of_stock') }}</span>
                                     @endif
                                 </div>
 
@@ -142,11 +141,11 @@
                                     @else
                                         {{-- No price is a deliberate state, not missing data: these
                                              items are quoted after a conversation. --}}
-                                        <span class="product-card__price product-card__price--ask">Hubungi Kami</span>
+                                        <span class="product-card__price product-card__price--ask">{{ __('catalog.contact_us') }}</span>
                                     @endif
 
-                                    <a href="{{ $url }}" class="product-card__cta" aria-label="Lihat detail {{ $name }}">
-                                        Lihat Detail
+                                    <a href="{{ $url }}" class="product-card__cta" aria-label="{{ __('catalog.view_details') }} {{ $name }}">
+                                        {{ __('catalog.view_details') }}
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -178,30 +177,28 @@
                     </div>
 
                     @if($type)
-                        <h3 class="catalog-empty__title">Belum ada {{ ProductType::label($type) }} yang tayang</h3>
+                        <h3 class="catalog-empty__title">{{ __('catalog.empty_category_title', ['type' => ProductType::label($type)]) }}</h3>
                         <p class="catalog-empty__desc">
-                            Kategori ini sedang kosong. Lihat seluruh katalog, atau hubungi kami langsung untuk
-                            kebutuhan yang belum terdaftar di sini.
+                            {{ __('catalog.empty_category_desc') }}
                         </p>
                         <a href="{{ route('products.index') }}" class="catalog-empty__cta">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
                             </svg>
-                            Lihat semua
+                            {{ __('catalog.view_all') }}
                         </a>
                     @else
-                        <h3 class="catalog-empty__title">Katalog sedang disiapkan</h3>
+                        <h3 class="catalog-empty__title">{{ __('catalog.empty_title') }}</h3>
                         <p class="catalog-empty__desc">
-                            Daftar produk dan layanan kami sedang dirapikan. Sementara ini, ceritakan saja
-                            kebutuhanmu — kami bantu carikan bentuk yang paling pas.
+                            {{ __('catalog.empty_desc') }}
                         </p>
                         <a href="mailto:{{ config('mail.from.address', 'hello@rbeverything.com') }}" class="catalog-empty__cta">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>
                             </svg>
-                            Hubungi Kami
+                            {{ __('catalog.contact_us') }}
                         </a>
                     @endif
                 </div>

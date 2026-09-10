@@ -42,8 +42,20 @@ class PaymentStatus
         self::DIBATALKAN,
     ];
 
-    public static function options(): array
+    public static function options(?string $locale = null): array
     {
+        $loc = ArticleLocale::normalize($locale ?: app()->getLocale());
+
+        if ($loc === 'en') {
+            return [
+                self::MENUNGGU            => 'Awaiting Payment',
+                self::MENUNGGU_VERIFIKASI => 'Awaiting Verification',
+                self::LUNAS               => 'Paid',
+                self::GAGAL               => 'Failed',
+                self::DIBATALKAN          => 'Cancelled',
+            ];
+        }
+
         return [
             self::MENUNGGU            => 'Menunggu Pembayaran',
             self::MENUNGGU_VERIFIKASI => 'Menunggu Verifikasi',
@@ -53,9 +65,9 @@ class PaymentStatus
         ];
     }
 
-    public static function label(?string $status): string
+    public static function label(?string $status, ?string $locale = null): string
     {
-        return self::options()[$status] ?? '—';
+        return self::options($locale)[$status] ?? '—';
     }
 
     public static function isValid(?string $status): bool

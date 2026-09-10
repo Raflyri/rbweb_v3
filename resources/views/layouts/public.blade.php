@@ -113,11 +113,11 @@
             {{-- Desktop Nav --}}
             <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
                 <a href="{{ route('products.index', ['type' => 'barang']) }}"
-                   class="rb-nav-link @yield('nav_products_active')">Products</a>
+                   class="rb-nav-link @yield('nav_products_active')">{{ __('nav.products') }}</a>
                 <a href="{{ route('products.index', ['type' => 'jasa']) }}"
-                   class="rb-nav-link @yield('nav_services_active')">Services</a>
-                <a href="/blog"      class="rb-nav-link @yield('nav_blog_active')">Blog</a>
-                <a href="/#about"    class="rb-nav-link">About Us</a>
+                   class="rb-nav-link @yield('nav_services_active')">{{ __('nav.services') }}</a>
+                <a href="/blog"      class="rb-nav-link @yield('nav_blog_active')">{{ __('nav.blog') }}</a>
+                <a href="/#about"    class="rb-nav-link">{{ __('nav.about') }}</a>
             </nav>
 
             {{-- Language switcher + CTA --}}
@@ -138,7 +138,7 @@
                 </div>
 
                 <a href="mailto:hello@rbeverything.com" class="rb-btn-primary">
-                    Let's Collaborate
+                    {{ __('nav.cta') }}
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                          stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14M12 5l7 7-7 7" />
@@ -157,10 +157,10 @@
     {{-- Mobile Menu --}}
     <div id="rb-mobile-menu" class="rb-mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
         <nav style="display:flex;flex-direction:column;gap:0.25rem;">
-            <a href="{{ route('products.index', ['type' => 'barang']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Products</a>
-            <a href="{{ route('products.index', ['type' => 'jasa']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Services</a>
-            <a href="/blog"      style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Blog</a>
-            <a href="/#about"    style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">About Us</a>
+            <a href="{{ route('products.index', ['type' => 'barang']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.products') }}</a>
+            <a href="{{ route('products.index', ['type' => 'jasa']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.services') }}</a>
+            <a href="/blog"      style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.blog') }}</a>
+            <a href="/#about"    style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.about') }}</a>
         </nav>
         <div class="rb-lang-switcher" style="margin-top:1.5rem;width:fit-content;">
             @foreach(\App\Support\ArticleLocale::enabledLabels() as $code => $label)
@@ -174,7 +174,7 @@
         </div>
 
         <a href="mailto:hello@rbeverything.com" class="rb-btn-hero" style="margin-top:1.25rem;width:fit-content;">
-            Let's Collaborate
+            {{ __('nav.cta') }}
         </a>
     </div>
 
@@ -195,15 +195,15 @@
                 <span class="rb-footer-logo">RBeverything</span>
             </a>
             <p style="font-size:0.85rem;color:var(--color-muted);margin-top:0.75rem;line-height:1.6;">
-                Everything you need. Smarter systems, bolder results.
+                {{ __('footer.slogan') }}
             </p>
         </div>
         <div class="rb-footer-bottom">
-            <span>© {{ date('Y') }} RBeverything. All rights reserved.</span>
+            <span>© {{ date('Y') }} RBeverything. {{ __('footer.copyright') }}</span>
             <div style="display:flex;gap:1.5rem;">
-                <a href="/"    class="rb-footer-link" style="margin:0;">Home</a>
-                <a href="{{ route('products.index') }}" class="rb-footer-link" style="margin:0;">Produk &amp; Layanan</a>
-                <a href="/blog" class="rb-footer-link" style="margin:0;">Blog</a>
+                <a href="/"    class="rb-footer-link" style="margin:0;">{{ __('nav.home') }}</a>
+                <a href="{{ route('products.index') }}" class="rb-footer-link" style="margin:0;">{{ __('nav.catalog') }}</a>
+                <a href="{{ route('blog.index') }}" class="rb-footer-link" style="margin:0;">{{ __('nav.blog') }}</a>
             </div>
         </div>
     </footer>

@@ -52,5 +52,39 @@ class AppServiceProvider extends ServiceProvider
 
         // ✅ Sanitasi deskripsi produk saat disimpan + jaga sitemap tetap sinkron
         Product::observe(ProductObserver::class);
+
+        // ✅ Register nested language lines from lang/{locale}.json into the translator
+        $this->registerJsonTranslations();
+    }
+
+    /**
+     * Register nested language keys from lang/{locale}.json so Blade views can
+     * call __('catalog.title'), __('nav.home'), etc.
+     */
+    protected function registerJsonTranslations(): void
+    {
+        $translator = $this->app['translator'];
+
+        foreach (['id', 'en'] as $locale) {
+            $path = lang_path("{$locale}.json");
+            if (file_exists($path)) {
+                $content = json_decode(file_get_contents($path), true);
+                if (is_array($content)) {
+                    $dotLines = [];
+                    foreach ($content as $key => $value) {
+                        if (is_array($value)) {
+                            foreach (\Illuminate\Support\Arr::dot([$key => $value]) as $dotKey => $dotValue) {
+                                if (is_string($dotValue)) {
+                                    $dotLines[$dotKey] = $dotValue;
+                                }
+                            }
+                        }
+                    }
+                    if (! empty($dotLines)) {
+                        $translator->addLines($dotLines, $locale);
+                    }
+                }
+            }
+        }
     }
 }

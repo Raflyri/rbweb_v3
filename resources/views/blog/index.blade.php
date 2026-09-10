@@ -18,29 +18,29 @@
     {{-- ════════════════════════════════════════════════════════
          BLOG HERO HEADER
     ════════════════════════════════════════════════════════ --}}
-    <section class="blog-hero" aria-label="Blog Header">
+    <section class="blog-hero" aria-label="{{ __('blog_ui.header_label') }}">
         <div class="rb-section" style="padding-bottom:2.5rem;">
 
             {{-- Breadcrumb --}}
             <nav class="breadcrumb" aria-label="Breadcrumb">
-                <a href="/" class="breadcrumb__link">Home</a>
+                <a href="{{ route('home') }}" class="breadcrumb__link">{{ __('nav.home') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-                <span class="breadcrumb__current">Blog</span>
+                <span class="breadcrumb__current">{{ __('nav.blog') }}</span>
             </nav>
 
             {{-- Title block --}}
             <div class="blog-hero__inner">
                 <div class="blog-hero__text">
-                    <span class="rb-section-label">Latest Insights</span>
-                    <h1 class="rb-section-title" style="margin-bottom:0.75rem;">Blog</h1>
+                    <span class="rb-section-label">{{ __('blog_ui.latest_insights') }}</span>
+                    <h1 class="rb-section-title" style="margin-bottom:0.75rem;">{{ __('nav.blog') }}</h1>
                     <p class="blog-hero__subtitle">
-                        Deep-dives into technology, tutorials, and insights from our engineering team.
+                        {{ __('blog_ui.subtitle') }}
                     </p>
                 </div>
 
                 {{-- Search Bar --}}
                 <form action="{{ route('blog.index') }}" method="GET"
-                      id="blog-search-form" class="blog-search" role="search" aria-label="Search articles">
+                      id="blog-search-form" class="blog-search" role="search" aria-label="{{ __('blog_ui.search_placeholder') }}">
                     <div class="blog-search__field">
                         <svg class="blog-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -48,17 +48,17 @@
                         </svg>
                         <input type="text" name="search" id="blog-search-input"
                                value="{{ $search ?? '' }}"
-                               placeholder="{{ __('Search articles…') }}"
+                               placeholder="{{ __('blog_ui.search_placeholder') }}"
                                autocomplete="off"
                                class="blog-search__input">
                         @if($search)
-                            <a href="{{ route('blog.index') }}" class="blog-search__clear" aria-label="Clear search">
+                            <a href="{{ route('blog.index') }}" class="blog-search__clear" aria-label="{{ __('blog_ui.clear_search') }}">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                             </a>
                         @endif
                     </div>
                     <button type="submit" class="rb-btn-primary blog-search__btn">
-                        {{ __('Search') }}
+                        {{ __('blog_ui.search_button') }}
                     </button>
                 </form>
             </div>
@@ -68,7 +68,7 @@
                 <div class="blog-search-badge" role="status">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                     <span>
-                        {{ $articles->total() }} {{ Str::plural('result', $articles->total()) }} for
+                        {{ __('blog_ui.search_results', ['count' => $articles->total()]) }}
                         <strong>"{{ $search }}"</strong>
                     </span>
                 </div>
@@ -81,7 +81,7 @@
     {{-- ════════════════════════════════════════════════════════
          ARTICLES GRID
     ════════════════════════════════════════════════════════ --}}
-    <section aria-label="{{ __('Articles') }}" class="blog-articles">
+    <section aria-label="{{ __('blog_ui.articles_section') }}" class="blog-articles">
         <div class="rb-section" style="padding-top:3.5rem;padding-bottom:5rem;">
 
             @if($articles->count() > 0)
@@ -177,9 +177,9 @@
 
                                     {{-- Read time + date --}}
                                     <div class="article-card__info">
-                                        <span class="article-card__read-time" title="{{ __('Estimated reading time') }}">
+                                        <span class="article-card__read-time" title="{{ __('blog_ui.min_read', ['count' => $readMinutes]) }}">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                            {{ $readMinutes }} min read
+                                            {{ __('blog_ui.min_read', ['count' => $readMinutes]) }}
                                         </span>
                                         @if($article->published_at)
                                             <span class="article-card__dot" aria-hidden="true">·</span>
@@ -193,8 +193,8 @@
 
                                 {{-- Read More CTA --}}
                                 <a href="{{ route('blog.show', $article->getTranslation('slug', $locale, true)) }}"
-                                   class="article-card__cta" aria-label="Read {{ $title }}">
-                                    Read Article
+                                   class="article-card__cta" aria-label="{{ __('blog_ui.read_article_aria', ['title' => $title]) }}">
+                                    {{ __('blog_ui.read_article') }}
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -227,7 +227,7 @@
                         </div>
                         <h3 class="blog-empty__title">{{ __('No articles found') }}</h3>
                         <p class="blog-empty__desc">
-                            {{ __('We couldn\'t find any articles matching ":search". Try different keywords.', ['search' => $search]) }}
+                            {{ __('We couldn\'t find any articles matching ":search". Try adjusting your search keywords.', ['search' => $search]) }}
                         </p>
                         <a href="{{ route('blog.index') }}" class="blog-empty__cta">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"

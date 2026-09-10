@@ -29,8 +29,19 @@ class OrderStatus
     public const OPTIONS = [self::BARU, self::DIPROSES, self::SELESAI, self::DIBATALKAN];
 
     /** Filament Select / table-ready [value => label] map. */
-    public static function options(): array
+    public static function options(?string $locale = null): array
     {
+        $loc = ArticleLocale::normalize($locale ?: app()->getLocale());
+
+        if ($loc === 'en') {
+            return [
+                self::BARU       => 'New',
+                self::DIPROSES   => 'Processing',
+                self::SELESAI    => 'Completed',
+                self::DIBATALKAN => 'Cancelled',
+            ];
+        }
+
         return [
             self::BARU       => 'Baru',
             self::DIPROSES   => 'Diproses',
@@ -39,9 +50,9 @@ class OrderStatus
         ];
     }
 
-    public static function label(?string $status): string
+    public static function label(?string $status, ?string $locale = null): string
     {
-        return self::options()[$status] ?? '—';
+        return self::options($locale)[$status] ?? '—';
     }
 
     public static function isValid(?string $status): bool

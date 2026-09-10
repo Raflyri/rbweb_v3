@@ -77,10 +77,10 @@
         <div class="rb-section" style="padding-bottom:4rem;">
 
             <nav class="catalog-breadcrumb" aria-label="Breadcrumb">
-                <a href="{{ route('home') }}" class="catalog-breadcrumb__link">Home</a>
+                <a href="{{ route('home') }}" class="catalog-breadcrumb__link">{{ __('nav.home') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-                <a href="{{ route('products.index') }}" class="catalog-breadcrumb__link">Produk &amp; Layanan</a>
+                <a href="{{ route('products.index') }}" class="catalog-breadcrumb__link">{{ __('catalog.title') }}</a>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                 <span class="catalog-breadcrumb__current">{{ Str::limit($name, 40) }}</span>
@@ -92,7 +92,7 @@
                          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
-                    Pratinjau admin — produk ini belum tayang untuk publik.
+                    {{ __('product_ui.admin_preview') }}
                 </div>
             @endunless
 
@@ -123,10 +123,10 @@
                             {{ ProductType::label($product->type) }}
                         </span>
                         @if($product->is_featured)
-                            <span class="product-badge product-badge--featured">Unggulan</span>
+                            <span class="product-badge product-badge--featured">{{ __('catalog.featured') }}</span>
                         @endif
                         @if(! $product->isInStock())
-                            <span class="product-badge product-badge--empty">Stok habis</span>
+                            <span class="product-badge product-badge--empty">{{ __('catalog.out_of_stock') }}</span>
                         @endif
                     </div>
 
@@ -141,12 +141,12 @@
                             <span class="pdp-price">{{ $price }}</span>
                             @if($product->tracksStock())
                                 <span class="pdp-stock">
-                                    {{ $product->isInStock() ? 'Stok tersedia: ' . $product->stock : 'Sedang kosong' }}
+                                    {{ $product->isInStock() ? __('product_ui.in_stock', ['count' => $product->stock]) : __('product_ui.out_of_stock_desc') }}
                                 </span>
                             @endif
                         @else
-                            <span class="pdp-price pdp-price--ask">Hubungi Kami</span>
-                            <span class="pdp-stock">Harga menyesuaikan kebutuhan — mari bicara dulu.</span>
+                            <span class="pdp-price pdp-price--ask">{{ __('product_ui.ask_price') }}</span>
+                            <span class="pdp-stock">{{ __('product_ui.ask_price_desc') }}</span>
                         @endif
                     </div>
 
@@ -162,7 +162,7 @@
                                     <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
                                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                                 </svg>
-                                Pesan Sekarang
+                                {{ __('product_ui.order_now') }}
                             </a>
                         @endif
 
@@ -173,7 +173,7 @@
                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
                                 </svg>
-                                Tanya via WhatsApp
+                                {{ __('product_ui.ask_whatsapp') }}
                             </a>
                         @endif
 
@@ -183,20 +183,17 @@
                                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>
                             </svg>
-                            Kirim Email
+                            {{ __('product_ui.send_email') }}
                         </a>
                     </div>
 
                     @if($product->hasPrice() && $product->isInStock())
                         <p class="pdp-note">
-                            Mengisi formulir pemesanan belum berarti membayar. Kami konfirmasi dulu
-                            {{ $product->isBarang() ? 'ketersediaan dan ongkos kirim' : 'jadwal pengerjaan' }},
-                            baru pembayaran.
+                            {{ $product->isBarang() ? __('product_ui.order_note_goods') : __('product_ui.order_note_services') }}
                         </p>
                     @elseif($product->hasPrice())
                         <p class="pdp-note">
-                            Stok sedang habis, jadi pemesanan online ditutup sementara. Hubungi kami untuk
-                            menanyakan ketersediaan berikutnya.
+                            {{ __('product_ui.order_note_out_of_stock') }}
                         </p>
                     @endif
                 </div>
@@ -207,9 +204,9 @@
     @if(trim(strip_tags($description)) !== '')
         <div class="rb-divider"></div>
 
-        <section class="pdp-description" aria-label="Deskripsi lengkap">
+        <section class="pdp-description" aria-label="{{ __('product_ui.details') }}">
             <div class="rb-section" style="padding-top:3.5rem;padding-bottom:4rem;">
-                <span class="rb-section-label">Detail</span>
+                <span class="rb-section-label">{{ __('product_ui.details') }}</span>
                 <div class="pdp-prose">
                     {{-- Safe to render raw: ProductObserver runs Purifier over the
                          description on every save (profile 'product'), so what is
@@ -223,10 +220,10 @@
     @if($related->isNotEmpty())
         <div class="rb-divider"></div>
 
-        <section class="pdp-related" aria-label="Lainnya">
+        <section class="pdp-related" aria-label="{{ __('product_ui.more') }}">
             <div class="rb-section" style="padding-top:3.5rem;padding-bottom:5rem;">
-                <span class="rb-section-label">Lainnya</span>
-                <h2 class="pdp-related__title">{{ ProductType::label($product->type) }} lainnya</h2>
+                <span class="rb-section-label">{{ __('product_ui.more') }}</span>
+                <h2 class="pdp-related__title">{{ __('product_ui.other_type', ['type' => ProductType::label($product->type)]) }}</h2>
 
                 <div class="catalog-grid">
                     @foreach($related as $item)
@@ -259,10 +256,10 @@
                                 </h3>
                                 <div class="product-card__footer">
                                     <span class="product-card__price {{ $itemPrice ? '' : 'product-card__price--ask' }}">
-                                        {{ $itemPrice ?? 'Hubungi Kami' }}
+                                        {{ $itemPrice ?? __('catalog.contact_us') }}
                                     </span>
-                                    <a href="{{ $itemUrl }}" class="product-card__cta">
-                                        Lihat
+                                    <a href="{{ $itemUrl }}" class="product-card__cta" aria-label="{{ __('catalog.view_details') }} {{ $itemName }}">
+                                        {{ __('catalog.view_details') }}
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M5 12h14M12 5l7 7-7 7"/>
