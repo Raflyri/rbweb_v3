@@ -53,6 +53,18 @@ class ManualTransferGateway implements PaymentGateway
     /** @return array{bank_name: string, account_number: string, account_holder: string} */
     public function account(): array
     {
+        try {
+            $settings = app(\App\Settings\PaymentSettings::class);
+            if (filled($settings->manual_bank_name) && filled($settings->manual_account_number)) {
+                return [
+                    'bank_name'      => (string) $settings->manual_bank_name,
+                    'account_number' => (string) $settings->manual_account_number,
+                    'account_holder' => (string) $settings->manual_account_holder,
+                ];
+            }
+        } catch (\Throwable) {
+        }
+
         $config = config('services.manual_transfer', []);
 
         return [

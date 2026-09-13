@@ -3,16 +3,13 @@
 namespace App\Services\Payment;
 
 use App\Contracts\PaymentGateway;
+use App\Settings\PaymentSettings;
 
 /**
  * Hands out the payment gateway that is currently switched on.
  *
- * This is the single place that knows which methods exist, and the single
- * place that decides whether Midtrans is allowed out.
- *
- * An unrecognised name falls back to manual transfer rather than throwing: a
- * typo in config must not take checkout down, and a working bank transfer is a
- * safe thing to land on.
+ * Reads from App\Settings\PaymentSettings (editable via /rbdashboard) with safe fallback
+ * to config/services.php.
  */
 class PaymentGatewayResolver
 {
@@ -26,26 +23,53 @@ class PaymentGatewayResolver
 
     public function activeGatewayKey(): string
     {
-        return (string) config('services.payment.active_gateway', ManualTransferGateway::KEY);
+        if (app()->runningUnitTests()) {
+            return (string) config('services.payment.active_gateway', ManualTransferGateway::KEY);
+        }
+
+        try {
+            $settings = app(PaymentSettings::class);
+            return $settings->active_gateway ?: (string) config('services.payment.active_gateway', ManualTransferGateway::KEY);
+        } catch (\Throwable) {
+            return (string) config('services.payment.active_gateway', ManualTransferGateway::KEY);
+        }
     }
 
-    /**
-     * The one gate Midtrans has to pass, checked in exactly one place.
-     *
-     * Selecting 'midtrans' as the active gateway is not enough on its own —
-     * MIDTRANS_IS_ACTIVE has to be true as well. That is deliberate: the two
-     * settings live in different files, so nobody flips this on by editing
-     * config in passing, and a half-finished setup keeps taking bank transfers
-     * instead of failing at checkout.
-     *
-     * A blank server key counts as inactive too. It also closes the webhook's
-     * worst case: signature verification hashes with the server key, and with
-     * an empty key anyone could compute a "valid" signature for themselves.
-     */
     public function midtransIsActive(): bool
     {
-        return (bool) config('services.midtrans.is_active', false)
-            && filled(config('services.midtrans.server_key'));
+        $serverKey = $this->serverKey();
+        if (blank($serverKey)) {
+            return false;
+        }
+
+        if (config('services.midtrans.is_active') === true) {
+            return true;
+        }
+
+        try {
+            $settings = app(PaymentSettings::class);
+            if ($settings->midtrans_is_active && ! app()->runningUnitTests()) {
+                return true;
+            }
+        } catch (\Throwable) {
+        }
+
+        return (bool) config('services.midtrans.is_active', false);
+    }
+
+    public function serverKey(): string
+    {
+        $fromConfig = (string) config('services.midtrans.server_key', '');
+        if (filled($fromConfig)) {
+            return $fromConfig;
+        }
+
+        try {
+            $settings = app(PaymentSettings::class);
+            return (string) ($settings->midtrans_server_key ?? '');
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     protected function midtransOrFallback(): PaymentGateway

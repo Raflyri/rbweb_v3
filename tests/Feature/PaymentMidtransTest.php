@@ -342,3 +342,94 @@ it('reports honestly that there is nothing to test yet', function () {
         ->expectsOutputToContain('MIDTRANS_SERVER_KEY belum diisi')
         ->assertFailed();
 });
+
+/*
+|--------------------------------------------------------------------------
+| Midtrans Core API Channel Selection and Direct Rendering
+|--------------------------------------------------------------------------
+*/
+
+it('shows channel selection when buyer visits order page with Midtrans active', function () {
+    activateMidtrans();
+
+    $order = Order::factory()->create();
+
+    $this->get(route('order.pending', $order->public_token))
+        ->assertOk()
+        ->assertSee('QRIS')
+        ->assertSee('BCA Virtual Account')
+        ->assertSee('Pilih metode ini');
+});
+
+it('renders existing QRIS payload directly without re-charging', function () {
+    activateMidtrans();
+
+    $order = Order::factory()->create([
+        'payment_method'           => MidtransGateway::KEY,
+        'midtrans_transaction_id'  => 'tx-test-12345',
+        'midtrans_payment_type'    => 'qris',
+        'midtrans_payment_payload' => [
+            'qr_url'      => 'https://api.sandbox.midtrans.com/v2/qris/123/qr-code',
+            'qr_string'   => '00020101021226...dummy...',
+            'expiry_time' => '2026-09-13 15:00:00',
+        ],
+    ]);
+
+    $this->get(route('order.pending', $order->public_token))
+        ->assertOk()
+        ->assertSee('https://api.sandbox.midtrans.com/v2/qris/123/qr-code')
+        ->assertSee('QRIS')
+        ->assertSee('Ganti Metode');
+});
+
+it('renders existing Virtual Account payload with copy button', function () {
+    activateMidtrans();
+
+    $order = Order::factory()->create([
+        'payment_method'           => MidtransGateway::KEY,
+        'midtrans_transaction_id'  => 'tx-test-67890',
+        'midtrans_payment_type'    => 'bca_va',
+        'midtrans_payment_payload' => [
+            'va_number'   => '987654321012345',
+            'bank'        => 'bca',
+            'expiry_time' => '2026-09-13 15:00:00',
+        ],
+    ]);
+
+    $this->get(route('order.pending', $order->public_token))
+        ->assertOk()
+        ->assertSee('987654321012345')
+        ->assertSee('BCA')
+        ->assertSee('BCA Virtual Account');
+});
+
+it('resets payment method when requested by buyer', function () {
+    activateMidtrans();
+
+    $order = Order::factory()->create([
+        'midtrans_transaction_id'  => 'tx-test-67890',
+        'midtrans_payment_type'    => 'bca_va',
+        'midtrans_payment_payload' => ['va_number' => '123'],
+    ]);
+
+    $this->post(route('order.midtrans.reset', $order->public_token))
+        ->assertRedirect(route('order.pending', $order->public_token));
+
+    $order->refresh();
+    expect($order->midtrans_payment_type)->toBeNull()
+        ->and($order->midtrans_payment_payload)->toBeNull();
+});
+
+it('answers status polling endpoint', function () {
+    activateMidtrans();
+
+    $order = Order::factory()->create();
+
+    $this->getJson(route('order.status', $order->public_token))
+        ->assertOk()
+        ->assertJson([
+            'status' => PaymentStatus::MENUNGGU,
+            'paid'   => false,
+        ]);
+});
+

@@ -133,6 +133,159 @@
                         {{-- The gateway threw; the buyer gets a sentence they can
                              act on instead of a 500. --}}
                         <p>{{ $payment['message'] }} {!! __('receipt_ui.unavailable_contact', ['number' => $order->order_number]) !!}</p>
+                    @elseif($payment['type'] === 'channel_selection')
+                        <p style="margin-bottom:1rem;">
+                            Silakan pilih metode pembayaran online untuk menyelesaikan pesanan sebesar <strong>{{ $payment['formatted_amount'] }}</strong>:
+                        </p>
+
+                        <div class="coreapi-channels">
+                            @foreach($payment['channels'] as $channelId => $channel)
+                                <form method="POST" action="{{ route('order.midtrans.charge', $order->public_token) }}" class="coreapi-channel-form">
+                                    @csrf
+                                    <input type="hidden" name="channel" value="{{ $channelId }}">
+                                    <button type="submit" class="coreapi-channel-card">
+                                        <div class="coreapi-channel-header">
+                                            <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
+                                            @if(!empty($channel['badge']))
+                                                <span class="coreapi-badge">{{ $channel['badge'] }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="coreapi-channel-desc">{{ $channel['description'] }}</div>
+                                        <div class="coreapi-channel-action">
+                                            <span>Pilih metode ini &rarr;</span>
+                                        </div>
+                                    </button>
+                                </form>
+                            @endforeach
+                        </div>
+
+                    @elseif($payment['type'] === 'core_api')
+                        @php
+                            $channel = $payment['channel'];
+                            $payload = $payment['payload'];
+                        @endphp
+
+                        <div class="coreapi-active-payment">
+                            <div class="coreapi-active-header">
+                                <div>
+                                    <span class="coreapi-method-subtitle">Metode Pembayaran</span>
+                                    <h3 class="coreapi-method-title">{{ $payment['channel_info']['name'] ?? ucfirst($channel) }}</h3>
+                                </div>
+                                <form method="POST" action="{{ route('order.midtrans.reset', $order->public_token) }}">
+                                    @csrf
+                                    <button type="submit" class="coreapi-btn-change" title="Ganti Metode Pembayaran">
+                                        Ganti Metode
+                                    </button>
+                                </form>
+                            </div>
+
+                            @if($channel === 'qris')
+                                <div class="coreapi-qris-container">
+                                    @if(!empty($payload['qr_url']))
+                                        <div class="coreapi-qr-wrapper">
+                                            <img src="{{ $payload['qr_url'] }}" alt="QRIS Code" class="coreapi-qr-image">
+                                        </div>
+                                        <div class="coreapi-qr-actions">
+                                            <a href="{{ $payload['qr_url'] }}" download="QRIS-{{ $order->order_number }}.png" target="_blank" class="coreapi-btn-small">
+                                                ⬇️ Simpan / Buka QR Code
+                                            </a>
+                                        </div>
+                                    @endif
+
+                                    <div class="pay-account" style="margin-top:1.25rem;">
+                                        <div class="pay-account__row pay-account__row--amount">
+                                            <span>Total yang Harus Dibayar</span>
+                                            <strong>{{ $payment['formatted_amount'] }}</strong>
+                                        </div>
+                                        @if(!empty($payload['expiry_time']))
+                                            <div class="pay-account__row">
+                                                <span>Batas Waktu Bayar</span>
+                                                <strong style="color:#FBBF24;">{{ \Carbon\Carbon::parse($payload['expiry_time'])->format('d/m/Y H:i') }} WIB</strong>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                            @elseif(in_array($channel, ['bca_va', 'bni_va', 'bri_va', 'permata_va'], true))
+                                <div class="pay-account">
+                                    <div class="pay-account__row">
+                                        <span>Bank</span>
+                                        <strong>{{ strtoupper($payload['bank'] ?? str_replace('_va', '', $channel)) }}</strong>
+                                    </div>
+                                    <div class="pay-account__row">
+                                        <span>Nomor Virtual Account</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <strong class="pay-account__number">{{ $payload['va_number'] ?? '-' }}</strong>
+                                            <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ $payload['va_number'] ?? '' }}', this)">Salin</button>
+                                        </div>
+                                    </div>
+                                    <div class="pay-account__row pay-account__row--amount">
+                                        <span>Total Transfer</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <strong>{{ $payment['formatted_amount'] }}</strong>
+                                            <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ (int) round($payment['amount']) }}', this)">Salin</button>
+                                        </div>
+                                    </div>
+                                    @if(!empty($payload['expiry_time']))
+                                        <div class="pay-account__row">
+                                            <span>Batas Pembayaran</span>
+                                            <strong style="color:#FBBF24;">{{ \Carbon\Carbon::parse($payload['expiry_time'])->format('d/m/Y H:i') }} WIB</strong>
+                                        </div>
+                                    @endif
+                                </div>
+
+                            @elseif($channel === 'mandiri_bill')
+                                <div class="pay-account">
+                                    <div class="pay-account__row">
+                                        <span>Kode Perusahaan (Biller)</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <strong class="pay-account__number">{{ $payload['biller_code'] ?? '70012' }}</strong>
+                                            <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ $payload['biller_code'] ?? '70012' }}', this)">Salin</button>
+                                        </div>
+                                    </div>
+                                    <div class="pay-account__row">
+                                        <span>Nomor Tagihan (Bill Key)</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <strong class="pay-account__number">{{ $payload['bill_key'] ?? '-' }}</strong>
+                                            <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ $payload['bill_key'] ?? '' }}', this)">Salin</button>
+                                        </div>
+                                    </div>
+                                    <div class="pay-account__row pay-account__row--amount">
+                                        <span>Total Tagihan</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <strong>{{ $payment['formatted_amount'] }}</strong>
+                                            <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ (int) round($payment['amount']) }}', this)">Salin</button>
+                                        </div>
+                                    </div>
+                                    @if(!empty($payload['expiry_time']))
+                                        <div class="pay-account__row">
+                                            <span>Batas Pembayaran</span>
+                                            <strong style="color:#FBBF24;">{{ \Carbon\Carbon::parse($payload['expiry_time'])->format('d/m/Y H:i') }} WIB</strong>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
+                            <div class="coreapi-instructions">
+                                <h4 class="coreapi-instructions-title">Petunjuk Pembayaran:</h4>
+                                <ol class="pay-steps">
+                                    @foreach($payment['instructions'] as $step)
+                                        <li>{{ $step }}</li>
+                                    @endforeach
+                                </ol>
+                            </div>
+
+                            <div class="receipt-actions" style="margin-top:1.25rem; margin-bottom:0.75rem;">
+                                <a href="{{ route('order.status', $order->public_token) }}" class="rb-btn-primary receipt-btn" id="btn-check-status">
+                                    🔄 Cek Status Pembayaran
+                                </a>
+                            </div>
+
+                            <p class="pay-uploaded" id="status-poll-note">
+                                Status pembayaran Anda akan dicek otomatis. Halaman ini akan memuat ulang secara otomatis begitu pembayaran lunas.
+                            </p>
+                        </div>
+
                     @elseif($payment['type'] === 'redirect')
                         <p>
                             {!! __('receipt_ui.redirect_lead', ['amount' => $payment['formatted_amount'], 'name' => $payment['name']]) !!}
@@ -426,5 +579,211 @@
     .receipt-line { flex-direction: column; gap: 0.15rem; }
     .receipt-line dd { text-align: left; }
 }
+
+/* ── Midtrans Core API Custom Styles ── */
+.coreapi-channels {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+.coreapi-channel-form { margin: 0; }
+.coreapi-channel-card {
+    width: 100%;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--color-border);
+    border-radius: 0.85rem;
+    padding: 1rem 1.15rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.coreapi-channel-card:hover {
+    border-color: var(--rb-red);
+    background: rgba(220, 38, 38, 0.05);
+    transform: translateY(-2px);
+}
+.coreapi-channel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+.coreapi-channel-name {
+    font-weight: 700;
+    color: #F5F5F5;
+    font-size: 0.95rem;
+}
+.coreapi-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(52, 211, 153, 0.12);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    color: #34D399;
+}
+.coreapi-channel-desc {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    line-height: 1.4;
+}
+.coreapi-channel-action {
+    margin-top: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--rb-red);
+}
+
+.coreapi-active-payment {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.coreapi-active-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+.coreapi-method-subtitle {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+}
+.coreapi-method-title {
+    font-size: 1.15rem;
+    color: #F5F5F5;
+    margin: 0.15rem 0 0;
+    font-weight: 800;
+}
+.coreapi-btn-change {
+    background: none;
+    border: 1px solid var(--color-border);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.coreapi-btn-change:hover {
+    color: #F5F5F5;
+    border-color: var(--rb-red);
+}
+
+.coreapi-qris-container {
+    text-align: center;
+}
+.coreapi-qr-wrapper {
+    background: #FFFFFF;
+    padding: 1rem;
+    border-radius: 0.85rem;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.coreapi-qr-image {
+    width: 220px;
+    height: 220px;
+    display: block;
+}
+.coreapi-qr-actions {
+    margin-top: 0.75rem;
+}
+.coreapi-btn-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #38BDF8;
+    text-decoration: none;
+}
+.coreapi-btn-small:hover { text-decoration: underline; }
+
+.coreapi-copy-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
+    color: #F5F5F5;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.coreapi-copy-btn:hover {
+    background: var(--rb-red);
+    border-color: var(--rb-red);
+    color: #FFFFFF;
+}
+
+.coreapi-instructions {
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 1rem;
+}
+.coreapi-instructions-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #F5F5F5;
+    margin: 0 0 0.75rem;
+}
 </style>
+
+<script>
+function copyToClipboard(text, btn) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(function() {
+        const original = btn.innerText;
+        btn.innerText = 'Tersalin!';
+        btn.style.background = '#34D399';
+        btn.style.color = '#000000';
+        setTimeout(function() {
+            btn.innerText = original;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 2000);
+    });
+}
+
+// Live polling for payment confirmation (every 7 seconds)
+@if(! $order->isPaid() && ! $order->isCancelled() && ($payment['type'] ?? '') === 'core_api')
+(function() {
+    const statusUrl = "{{ route('order.status', $order->public_token) }}";
+    let pollInterval = setInterval(function() {
+        fetch(statusUrl, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data && data.paid === true) {
+                clearInterval(pollInterval);
+                const note = document.getElementById('status-poll-note');
+                if (note) {
+                    note.innerText = '✅ Pembayaran terverifikasi! Memuat ulang halaman...';
+                    note.style.color = '#34D399';
+                }
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1200);
+            }
+        })
+        .catch(function(err) {
+            console.log('Status polling paused:', err);
+        });
+    }, 7000);
+})();
+@endif
+</script>
 @endsection

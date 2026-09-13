@@ -78,8 +78,8 @@ class LaunchpadLinkSeeder extends Seeder
         ];
 
         foreach ($tools as $tool) {
-            // updateOrCreate on URL — re-running the seeder always syncs all fields
-            LaunchpadLink::updateOrCreate(
+            // firstOrCreate on URL — ensures default tools exist without overwriting production modifications
+            LaunchpadLink::firstOrCreate(
                 ['url' => $tool['url']],
                 $tool
             );

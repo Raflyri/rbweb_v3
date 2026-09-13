@@ -156,6 +156,50 @@ class OrdersTable
                     ->url(fn (Order $record) => route('order.proof', $record->public_token))
                     ->openUrlInNewTab(),
 
+                Action::make('check_midtrans')
+                    ->label('Cek Midtrans')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('info')
+                    ->visible(fn (Order $record) => filled($record->midtrans_transaction_id) || $record->payment_method === \App\Services\Payment\MidtransGateway::KEY)
+                    ->action(function (Order $record, PaymentActions $payments) {
+                        try {
+                            $gateway = new \App\Services\Payment\MidtransGateway();
+                            $status = $gateway->checkStatus($record->order_number);
+                            $txStatus = $status['transaction_status'] ?? 'unknown';
+                            $fraud = $status['fraud_status'] ?? '';
+
+                            if ($txStatus === 'settlement' || ($txStatus === 'capture' && $fraud === 'accept')) {
+                                $payments->confirm($record, \App\Services\Payment\MidtransGateway::KEY);
+
+                                Notification::make()
+                                    ->title('Status Midtrans: LUNAS')
+                                    ->body('Pesanan ' . $record->order_number . ' telah diperbarui menjadi Lunas.')
+                                    ->success()
+                                    ->send();
+                            } elseif (in_array($txStatus, ['expire', 'cancel', 'deny'], true)) {
+                                $payments->markFailed($record, 'Midtrans: ' . $txStatus);
+
+                                Notification::make()
+                                    ->title('Status Midtrans: ' . strtoupper($txStatus))
+                                    ->body('Transaksi berstatus ' . $txStatus . ' di Midtrans.')
+                                    ->warning()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Status Midtrans: ' . strtoupper($txStatus))
+                                    ->body('Transaksi belum lunas (Status: ' . $txStatus . ').')
+                                    ->info()
+                                    ->send();
+                            }
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Gagal Mengecek Status')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+
                 // One click for the move an order actually makes next, so the
                 // common case never needs the full edit form.
                 Action::make('process')

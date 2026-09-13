@@ -47,17 +47,21 @@ class Order extends Model
         'payment_method',
         'payment_proof',
         'payment_note',
+        'midtrans_transaction_id',
+        'midtrans_payment_type',
+        'midtrans_payment_payload',
         'paid_at',
     ];
 
     protected $casts = [
-        'price_snapshot' => 'decimal:2',
-        'subtotal'       => 'decimal:2',
-        'shipping_cost'  => 'decimal:2',
-        'total'          => 'decimal:2',
-        'qty'            => 'integer',
-        'preferred_date' => 'date',
-        'paid_at'        => 'datetime',
+        'price_snapshot'           => 'decimal:2',
+        'subtotal'                 => 'decimal:2',
+        'shipping_cost'            => 'decimal:2',
+        'total'                    => 'decimal:2',
+        'qty'                      => 'integer',
+        'preferred_date'           => 'date',
+        'paid_at'                  => 'datetime',
+        'midtrans_payment_payload' => 'array',
     ];
 
     /**

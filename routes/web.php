@@ -57,6 +57,20 @@ Route::post('/pesanan/{order:public_token}/bukti-transfer', [OrderController::cl
 Route::get('/pesanan/{order:public_token}/bukti-transfer', [OrderController::class, 'proof'])
     ->name('order.proof');
 
+// Midtrans Core API direct payment action
+Route::post('/pesanan/{order:public_token}/bayar', [OrderController::class, 'chargeMidtrans'])
+    ->middleware('throttle:15,1')
+    ->name('order.midtrans.charge');
+
+// Reset chosen payment method to choose another channel
+Route::post('/pesanan/{order:public_token}/ganti-metode', [OrderController::class, 'resetPaymentMethod'])
+    ->name('order.midtrans.reset');
+
+// Status polling or manual refresh by buyer
+Route::get('/pesanan/{order:public_token}/status', [OrderController::class, 'checkStatus'])
+    ->middleware('throttle:60,1')
+    ->name('order.status');
+
 Route::get('/produk-layanan/{slug}', [ProductController::class, 'show'])->name('products.show');
 
 // ── Payment webhook ─────────────────────────────────────────────

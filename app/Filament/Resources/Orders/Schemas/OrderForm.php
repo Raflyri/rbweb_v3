@@ -186,6 +186,50 @@ class OrderForm
                                 : 'Belum ada bukti transfer yang diunggah pembeli.'),
                     ]),
 
+                // ── Midtrans Core API Information ─────────────────────────
+                Section::make('Informasi Midtrans Core API')
+                    ->columnSpan(2)
+                    ->icon('heroicon-o-credit-card')
+                    ->visible(fn (?Order $record): bool => filled($record?->midtrans_transaction_id) || filled($record?->midtrans_payment_type))
+                    ->schema([
+                        TextInput::make('midtrans_transaction_id')
+                            ->label('Transaction ID')
+                            ->disabled()
+                            ->columnSpan(1),
+
+                        TextInput::make('midtrans_payment_type')
+                            ->label('Metode / Saluran')
+                            ->formatStateUsing(fn (?string $state) => \App\Services\Payment\MidtransGateway::ALL_CHANNELS[$state]['name'] ?? ucfirst((string) $state))
+                            ->disabled()
+                            ->columnSpan(1),
+
+                        Placeholder::make('midtrans_payload_summary')
+                            ->label('Data Transaksi Core API')
+                            ->content(function (?Order $record) {
+                                if (! $record || ! is_array($record->midtrans_payment_payload)) {
+                                    return '-';
+                                }
+                                $p = $record->midtrans_payment_payload;
+                                $html = '<div style="font-family:monospace; font-size:0.875rem; line-height:1.6;">';
+                                if (!empty($p['va_number'])) {
+                                    $html .= '<div><strong>Nomor VA:</strong> ' . e($p['va_number']) . ' (' . strtoupper(e($p['bank'] ?? '')) . ')</div>';
+                                }
+                                if (!empty($p['biller_code'])) {
+                                    $html .= '<div><strong>Biller Code:</strong> ' . e($p['biller_code']) . ' | <strong>Bill Key:</strong> ' . e($p['bill_key'] ?? '') . '</div>';
+                                }
+                                if (!empty($p['qr_url'])) {
+                                    $html .= '<div><strong>QRIS QR Code:</strong> <a href="' . e($p['qr_url']) . '" target="_blank" rel="noopener" style="color:#38BDF8; text-decoration:underline;">Lihat Gambar QR</a></div>';
+                                }
+                                if (!empty($p['expiry_time'])) {
+                                    $html .= '<div><strong>Masa Berlaku:</strong> ' . e($p['expiry_time']) . '</div>';
+                                }
+                                $html .= '</div>';
+                                return new HtmlString($html);
+                            })
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
+
             ]);
     }
 }

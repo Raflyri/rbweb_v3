@@ -9,11 +9,14 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Notifications\NewOrderReceived;
 use App\Policies\OrderPolicy;
+use App\Services\Payment\MidtransGateway;
 use App\Services\Payment\PaymentActions;
 use App\Services\Payment\PaymentGatewayResolver;
 use App\Settings\GeneralSettings;
 use App\Support\ArticleLocale;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -251,5 +254,137 @@ class OrderController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Buyer selects a Midtrans Core API payment channel (QRIS, VA BCA, etc.).
+     */
+    public function chargeMidtrans(
+        Request $request,
+        Order $order,
+        PaymentGatewayResolver $gateways
+    ): RedirectResponse {
+        if ($order->isPaid()) {
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_success', 'Pesanan ini sudah lunas.');
+        }
+
+        if ($order->isCancelled()) {
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_error', 'Pesanan ini sudah dibatalkan.');
+        }
+
+        $channel = (string) $request->input('channel');
+        $gateway = $gateways->resolve();
+
+        if (! ($gateway instanceof MidtransGateway)) {
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_error', 'Metode pembayaran online sedang tidak aktif.');
+        }
+
+        try {
+            $gateway->chargeChannel($order, $channel);
+
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_info', 'Instruksi pembayaran telah dibuat. Silakan selesaikan pembayaran Anda.');
+        } catch (PaymentGatewayException $e) {
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_error', $e->userMessage());
+        } catch (\Throwable $e) {
+            Log::error('Error charging Midtrans channel', [
+                'order_number' => $order->order_number,
+                'channel'      => $channel,
+                'error'        => $e->getMessage(),
+            ]);
+
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_error', 'Terjadi kendala saat menghubungi server pembayaran. Silakan coba lagi.');
+        }
+    }
+
+    /**
+     * Buyer wants to choose another payment method.
+     */
+    public function resetPaymentMethod(Order $order): RedirectResponse
+    {
+        if (! $order->isPaid() && ! $order->isCancelled()) {
+            $order->update([
+                'midtrans_payment_type'    => null,
+                'midtrans_payment_payload' => null,
+            ]);
+        }
+
+        return redirect()->route('order.pending', $order->public_token);
+    }
+
+    /**
+     * Live status check called by the buyer via AJAX or button.
+     */
+    public function checkStatus(
+        Request $request,
+        Order $order,
+        PaymentGatewayResolver $gateways,
+        PaymentActions $payments
+    ): JsonResponse|RedirectResponse {
+        if ($order->isPaid()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status'  => 'lunas',
+                    'paid'    => true,
+                    'message' => 'Pembayaran lunas terverifikasi!',
+                ]);
+            }
+
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_success', 'Pembayaran berhasil dan telah lunas.');
+        }
+
+        $gateway = $gateways->resolve();
+
+        if ($gateway instanceof MidtransGateway && filled($order->order_number) && filled($order->midtrans_transaction_id)) {
+            try {
+                $status = $gateway->checkStatus($order->order_number);
+                $transactionStatus = $status['transaction_status'] ?? null;
+                $fraudStatus = $status['fraud_status'] ?? null;
+
+                if ($transactionStatus === 'settlement' || ($transactionStatus === 'capture' && $fraudStatus === 'accept')) {
+                    $payments->confirm($order, MidtransGateway::KEY);
+
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'status'  => 'lunas',
+                            'paid'    => true,
+                            'message' => 'Pembayaran berhasil dikonfirmasi!',
+                        ]);
+                    }
+
+                    return redirect()->route('order.pending', $order->public_token)
+                        ->with('payment_success', 'Pembayaran berhasil dan telah lunas.');
+                }
+
+                if (in_array($transactionStatus, ['expire', 'cancel', 'deny'], true)) {
+                    $payments->markFailed($order, 'Midtrans: ' . $transactionStatus);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Midtrans status check poll failed', [
+                    'order_number' => $order->order_number,
+                    'error'        => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status'  => $order->fresh()->payment_status,
+                'paid'    => $order->fresh()->isPaid(),
+                'message' => $order->fresh()->isPaid() ? 'Pembayaran lunas!' : 'Menunggu pembayaran...',
+            ]);
+        }
+
+        return redirect()->route('order.pending', $order->public_token)
+            ->with(
+                $order->fresh()->isPaid() ? 'payment_success' : 'payment_info',
+                $order->fresh()->isPaid() ? 'Pembayaran berhasil dan telah lunas.' : 'Status pembayaran: Belum diterima. Silakan selesaikan pembayaran.'
+            );
     }
 }

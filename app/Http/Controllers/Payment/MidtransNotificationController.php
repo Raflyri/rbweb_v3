@@ -43,7 +43,7 @@ class MidtransNotificationController extends Controller
             return response()->json(['message' => 'Not found.'], 404);
         }
 
-        if (! $this->signatureIsValid($request)) {
+        if (! $this->signatureIsValid($request, $gateways)) {
             Log::warning('Midtrans notification rejected: signature mismatch', [
                 'ip'       => $request->ip(),
                 'order_id' => $request->input('order_id'),
@@ -71,7 +71,7 @@ class MidtransNotificationController extends Controller
      * sha512(order_id + status_code + gross_amount + server_key), per Midtrans'
      * documentation, compared in constant time.
      */
-    protected function signatureIsValid(Request $request): bool
+    protected function signatureIsValid(Request $request, ?PaymentGatewayResolver $gateways = null): bool
     {
         $provided = (string) $request->input('signature_key');
 
@@ -79,11 +79,13 @@ class MidtransNotificationController extends Controller
             return false;
         }
 
+        $serverKey = $gateways ? $gateways->serverKey() : (string) config('services.midtrans.server_key');
+
         $expected = hash('sha512',
             (string) $request->input('order_id')
             . (string) $request->input('status_code')
             . (string) $request->input('gross_amount')
-            . (string) config('services.midtrans.server_key')
+            . $serverKey
         );
 
         return hash_equals($expected, $provided);
@@ -122,12 +124,12 @@ class MidtransNotificationController extends Controller
                     return;
                 }
 
-                $this->confirmOnce($order, $payments);
+                $this->confirmOnce($order, $payments, $request);
 
                 return;
 
             case 'settlement':
-                $this->confirmOnce($order, $payments);
+                $this->confirmOnce($order, $payments, $request);
 
                 return;
 
@@ -165,10 +167,20 @@ class MidtransNotificationController extends Controller
      * settlement can arrive several times. Confirming twice would send the
      * buyer a second "payment received" email for one payment.
      */
-    protected function confirmOnce(Order $order, PaymentActions $payments): void
+    protected function confirmOnce(Order $order, PaymentActions $payments, ?Request $request = null): void
     {
         if ($order->isPaid()) {
             return;
+        }
+
+        if ($request) {
+            if ($txId = $request->input('transaction_id')) {
+                $order->midtrans_transaction_id = $txId;
+            }
+            if ($pType = $request->input('payment_type')) {
+                $order->midtrans_payment_type = $pType;
+            }
+            $order->save();
         }
 
         $payments->confirm($order, MidtransGateway::KEY);
