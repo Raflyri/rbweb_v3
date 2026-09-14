@@ -62,7 +62,7 @@ class OrderDemoSeeder extends Seeder
                 'payment_status'  => PaymentStatus::LUNAS,
                 'payment_method'  => 'qris',
                 'payment_proof'   => null,
-                'payment_note'    => 'Pembayaran QRIS terkonfirmasi otomatis oleh Midtrans Core API.',
+                'payment_note'    => 'Pembayaran QRIS terkonfirmasi otomatis.',
                 'paid_at'         => Carbon::parse('2026-09-14 09:15:30'),
                 'created_at'      => Carbon::parse('2026-09-14 09:10:00'),
                 'midtrans_transaction_id' => 'midtrans-demo-qris-001',

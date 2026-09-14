@@ -127,7 +127,16 @@
                 </div>
 
                 <div class="receipt-payment">
-                    <h2 class="receipt-block__title">{{ __('receipt_ui.payment_heading', ['name' => $payment['name']]) }}</h2>
+                    @php
+                        $paymentHeading = match($payment['type'] ?? '') {
+                            'channel_selection' => 'PILIH METODE PEMBAYARAN',
+                            'core_api'          => (!empty($payment['channel_info']['name'])
+                                ? __('receipt_ui.payment_heading', ['name' => $payment['channel_info']['name']])
+                                : __('receipt_ui.payment_heading', ['name' => $payment['name'] ?? 'Online'])),
+                            default             => __('receipt_ui.payment_heading', ['name' => $payment['name'] ?? 'Online']),
+                        };
+                    @endphp
+                    <h2 class="receipt-block__title">{{ $paymentHeading }}</h2>
 
                     @if(session('payment_success'))
                         <div class="receipt-alert receipt-alert--ok" role="status">{{ session('payment_success') }}</div>

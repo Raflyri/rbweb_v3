@@ -134,7 +134,7 @@ class MidtransGateway implements PaymentGateway
 
     public function name(): string
     {
-        return 'Midtrans Core API';
+        return 'Pembayaran Online';
     }
 
     public function isConfigured(): bool
@@ -213,17 +213,18 @@ class MidtransGateway implements PaymentGateway
         if (filled($order->midtrans_payment_payload) && filled($order->midtrans_payment_type)) {
             $channel = (string) $order->midtrans_payment_type;
             $payload = (array) $order->midtrans_payment_payload;
+            $channelInfo = self::ALL_CHANNELS[$channel] ?? ['name' => ucfirst($channel), 'label' => ucfirst($channel)];
 
             return [
                 'type'             => 'core_api',
                 'gateway'          => self::KEY,
-                'name'             => $this->name(),
+                'name'             => $channelInfo['name'],
                 'configured'       => true,
                 'amount'           => $amount,
                 'formatted_amount' => Order::formatRupiah($amount),
                 'reference'        => $order->order_number,
                 'channel'          => $channel,
-                'channel_info'     => self::ALL_CHANNELS[$channel] ?? ['name' => ucfirst($channel), 'label' => ucfirst($channel)],
+                'channel_info'     => $channelInfo,
                 'payload'          => $payload,
                 'instructions'     => $this->instructionsFor($channel, $payload, $order),
             ];
@@ -233,7 +234,7 @@ class MidtransGateway implements PaymentGateway
         return [
             'type'             => 'channel_selection',
             'gateway'          => self::KEY,
-            'name'             => $this->name(),
+            'name'             => 'Pembayaran Online',
             'configured'       => true,
             'amount'           => $amount,
             'formatted_amount' => Order::formatRupiah($amount),
@@ -291,7 +292,7 @@ class MidtransGateway implements PaymentGateway
         return [
             'type'             => 'core_api',
             'gateway'          => self::KEY,
-            'name'             => $this->name(),
+            'name'             => self::ALL_CHANNELS[$channel]['name'] ?? $channel,
             'configured'       => true,
             'amount'           => $amount,
             'formatted_amount' => Order::formatRupiah($amount),
@@ -597,13 +598,13 @@ class MidtransGateway implements PaymentGateway
             ],
             self::CHANNEL_INDOMARET => [
                 'Kunjungi gerai Indomaret atau Ceriamart terdekat.',
-                'Sampaikan kepada kasir bahwa Anda ingin melakukan pembayaran merchant Midtrans / RBeverything.',
+                'Sampaikan kepada kasir bahwa Anda ingin melakukan pembayaran merchant RBeverything.',
                 'Tunjukkan Kode Pembayaran: ' . ($payload['payment_code'] ?? '-'),
                 'Bayar sesuai tagihan kasir sebesar ' . Order::formatRupiah($order->payableAmount()) . ' dan simpan struk pembayaran.',
             ],
             self::CHANNEL_ALFAMART => [
                 'Kunjungi gerai Alfamart, Alfamidi, Lawson, atau Dan+Dan terdekat.',
-                'Sampaikan kepada kasir bahwa Anda ingin melakukan pembayaran transaksi Midtrans / RBeverything.',
+                'Sampaikan kepada kasir bahwa Anda ingin melakukan pembayaran transaksi merchant RBeverything.',
                 'Tunjukkan Kode Pembayaran: ' . ($payload['payment_code'] ?? '-'),
                 'Bayar sesuai tagihan kasir sebesar ' . Order::formatRupiah($order->payableAmount()) . ' dan simpan struk pembayaran.',
             ],

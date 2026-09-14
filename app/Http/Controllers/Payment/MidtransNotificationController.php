@@ -137,14 +137,14 @@ class MidtransNotificationController extends Controller
                     $order->forceFill([
                         'payment_status' => PaymentStatus::MENUNGGU_VERIFIKASI,
                         'payment_method' => MidtransGateway::KEY,
-                        'payment_note'   => 'Midtrans menandai transaksi ini untuk ditinjau (fraud_status: challenge).',
+                        'payment_note'   => 'Sistem menandai transaksi ini untuk ditinjau (fraud_status: challenge).',
                     ])->save();
 
                     return;
                 }
 
                 if ($fraud === 'deny') {
-                    $payments->markFailed($order, 'Transaksi ditolak Midtrans (fraud_status: deny).');
+                    $payments->markFailed($order, 'Transaksi ditolak sistem (fraud_status: deny).');
 
                     return;
                 }
@@ -166,7 +166,7 @@ class MidtransNotificationController extends Controller
             case 'deny':
             case 'cancel':
             case 'expire':
-                $payments->markFailed($order, 'Pembayaran Midtrans ' . $status . '.');
+                $payments->markFailed($order, 'Pembayaran online ' . $status . '.');
 
                 return;
 
@@ -174,7 +174,7 @@ class MidtransNotificationController extends Controller
             case 'partial_refund':
                 $order->forceFill([
                     'payment_status' => PaymentStatus::DIBATALKAN,
-                    'payment_note'   => 'Pembayaran dikembalikan (Midtrans: ' . $status . ').',
+                    'payment_note'   => 'Pembayaran dikembalikan (' . $status . ').',
                 ])->save();
 
                 return;
