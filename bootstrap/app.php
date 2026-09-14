@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // what broke every Livewire-powered form (login included).
         $middleware->trustProxies(at: '*');
 
+        $middleware->validateCsrfTokens(except: [
+            'payment/midtrans/notification',
+            'system/emergency-command',
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);

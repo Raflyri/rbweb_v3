@@ -45,6 +45,12 @@ class ManagePaymentSettings extends SettingsPage
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('viewLogs')
+                ->label('Riwayat Notifikasi Webhook')
+                ->icon('heroicon-o-bell-alert')
+                ->color('gray')
+                ->url(fn (): string => \App\Filament\Resources\PaymentNotificationLogs\PaymentNotificationLogResource::getUrl('index')),
+
             Action::make('testConnection')
                 ->label('Uji Koneksi API Midtrans')
                 ->icon('heroicon-o-signal')
@@ -181,8 +187,9 @@ class ManagePaymentSettings extends SettingsPage
                                         ->label('Payment Notification URL')
                                         ->content(fn () => new HtmlString(
                                             '<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:1rem; border-radius:0.75rem;">' .
-                                            '<p style="margin:0 0 0.5rem 0; font-size:0.875rem;">Daftarkan URL berikut pada menu <strong>Settings &gt; Configuration &gt; Payment Notification URL</strong> di dashboard Midtrans agar status pesanan otomatis terverifikasi LUNAS saat pembeli selesai membayar:</p>' .
-                                            '<input type="text" readonly value="' . e(route('payment.midtrans.notification')) . '" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); padding:0.5rem 0.75rem; border-radius:0.5rem; color:#38BDF8; font-family:monospace; font-weight:bold;" onclick="this.select()">' .
+                                            '<p style="margin:0 0 0.5rem 0; font-size:0.875rem;">Daftarkan URL berikut pada menu <strong>Settings &gt; Configuration &gt; Payment Notification URL</strong> di dashboard Midtrans (baik Sandbox maupun Production) agar status pembayaran pesanan otomatis terverifikasi LUNAS saat pembeli selesai membayar:</p>' .
+                                            '<input type="text" readonly value="' . e(route('payment.midtrans.notification')) . '" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); padding:0.5rem 0.75rem; border-radius:0.5rem; color:#38BDF8; font-family:monospace; font-weight:bold; margin-bottom:0.75rem;" onclick="this.select()">' .
+                                            '<p style="margin:0; font-size:0.8125rem; color:rgba(255,255,255,0.7);">💡 <em>Tips:</em> Saat Anda menekan tombol "Simpan" atau "Test" di dashboard Midtrans, Midtrans akan mengirim sinyal simulasi (<code>payment_notif_test_...</code>). Sistem kami otomatis menerima dan mencatatnya ke <a href="' . e(\App\Filament\Resources\PaymentNotificationLogs\PaymentNotificationLogResource::getUrl('index')) . '" style="color:#38BDF8; text-decoration:underline;">Riwayat Notifikasi Midtrans</a> dengan respon HTTP 200 OK.</p>' .
                                             '</div>'
                                         ))
                                         ->columnSpanFull(),

@@ -433,3 +433,57 @@ it('answers status polling endpoint', function () {
         ]);
 });
 
+/*
+|--------------------------------------------------------------------------
+| Webhook Probes and Audit Logging
+|--------------------------------------------------------------------------
+*/
+
+it('accepts and logs Midtrans test probe webhook with HTTP 200', function () {
+    activateMidtrans();
+
+    $payload = [
+        'order_id'           => 'payment_notif_test_M429548505_125cba15-ab38-4d17-a762-44dca9ac427e',
+        'status_code'        => '200',
+        'transaction_status' => 'settlement',
+        'gross_amount'       => '10000.00',
+        'signature_key'      => 'dummy_signature_key',
+        'status_message'     => 'midtrans payment notification',
+    ];
+
+    postJson(route('payment.midtrans.notification'), $payload)
+        ->assertOk()
+        ->assertJson(['message' => 'Test notification accepted.']);
+
+    $log = \App\Models\PaymentNotificationLog::latest()->first();
+    expect($log)->not->toBeNull()
+        ->and($log->order_id)->toBe('payment_notif_test_M429548505_125cba15-ab38-4d17-a762-44dca9ac427e')
+        ->and($log->is_test_notification)->toBeTrue()
+        ->and($log->response_status)->toBe(200);
+});
+
+it('records logs for settlement and invalid signatures', function () {
+    activateMidtrans();
+
+    $order = Order::factory()->create();
+
+    // 1. Invalid signature
+    postJson(route('payment.midtrans.notification'), midtransPayload($order, 'settlement', [
+        'signature_key' => 'invalid_sig',
+    ]))->assertForbidden();
+
+    $invalidLog = \App\Models\PaymentNotificationLog::latest()->first();
+    expect($invalidLog->is_valid_signature)->toBeFalse()
+        ->and($invalidLog->response_status)->toBe(403);
+
+    // 2. Valid settlement
+    postJson(route('payment.midtrans.notification'), midtransPayload($order, 'settlement'))
+        ->assertOk();
+
+    $validLog = \App\Models\PaymentNotificationLog::latest()->first();
+    expect($validLog->is_valid_signature)->toBeTrue()
+        ->and($validLog->response_status)->toBe(200)
+        ->and($validLog->order_id)->toBe($order->order_number)
+        ->and($validLog->is_test_notification)->toBeFalse();
+});
+

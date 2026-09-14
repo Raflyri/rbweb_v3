@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\PaymentNotificationLog;
 use App\Services\Payment\MidtransGateway;
 use App\Services\Payment\PaymentActions;
 use App\Services\Payment\PaymentGatewayResolver;
@@ -33,36 +34,60 @@ class MidtransNotificationController extends Controller
         PaymentGatewayResolver $gateways,
         PaymentActions $payments,
     ): JsonResponse {
+        $orderId = (string) $request->input('order_id');
+        $isTest = str_starts_with($orderId, 'payment_notif_test_')
+            || ($request->input('status_message') === 'midtrans payment notification' && ! str_starts_with($orderId, 'RB-'));
+
+        $isValidSignature = $this->signatureIsValid($request, $gateways);
+
+        // Midtrans test notification / simulation endpoint verification
+        if ($isTest) {
+            Log::info('Midtrans test notification received and accepted', [
+                'ip'       => $request->ip(),
+                'order_id' => $orderId,
+            ]);
+
+            $this->recordLog($request, $isValidSignature, true, 200, 'Test notification accepted.');
+
+            return response()->json(['message' => 'Test notification accepted.']);
+        }
+
         if (! $gateways->midtransIsActive()) {
             Log::warning('Midtrans notification received while the gateway is inactive', [
                 'ip' => $request->ip(),
             ]);
 
-            // 404, not 403: while Midtrans is off this endpoint effectively
-            // does not exist, and saying so tells a prober nothing.
+            $this->recordLog($request, $isValidSignature, false, 404, 'Gateway inactive.');
+
             return response()->json(['message' => 'Not found.'], 404);
         }
 
-        if (! $this->signatureIsValid($request, $gateways)) {
+        if (! $isValidSignature) {
             Log::warning('Midtrans notification rejected: signature mismatch', [
                 'ip'       => $request->ip(),
-                'order_id' => $request->input('order_id'),
+                'order_id' => $orderId,
             ]);
+
+            $this->recordLog($request, false, false, 403, 'Invalid signature.');
 
             return response()->json(['message' => 'Invalid signature.'], 403);
         }
 
-        $order = Order::where('order_number', $request->input('order_id'))->first();
+        $order = Order::where('order_number', $orderId)->first();
 
         if (! $order) {
             Log::warning('Midtrans notification for an unknown order', [
-                'order_id' => $request->input('order_id'),
+                'order_id' => $orderId,
             ]);
+
+            $this->recordLog($request, $isValidSignature, false, 404, 'Order not found.');
 
             return response()->json(['message' => 'Order not found.'], 404);
         }
 
         $this->apply($order, $request, $payments);
+
+        $this->recordLog($request, true, false, 200, 'OK.');
 
         return response()->json(['message' => 'OK.']);
     }
@@ -202,6 +227,39 @@ class MidtransNotificationController extends Controller
                 'paid'         => $paid,
                 'owed'         => $owed,
             ]);
+        }
+    }
+
+    /**
+     * Record every incoming webhook to the database for merchant observability
+     * and debugging in rbdashboard.
+     */
+    protected function recordLog(
+        Request $request,
+        bool $isValidSignature,
+        bool $isTest,
+        int $responseStatus,
+        string $responseMessage,
+    ): void {
+        try {
+            PaymentNotificationLog::create([
+                'order_id'             => $request->input('order_id'),
+                'transaction_id'       => $request->input('transaction_id'),
+                'payment_type'         => $request->input('payment_type'),
+                'transaction_status'   => $request->input('transaction_status'),
+                'fraud_status'         => $request->input('fraud_status'),
+                'status_code'          => $request->input('status_code'),
+                'gross_amount'         => $request->input('gross_amount'),
+                'signature_key'        => $request->input('signature_key'),
+                'is_valid_signature'   => $isValidSignature,
+                'is_test_notification' => $isTest,
+                'response_status'      => $responseStatus,
+                'response_message'     => $responseMessage,
+                'payload'              => $request->all(),
+                'ip_address'           => $request->ip(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to write payment notification log: ' . $e->getMessage());
         }
     }
 }
