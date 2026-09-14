@@ -260,6 +260,9 @@ class MidtransNotificationController extends Controller
             ]);
         } catch (\Throwable $e) {
             Log::error('Failed to write payment notification log: ' . $e->getMessage());
+            if (app()->runningUnitTests()) {
+                throw $e;
+            }
         }
     }
 }
