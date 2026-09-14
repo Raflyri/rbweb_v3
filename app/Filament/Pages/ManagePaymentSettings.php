@@ -158,12 +158,17 @@ class ManagePaymentSettings extends SettingsPage
                                     CheckboxList::make('midtrans_enabled_channels')
                                         ->label('Saluran Pembayaran Aktif')
                                         ->options([
-                                            MidtransGateway::CHANNEL_QRIS         => 'QRIS (GoPay, OVO, DANA, ShopeePay, BCA, Mandiri, BRI, BNI, dll.)',
-                                            MidtransGateway::CHANNEL_BCA_VA       => 'BCA Virtual Account',
-                                            MidtransGateway::CHANNEL_BNI_VA       => 'BNI Virtual Account',
-                                            MidtransGateway::CHANNEL_BRI_VA       => 'BRI Virtual Account (BRIVA)',
-                                            MidtransGateway::CHANNEL_MANDIRI_BILL => 'Mandiri Bill Payment (E-Channel)',
-                                            MidtransGateway::CHANNEL_PERMATA_VA   => 'Permata Virtual Account',
+                                            MidtransGateway::CHANNEL_QRIS         => '📱 QRIS (Semua E-Wallet & Mobile Banking Nasional)',
+                                            MidtransGateway::CHANNEL_BCA_VA       => '🏦 BCA Virtual Account',
+                                            MidtransGateway::CHANNEL_BNI_VA       => '🏦 BNI Virtual Account',
+                                            MidtransGateway::CHANNEL_BRI_VA       => '🏦 BRI Virtual Account (BRIVA)',
+                                            MidtransGateway::CHANNEL_MANDIRI_BILL => '🏦 Mandiri Bill Payment (E-Channel)',
+                                            MidtransGateway::CHANNEL_PERMATA_VA   => '🏦 Permata Virtual Account',
+                                            MidtransGateway::CHANNEL_CIMB_VA      => '🏦 CIMB Niaga Virtual Account',
+                                            MidtransGateway::CHANNEL_GOPAY        => '📲 GoPay (Direct Deeplink & QR)',
+                                            MidtransGateway::CHANNEL_SHOPEEPAY    => '📲 ShopeePay (Direct Deeplink & QR)',
+                                            MidtransGateway::CHANNEL_INDOMARET    => '🏪 Indomaret / Ceriamart (Kasir Retail)',
+                                            MidtransGateway::CHANNEL_ALFAMART     => '🏪 Alfamart / Alfamidi / Dan+Dan (Kasir Retail)',
                                         ])
                                         ->columns(2)
                                         ->columnSpanFull(),

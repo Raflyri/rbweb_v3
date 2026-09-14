@@ -111,8 +111,12 @@
                                         <div class="payment-method-title-wrap">
                                             @if($method['category'] === 'qris')
                                                 <span class="payment-icon">📱</span>
+                                            @elseif($method['category'] === 'ewallet')
+                                                <span class="payment-icon">📲</span>
                                             @elseif(in_array($method['category'], ['va', 'bill'], true))
                                                 <span class="payment-icon">🏦</span>
+                                            @elseif($method['category'] === 'cstore')
+                                                <span class="payment-icon">🏪</span>
                                             @else
                                                 <span class="payment-icon">💳</span>
                                             @endif

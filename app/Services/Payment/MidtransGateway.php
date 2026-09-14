@@ -30,6 +30,11 @@ class MidtransGateway implements PaymentGateway
     public const CHANNEL_BRI_VA       = 'bri_va';
     public const CHANNEL_MANDIRI_BILL = 'mandiri_bill';
     public const CHANNEL_PERMATA_VA   = 'permata_va';
+    public const CHANNEL_CIMB_VA      = 'cimb_va';
+    public const CHANNEL_GOPAY        = 'gopay';
+    public const CHANNEL_SHOPEEPAY    = 'shopeepay';
+    public const CHANNEL_INDOMARET    = 'indomaret';
+    public const CHANNEL_ALFAMART     = 'alfamart';
 
     public const ALL_CHANNELS = [
         self::CHANNEL_QRIS => [
@@ -79,6 +84,46 @@ class MidtransGateway implements PaymentGateway
             'description' => 'Bayar via PermataMobile X atau ATM Permata/transfer bank lain.',
             'badge'       => 'Verifikasi Otomatis',
             'category'    => 'va',
+        ],
+        self::CHANNEL_CIMB_VA => [
+            'id'          => self::CHANNEL_CIMB_VA,
+            'name'        => 'CIMB Niaga Virtual Account',
+            'label'       => 'CIMB Niaga Virtual Account',
+            'description' => 'Bayar via OCTO Mobile, OCTO Clicks, atau ATM CIMB Niaga / ATM Bersama.',
+            'badge'       => 'Verifikasi Otomatis',
+            'category'    => 'va',
+        ],
+        self::CHANNEL_GOPAY => [
+            'id'          => self::CHANNEL_GOPAY,
+            'name'        => 'GoPay (Direct / QR)',
+            'label'       => 'GoPay (Direct Deeplink & QR)',
+            'description' => 'Langsung buka aplikasi Gojek di ponsel atau scan QR Code.',
+            'badge'       => 'Instan',
+            'category'    => 'ewallet',
+        ],
+        self::CHANNEL_SHOPEEPAY => [
+            'id'          => self::CHANNEL_SHOPEEPAY,
+            'name'        => 'ShopeePay (Direct / QR)',
+            'label'       => 'ShopeePay (Direct Deeplink & QR)',
+            'description' => 'Langsung buka aplikasi Shopee di ponsel atau scan QR Code.',
+            'badge'       => 'Instan',
+            'category'    => 'ewallet',
+        ],
+        self::CHANNEL_INDOMARET => [
+            'id'          => self::CHANNEL_INDOMARET,
+            'name'        => 'Indomaret / Ceriamart',
+            'label'       => 'Indomaret / Ceriamart',
+            'description' => 'Bayar tunai di kasir gerai Indomaret terdekat dengan Kode Pembayaran.',
+            'badge'       => 'Gerai Retail',
+            'category'    => 'cstore',
+        ],
+        self::CHANNEL_ALFAMART => [
+            'id'          => self::CHANNEL_ALFAMART,
+            'name'        => 'Alfamart / Alfamidi / Dan+Dan',
+            'label'       => 'Alfamart / Alfamidi / Dan+Dan',
+            'description' => 'Bayar tunai di kasir gerai Alfamart terdekat dengan Kode Pembayaran.',
+            'badge'       => 'Gerai Retail',
+            'category'    => 'cstore',
         ],
     ];
 
@@ -390,6 +435,40 @@ class MidtransGateway implements PaymentGateway
             self::CHANNEL_PERMATA_VA => array_merge($base, [
                 'payment_type' => 'permata',
             ]),
+            self::CHANNEL_CIMB_VA => array_merge($base, [
+                'payment_type' => 'bank_transfer',
+                'bank_transfer' => [
+                    'bank' => 'cimb',
+                ],
+            ]),
+            self::CHANNEL_GOPAY => array_merge($base, [
+                'payment_type' => 'gopay',
+                'gopay' => [
+                    'enable_callback' => true,
+                    'callback_url'    => route('order.pending', $order->public_token),
+                ],
+            ]),
+            self::CHANNEL_SHOPEEPAY => array_merge($base, [
+                'payment_type' => 'shopeepay',
+                'shopeepay' => [
+                    'callback_url' => route('order.pending', $order->public_token),
+                ],
+            ]),
+            self::CHANNEL_INDOMARET => array_merge($base, [
+                'payment_type' => 'cstore',
+                'cstore' => [
+                    'store'   => 'indomaret',
+                    'message' => 'Pesanan ' . $order->order_number,
+                ],
+            ]),
+            self::CHANNEL_ALFAMART => array_merge($base, [
+                'payment_type' => 'cstore',
+                'cstore' => [
+                    'store'                => 'alfamart',
+                    'alfamart_free_text_1' => 'RBeverything',
+                    'alfamart_free_text_2' => $order->order_number,
+                ],
+            ]),
             default => throw new PaymentGatewayException('Saluran tidak dikenal: ' . $channel, self::KEY),
         };
     }
@@ -413,19 +492,24 @@ class MidtransGateway implements PaymentGateway
             'channel'            => $channel,
         ];
 
-        if ($channel === self::CHANNEL_QRIS) {
+        if (in_array($channel, [self::CHANNEL_QRIS, self::CHANNEL_GOPAY, self::CHANNEL_SHOPEEPAY], true)) {
             $qrUrl = null;
+            $deeplinkUrl = null;
             if (!empty($res['actions']) && is_array($res['actions'])) {
                 foreach ($res['actions'] as $action) {
-                    if (($action['name'] ?? '') === 'generate-qr-code') {
+                    $actionName = $action['name'] ?? '';
+                    if ($actionName === 'generate-qr-code') {
                         $qrUrl = $action['url'] ?? null;
-                        break;
+                    }
+                    if ($actionName === 'deeplink-redirect') {
+                        $deeplinkUrl = $action['url'] ?? null;
                     }
                 }
             }
-            $parsed['qr_url']    = $qrUrl;
-            $parsed['qr_string'] = $res['qr_string'] ?? null;
-        } elseif (in_array($channel, [self::CHANNEL_BCA_VA, self::CHANNEL_BNI_VA, self::CHANNEL_BRI_VA], true)) {
+            $parsed['qr_url']       = $qrUrl;
+            $parsed['deeplink_url'] = $deeplinkUrl;
+            $parsed['qr_string']    = $res['qr_string'] ?? null;
+        } elseif (in_array($channel, [self::CHANNEL_BCA_VA, self::CHANNEL_BNI_VA, self::CHANNEL_BRI_VA, self::CHANNEL_CIMB_VA], true)) {
             $vaNumber = null;
             $bank = null;
             if (!empty($res['va_numbers']) && is_array($res['va_numbers'])) {
@@ -434,13 +518,15 @@ class MidtransGateway implements PaymentGateway
                 $bank = $first['bank'] ?? null;
             }
             $parsed['va_number'] = $vaNumber;
-            $parsed['bank']      = $bank;
+            $parsed['bank']      = $bank ?? str_replace('_va', '', $channel);
         } elseif ($channel === self::CHANNEL_MANDIRI_BILL) {
             $parsed['biller_code'] = $res['biller_code'] ?? null;
             $parsed['bill_key']    = $res['bill_key'] ?? null;
         } elseif ($channel === self::CHANNEL_PERMATA_VA) {
-            $parsed['va_number'] = $res['permata_va_number'] ?? null;
+            $parsed['va_number'] = $res['permata_va_number'] ?? ($res['va_numbers'][0]['va_number'] ?? null);
             $parsed['bank']      = 'permata';
+        } elseif (in_array($channel, [self::CHANNEL_INDOMARET, self::CHANNEL_ALFAMART], true)) {
+            $parsed['payment_code'] = $res['payment_code'] ?? null;
         }
 
         return $parsed;
@@ -492,6 +578,34 @@ class MidtransGateway implements PaymentGateway
                 'Pilih menu Transfer > Ke Rekening Virtual Account.',
                 'Masukkan Nomor Virtual Account Permata: ' . ($payload['va_number'] ?? '-'),
                 'Periksa rincian pembayaran dan konfirmasi transaksi.',
+            ],
+            self::CHANNEL_CIMB_VA => [
+                'Buka aplikasi OCTO Mobile, OCTO Clicks, atau kunjungi ATM CIMB Niaga / ATM Bersama.',
+                'Pilih menu Transfer > Rekening Virtual Account CIMB Niaga.',
+                'Masukkan Nomor Virtual Account: ' . ($payload['va_number'] ?? '-'),
+                'Pastikan nominal ' . Order::formatRupiah($order->payableAmount()) . ' sesuai dan selesaikan pembayaran.',
+            ],
+            self::CHANNEL_GOPAY => [
+                'Jika Anda menggunakan smartphone, klik tombol Buka Aplikasi Gojek di atas.',
+                'Jika Anda menggunakan laptop/PC, buka aplikasi Gojek di ponsel Anda lalu scan QR Code di layar.',
+                'Periksa rincian pembayaran ' . Order::formatRupiah($order->payableAmount()) . ' dan masukkan PIN GoPay Anda.',
+            ],
+            self::CHANNEL_SHOPEEPAY => [
+                'Jika Anda menggunakan smartphone, klik tombol Buka Aplikasi Shopee di atas.',
+                'Jika Anda menggunakan laptop/PC, buka aplikasi Shopee di ponsel Anda lalu scan QR Code di layar.',
+                'Periksa rincian pembayaran ' . Order::formatRupiah($order->payableAmount()) . ' dan masukkan PIN ShopeePay Anda.',
+            ],
+            self::CHANNEL_INDOMARET => [
+                'Kunjungi gerai Indomaret atau Ceriamart terdekat.',
+                'Sampaikan kepada kasir bahwa Anda ingin melakukan pembayaran merchant Midtrans / RBeverything.',
+                'Tunjukkan Kode Pembayaran: ' . ($payload['payment_code'] ?? '-'),
+                'Bayar sesuai tagihan kasir sebesar ' . Order::formatRupiah($order->payableAmount()) . ' dan simpan struk pembayaran.',
+            ],
+            self::CHANNEL_ALFAMART => [
+                'Kunjungi gerai Alfamart, Alfamidi, Lawson, atau Dan+Dan terdekat.',
+                'Sampaikan kepada kasir bahwa Anda ingin melakukan pembayaran transaksi Midtrans / RBeverything.',
+                'Tunjukkan Kode Pembayaran: ' . ($payload['payment_code'] ?? '-'),
+                'Bayar sesuai tagihan kasir sebesar ' . Order::formatRupiah($order->payableAmount()) . ' dan simpan struk pembayaran.',
             ],
             default => [
                 'Selesaikan pembayaran sesuai instruksi pada metode yang dipilih.',

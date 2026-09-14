@@ -392,6 +392,88 @@ class OrderDemoSeeder extends Seeder
                     ],
                 ],
             ],
+
+            // ── Order 10: CIMB Niaga VA Lunas (Multi-item) ──────────────────────
+            [
+                'order_number'    => 'RB-20260913-0002',
+                'public_token'    => 'demo-order-cimb-va-settled-010',
+                'customer_name'   => 'Nadia Putri',
+                'customer_email'  => 'nadia.putri@example.com',
+                'customer_phone'  => '+6281133445566',
+                'shipping_address'=> 'Jl. Raya Pajajaran No. 28, Bogor, Jawa Barat 16143',
+                'preferred_date'  => null,
+                'notes'           => 'Mohon tes fungsionalitas webcam sebelum dikirim.',
+                'status'          => OrderStatus::DIPROSES,
+                'payment_status'  => PaymentStatus::LUNAS,
+                'payment_method'  => 'cimb_va',
+                'payment_proof'   => null,
+                'payment_note'    => 'Pembayaran CIMB Niaga VA sukses terkonfirmasi otomatis.',
+                'paid_at'         => Carbon::parse('2026-09-13 17:15:00'),
+                'created_at'      => Carbon::parse('2026-09-13 16:50:00'),
+                'midtrans_transaction_id' => 'midtrans-demo-cimb-010',
+                'midtrans_payment_type'   => 'bank_transfer',
+                'midtrans_payment_payload'=> [
+                    'transaction_status' => 'settlement',
+                    'payment_type'       => 'bank_transfer',
+                    'transaction_time'   => '2026-09-13 16:50:00',
+                    'settlement_time'    => '2026-09-13 17:15:00',
+                    'gross_amount'       => '770000.00',
+                    'va_numbers'         => [
+                        [
+                            'bank'      => 'cimb',
+                            'va_number' => '5919001234567890',
+                        ],
+                    ],
+                ],
+                'items'           => [
+                    [
+                        'product'  => $webcam,
+                        'qty'      => 1,
+                        'price'    => 420000,
+                    ],
+                    [
+                        'product'  => $switchHub,
+                        'qty'      => 1,
+                        'price'    => 350000,
+                    ],
+                ],
+            ],
+
+            // ── Order 11: Indomaret Menunggu Pembayaran (Single-item) ───────────
+            [
+                'order_number'    => 'RB-20260914-0006',
+                'public_token'    => 'demo-order-indomaret-pending-011',
+                'customer_name'   => 'Rizki Ramadhan',
+                'customer_email'  => 'rizki.r@example.com',
+                'customer_phone'  => '+6287711223344',
+                'shipping_address'=> 'Jl. Veteran No. 5, Malang, Jawa Timur 65145',
+                'preferred_date'  => null,
+                'notes'           => 'Akan dibayar di Indomaret dekat kampus.',
+                'status'          => OrderStatus::BARU,
+                'payment_status'  => PaymentStatus::MENUNGGU,
+                'payment_method'  => 'indomaret',
+                'payment_proof'   => null,
+                'payment_note'    => null,
+                'paid_at'         => null,
+                'created_at'      => Carbon::parse('2026-09-14 11:35:00'),
+                'midtrans_transaction_id' => 'midtrans-demo-indomaret-011',
+                'midtrans_payment_type'   => 'cstore',
+                'midtrans_payment_payload'=> [
+                    'transaction_status' => 'pending',
+                    'payment_type'       => 'cstore',
+                    'transaction_time'   => '2026-09-14 11:35:00',
+                    'expiry_time'        => '2026-09-15 11:35:00',
+                    'gross_amount'       => '1250000.00',
+                    'payment_code'       => '10982345671',
+                ],
+                'items'           => [
+                    [
+                        'product'  => $ssdNvme,
+                        'qty'      => 1,
+                        'price'    => 1250000,
+                    ],
+                ],
+            ],
         ];
 
         $seededCount = 0;
