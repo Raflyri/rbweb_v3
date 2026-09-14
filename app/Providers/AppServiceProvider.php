@@ -40,6 +40,13 @@ class AppServiceProvider extends ServiceProvider
         // ✅ Track every login and logout for the Authentication Monitor
         Event::listen(Login::class,  LogSuccessfulLogin::class);
         Event::listen(Logout::class, LogSuccessfulLogout::class);
+        
+        // ✅ Email Notifications for Login Success and Failed (3x)
+        Event::listen(Login::class, \App\Listeners\SendLoginSuccessNotification::class);
+        Event::listen(\Illuminate\Auth\Events\Failed::class, \App\Listeners\CheckFailedLoginAttempts::class);
+        
+        // ✅ Log Sent Emails
+        Event::listen(\Illuminate\Mail\Events\MessageSent::class, \App\Listeners\LogSentEmail::class);
 
         // ✅ Kirim notifikasi saat status post berubah menjadi Published/Rejected
         Post::observe(PostObserver::class);
@@ -52,6 +59,9 @@ class AppServiceProvider extends ServiceProvider
 
         // ✅ Sanitasi deskripsi produk saat disimpan + jaga sitemap tetap sinkron
         Product::observe(ProductObserver::class);
+        
+        // ✅ Notifikasi email otomatis saat status order berubah
+        \App\Models\Order::observe(\App\Observers\OrderObserver::class);
 
         // ✅ Register nested language lines from lang/{locale}.json into the translator
         $this->registerJsonTranslations();

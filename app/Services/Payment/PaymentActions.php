@@ -69,6 +69,8 @@ class PaymentActions
             'payment_status' => PaymentStatus::GAGAL,
             'payment_note'   => $reason,
         ])->save();
+
+        $this->notifyCustomer($order, PaymentStatusUpdated::FAILED, $reason);
     }
 
     /**
@@ -112,6 +114,13 @@ class PaymentActions
                 'order_number' => $order->order_number,
                 'outcome'      => $outcome,
                 'error'        => $e->getMessage(),
+            ]);
+            
+            \App\Models\EmailLog::create([
+                'to_email' => $order->customer_email,
+                'subject'  => "Pembayaran pesanan {$order->order_number} " . $outcome,
+                'status'   => 'failed',
+                'error_message' => $e->getMessage(),
             ]);
         }
     }

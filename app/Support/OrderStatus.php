@@ -21,12 +21,14 @@ class OrderStatus
     /** Delivered / performed, nothing left to do. */
     public const SELESAI = 'selesai';
 
+    public const DIKIRIM = 'dikirim';
+
     public const DIBATALKAN = 'dibatalkan';
 
     public const DEFAULT = self::BARU;
 
     /** @var array<int, string> */
-    public const OPTIONS = [self::BARU, self::DIPROSES, self::SELESAI, self::DIBATALKAN];
+    public const OPTIONS = [self::BARU, self::DIPROSES, self::DIKIRIM, self::SELESAI, self::DIBATALKAN];
 
     /** Filament Select / table-ready [value => label] map. */
     public static function options(?string $locale = null): array
@@ -37,6 +39,7 @@ class OrderStatus
             return [
                 self::BARU       => 'New',
                 self::DIPROSES   => 'Processing',
+                self::DIKIRIM    => 'Shipped',
                 self::SELESAI    => 'Completed',
                 self::DIBATALKAN => 'Cancelled',
             ];
@@ -45,6 +48,7 @@ class OrderStatus
         return [
             self::BARU       => 'Baru',
             self::DIPROSES   => 'Diproses',
+            self::DIKIRIM    => 'Dikirim',
             self::SELESAI    => 'Selesai',
             self::DIBATALKAN => 'Dibatalkan',
         ];
@@ -65,6 +69,7 @@ class OrderStatus
         return match ($status) {
             self::BARU       => 'warning',
             self::DIPROSES   => 'info',
+            self::DIKIRIM    => 'primary',
             self::SELESAI    => 'success',
             self::DIBATALKAN => 'danger',
             default          => 'gray',

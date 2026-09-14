@@ -220,10 +220,20 @@ class CheckoutController extends Controller
         try {
             Notification::route('mail', $this->adminEmail())
                 ->notify(new NewOrderReceived($order));
+                
+            Notification::route('mail', $order->customer_email)
+                ->notify(new \App\Notifications\CustomerNewOrderReceived($order));
         } catch (\Throwable $e) {
-            Log::error('New order email failed to send', [
+            \Illuminate\Support\Facades\Log::error('New order email failed to send', [
                 'order_number' => $order->order_number,
                 'error'        => $e->getMessage(),
+            ]);
+            
+            \App\Models\EmailLog::create([
+                'to_email' => $order->customer_email . ', ' . $this->adminEmail(),
+                'subject'  => "Pesanan Berhasil Dibuat / New Order: {$order->order_number}",
+                'status'   => 'failed',
+                'error_message' => $e->getMessage(),
             ]);
         }
     }

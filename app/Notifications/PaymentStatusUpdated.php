@@ -21,6 +21,8 @@ class PaymentStatusUpdated extends Notification
     public const CONFIRMED = 'confirmed';
 
     public const REJECTED = 'rejected';
+    
+    public const FAILED = 'failed';
 
     public function __construct(
         protected Order $order,
@@ -37,9 +39,13 @@ class PaymentStatusUpdated extends Notification
     {
         $order = $this->order;
 
-        return $this->outcome === self::CONFIRMED
-            ? $this->confirmedMail($order)
-            : $this->rejectedMail($order);
+        if ($this->outcome === self::CONFIRMED) {
+            return $this->confirmedMail($order);
+        } elseif ($this->outcome === self::FAILED) {
+            return $this->failedMail($order);
+        }
+        
+        return $this->rejectedMail($order);
     }
 
     protected function confirmedMail(Order $order): MailMessage
@@ -54,6 +60,23 @@ class PaymentStatusUpdated extends Notification
                 ? 'Pesanan kamu akan segera kami siapkan dan kirim.'
                 : 'Kami akan menghubungi kamu untuk pelaksanaan layanannya.')
             ->action('Lihat Pesanan', route('order.pending', $order->public_token))
+            ->salutation("Salam,\n" . config('app.name'));
+    }
+
+    protected function failedMail(Order $order): MailMessage
+    {
+        $mail = (new MailMessage)
+            ->subject("Pembayaran pesanan {$order->order_number} gagal/dibatalkan")
+            ->greeting("Halo, {$order->customer_name}!")
+            ->line("Pembayaran untuk pesanan {$order->order_number} telah ditandai gagal atau dibatalkan.");
+
+        if (filled($this->reason)) {
+            $mail->line('Alasan: ' . $this->reason);
+        }
+
+        return $mail
+            ->line('Jika Anda masih ingin melanjutkan pesanan, silakan buat pesanan baru atau hubungi kami.')
+            ->action('Hubungi Kami', url('/contact'))
             ->salutation("Salam,\n" . config('app.name'));
     }
 
