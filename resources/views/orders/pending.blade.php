@@ -164,7 +164,11 @@
                         </div>
                     @elseif($order->isCancelled())
                         <p>{{ __('receipt_ui.cancelled_message') }}</p>
-                    @elseif($payment['type'] === 'unavailable' || $payment['type'] === 'channel_selection')
+                    @elseif($payment['type'] === 'unavailable')
+                        {{-- The gateway threw; the buyer gets a sentence they can
+                             act on instead of a 500. --}}
+                        <p>{{ $payment['message'] }} {!! __('receipt_ui.unavailable_contact', ['number' => $order->order_number]) !!}</p>
+                    @elseif($payment['type'] === 'channel_selection')
                         <p style="margin-bottom:1rem;">
                             Silakan pilih metode pembayaran untuk menyelesaikan pesanan sebesar <strong>{{ $payment['formatted_amount'] ?? $order->formattedTotal() }}</strong>:
                         </p>
@@ -415,40 +419,49 @@
                         @endif
 
                     @else
-                        {{-- No manual account configured or fallback: offer other channels --}}
-                        <p style="margin-bottom:1rem;">
-                            Silakan pilih metode pembayaran yang tersedia di bawah ini untuk menyelesaikan pesanan sebesar <strong>{{ $payment['formatted_amount'] ?? $order->formattedTotal() }}</strong>:
+                        {{-- No account configured yet: better to say so than to print
+                             a placeholder that looks like a real bank account. --}}
+                        <p>
+                            {!! __('receipt_ui.manual_instructions_notice', ['number' => $order->order_number]) !!}
                         </p>
 
-                        <div class="coreapi-channels">
-                            @foreach($paymentMethods as $channelId => $channel)
-                                <form method="POST" action="{{ route('order.midtrans.charge', $order->public_token) }}" class="coreapi-channel-form">
-                                    @csrf
-                                    <input type="hidden" name="channel" value="{{ $channelId }}">
-                                    <button type="submit" class="coreapi-channel-card">
-                                        <div class="coreapi-channel-header">
-                                            <div style="display:flex; align-items:center; gap:0.5rem;">
-                                                @if(($channel['category'] ?? '') === 'qris')
-                                                    <span>📱</span>
-                                                @elseif(in_array(($channel['category'] ?? ''), ['va', 'bill'], true))
-                                                    <span>🏦</span>
-                                                @else
-                                                    <span>💳</span>
-                                                @endif
-                                                <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
-                                            </div>
-                                            @if(!empty($channel['badge']))
-                                                <span class="coreapi-badge">{{ $channel['badge'] }}</span>
-                                            @endif
-                                        </div>
-                                        <div class="coreapi-channel-desc">{{ $channel['description'] }}</div>
-                                        <div class="coreapi-channel-action">
-                                            <span>Pilih metode ini &rarr;</span>
-                                        </div>
-                                    </button>
-                                </form>
-                            @endforeach
-                        </div>
+                        @if(count($paymentMethods) > 1)
+                            <p style="margin-top:1.5rem; margin-bottom:1rem;">
+                                Atau Anda dapat memilih metode pembayaran online di bawah ini:
+                            </p>
+
+                            <div class="coreapi-channels">
+                                @foreach($paymentMethods as $channelId => $channel)
+                                    @if($channelId !== \App\Services\Payment\ManualTransferGateway::KEY)
+                                        <form method="POST" action="{{ route('order.midtrans.charge', $order->public_token) }}" class="coreapi-channel-form">
+                                            @csrf
+                                            <input type="hidden" name="channel" value="{{ $channelId }}">
+                                            <button type="submit" class="coreapi-channel-card">
+                                                <div class="coreapi-channel-header">
+                                                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                                                        @if(($channel['category'] ?? '') === 'qris')
+                                                            <span>📱</span>
+                                                        @elseif(in_array(($channel['category'] ?? ''), ['va', 'bill'], true))
+                                                            <span>🏦</span>
+                                                        @else
+                                                            <span>💳</span>
+                                                        @endif
+                                                        <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
+                                                    </div>
+                                                    @if(!empty($channel['badge']))
+                                                        <span class="coreapi-badge">{{ $channel['badge'] }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="coreapi-channel-desc">{{ $channel['description'] }}</div>
+                                                <div class="coreapi-channel-action">
+                                                    <span>Pilih metode ini &rarr;</span>
+                                                </div>
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
                     @endif
 
                     <div class="receipt-actions">
