@@ -17,9 +17,14 @@ class ExperiencePolicy
         return $authUser->can('ViewAny:Experience');
     }
 
+    protected function ownsOrIsAdmin(AuthUser $authUser, Experience $experience): bool
+    {
+        return $authUser->id === $experience->user_id || $authUser->hasAnyRole(['super_admin', 'admin']);
+    }
+
     public function view(AuthUser $authUser, Experience $experience): bool
     {
-        return $authUser->can('View:Experience');
+        return $authUser->can('View:Experience') && $this->ownsOrIsAdmin($authUser, $experience);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,13 +34,14 @@ class ExperiencePolicy
 
     public function update(AuthUser $authUser, Experience $experience): bool
     {
-        return $authUser->can('Update:Experience');
+        return $authUser->can('Update:Experience') && $this->ownsOrIsAdmin($authUser, $experience);
     }
 
     public function delete(AuthUser $authUser, Experience $experience): bool
     {
-        return $authUser->can('Delete:Experience');
+        return $authUser->can('Delete:Experience') && $this->ownsOrIsAdmin($authUser, $experience);
     }
+
 
     public function restore(AuthUser $authUser, Experience $experience): bool
     {

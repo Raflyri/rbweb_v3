@@ -55,4 +55,13 @@ class ProfileResource extends Resource
             'edit' => EditProfile::route('/{record}/edit'),
         ];
     }
+
+    /**
+     * Data Isolation: Hanya tampilkan profil milik user yang sedang login.
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->where('user_id', \Illuminate\Support\Facades\Auth::id());
+    }
 }
+

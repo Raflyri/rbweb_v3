@@ -65,33 +65,14 @@ foreach ($keyFilePaths as $keyFilePath) {
     }
 }
 
-$providedKey = $_GET['key'] ?? '';
-$isDebug = ($_GET['debug'] ?? '') === '1';
-
-// ------ TEMPORARY DEBUG MODE (remove after troubleshooting) ------
-if ($isDebug) {
-    header('Content-Type: text/plain');
-    echo "=== deploy-unzip.php DEBUG ===\n";
-    echo "publicDir : {$publicDir}\n";
-    echo "baseDir   : {$baseDir}\n";
-    echo "coreDir   : {$coreDir}\n";
-    echo "isSandbox : " . ($isSandbox ? 'true' : 'false') . "\n";
-    echo "\nKey file candidates:\n";
-    foreach ($keyFilePaths as $p) {
-        $exists = $p && file_exists($p) ? 'EXISTS ✓' : 'NOT FOUND';
-        echo "  [{$exists}] {$p}\n";
-    }
-    echo "\nvalidKey found: " . (empty($validKey) ? 'NO (empty)' : 'YES (' . strlen($validKey) . ' chars)') . "\n";
-    echo "providedKey  : " . (empty($providedKey) ? '(empty)' : '*** (' . strlen($providedKey) . ' chars)') . "\n";
-    exit;
-}
-// ------ END DEBUG ------
+$providedKey = (string) ($_POST['key'] ?? ($_GET['key'] ?? ''));
 
 // Validate key
 if (empty($validKey) || !hash_equals($validKey, $providedKey)) {
     http_response_code(403);
     die('Unauthorized access.');
 }
+
 
 // Function to safely extract a zip archive
 function extractZip($zipPath, $extractTo) {

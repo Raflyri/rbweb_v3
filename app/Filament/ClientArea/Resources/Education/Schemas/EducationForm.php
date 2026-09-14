@@ -13,10 +13,8 @@ class EducationForm
     {
         return $schema
             ->components([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
                 TextInput::make('institution')
+
                     ->required(),
                 TextInput::make('degree')
                     ->required(),

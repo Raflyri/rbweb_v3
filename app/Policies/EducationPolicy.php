@@ -17,9 +17,14 @@ class EducationPolicy
         return $authUser->can('ViewAny:Education');
     }
 
+    protected function ownsOrIsAdmin(AuthUser $authUser, Education $education): bool
+    {
+        return $authUser->id === $education->user_id || $authUser->hasAnyRole(['super_admin', 'admin']);
+    }
+
     public function view(AuthUser $authUser, Education $education): bool
     {
-        return $authUser->can('View:Education');
+        return $authUser->can('View:Education') && $this->ownsOrIsAdmin($authUser, $education);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,13 +34,14 @@ class EducationPolicy
 
     public function update(AuthUser $authUser, Education $education): bool
     {
-        return $authUser->can('Update:Education');
+        return $authUser->can('Update:Education') && $this->ownsOrIsAdmin($authUser, $education);
     }
 
     public function delete(AuthUser $authUser, Education $education): bool
     {
-        return $authUser->can('Delete:Education');
+        return $authUser->can('Delete:Education') && $this->ownsOrIsAdmin($authUser, $education);
     }
+
 
     public function restore(AuthUser $authUser, Education $education): bool
     {

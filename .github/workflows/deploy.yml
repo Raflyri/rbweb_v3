@@ -50,6 +50,10 @@ jobs:
       - name: 📦 Install Composer Dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
+      - name: 🛡️ Security Audit Dependencies
+        run: composer audit || echo "::warning::Vulnerabilities detected in dependencies. Review composer audit output."
+
+
       - name: 🔄 Cache NPM Dependencies
         uses: actions/cache@v4
         with:
@@ -128,7 +132,12 @@ jobs:
       - name: 📦 Create Public Archive
         run: |
           cd public
-          zip -r /tmp/public.zip .
+          zip -r /tmp/public.zip . \
+            -x "rb-*.php" \
+            -x "*.zip" \
+            -x "*.bak" \
+            -x ".env*"
+
 
       # ----------------------------------------------------------------
       # STAGE 3: UPLOAD VIA LFTP (2 files instead of ~15,000+)

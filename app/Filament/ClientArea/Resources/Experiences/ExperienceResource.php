@@ -55,4 +55,13 @@ class ExperienceResource extends Resource
             'edit' => EditExperience::route('/{record}/edit'),
         ];
     }
+
+    /**
+     * Data Isolation: Hanya tampilkan pengalaman milik user yang sedang login.
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->where('user_id', \Illuminate\Support\Facades\Auth::id());
+    }
 }
+

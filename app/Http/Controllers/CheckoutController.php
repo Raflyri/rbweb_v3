@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\PaymentGatewayException;
 use App\Models\Order;
+use App\Models\Product;
+
 use App\Notifications\NewOrderReceived;
 use App\Services\Cart\CartService;
 use App\Services\Payment\ManualTransferGateway;
@@ -67,9 +69,41 @@ class CheckoutController extends Controller
         $data = $request->validate($rules);
 
         $items = $this->cart->items();
-        $subtotal = $this->cart->subtotal();
-        $firstItem = $items->first();
-        $itemCount = $items->count();
+        $productIds = $items->pluck('product_id')->filter()->all();
+        $dbProducts = Product::whereIn('id', $productIds)->where('is_active', true)->get()->keyBy('id');
+
+        $verifiedItems = [];
+        $subtotal = 0.0;
+        $totalQty = 0;
+
+        foreach ($items as $item) {
+            $pId = $item['product_id'] ?? null;
+            $dbProduct = $dbProducts->get($pId);
+
+            if (! $dbProduct || ! $dbProduct->hasPrice()) {
+                return redirect()->route('cart.index')
+                    ->with('cart_error', 'Satu atau lebih produk di keranjang kamu sudah tidak tersedia atau belum memiliki harga.');
+            }
+
+            $price = (float) $dbProduct->price;
+            $qty = max(1, (int) ($item['qty'] ?? 1));
+            $itemSubtotal = $price * $qty;
+
+            $subtotal += $itemSubtotal;
+            $totalQty += $qty;
+
+            $verifiedItems[] = [
+                'product_id'            => $dbProduct->id,
+                'name'                  => (string) ($dbProduct->translate('name', 'id') ?: $dbProduct->slug),
+                'type'                  => $dbProduct->type ?? ProductType::BARANG,
+                'price'                 => $price,
+                'qty'                   => $qty,
+                'subtotal'              => $itemSubtotal,
+            ];
+        }
+
+        $firstItem = $verifiedItems[0] ?? null;
+        $itemCount = count($verifiedItems);
 
         $nameSnapshot = $itemCount === 1
             ? (string) $firstItem['name']
@@ -84,7 +118,7 @@ class CheckoutController extends Controller
             'product_name_snapshot' => $nameSnapshot,
             'product_type_snapshot' => $hasPhysical ? ProductType::BARANG : ProductType::JASA,
             'price_snapshot'        => $itemCount === 1 ? (float) $firstItem['price'] : $subtotal,
-            'qty'                   => $this->cart->count(),
+            'qty'                   => $totalQty,
             'subtotal'              => $subtotal,
             'total'                 => $subtotal,
             'customer_name'         => $data['customer_name'],
@@ -95,17 +129,18 @@ class CheckoutController extends Controller
             'payment_method'        => $orderPaymentMethod,
         ]);
 
-        // Insert items into order_items table
-        foreach ($items as $item) {
+        // Insert items into order_items table using verified database prices
+        foreach ($verifiedItems as $vItem) {
             $order->items()->create([
-                'product_id'            => $item['product_id'],
-                'product_name_snapshot' => $item['name'],
-                'product_type_snapshot' => $item['type'] ?? ProductType::BARANG,
-                'price_snapshot'        => (float) $item['price'],
-                'qty'                   => (int) $item['qty'],
-                'subtotal'              => (float) ($item['price'] * $item['qty']),
+                'product_id'            => $vItem['product_id'],
+                'product_name_snapshot' => $vItem['name'],
+                'product_type_snapshot' => $vItem['type'],
+                'price_snapshot'        => $vItem['price'],
+                'qty'                   => $vItem['qty'],
+                'subtotal'              => $vItem['subtotal'],
             ]);
         }
+
 
         // If a Midtrans channel was selected and Midtrans is active, charge it immediately
         if ($isMidtransChannel && $this->gateways->midtransIsActive()) {

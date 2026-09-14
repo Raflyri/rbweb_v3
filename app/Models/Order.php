@@ -273,4 +273,65 @@ class Order extends Model
             ->dontSubmitEmptyLogs()
             ->useLogName('order');
     }
+
+    // ── PII Protection & Masking Helpers ─────────────────────────────────
+    public function maskedCustomerEmail(): string
+    {
+        $email = (string) $this->customer_email;
+        if (! str_contains($email, '@')) {
+            return Str::mask($email, '*', 2);
+        }
+
+        [$username, $domain] = explode('@', $email, 2);
+        $visibleLength = min(3, max(1, (int) floor(strlen($username) / 2)));
+        $maskedUsername = Str::mask($username, '*', $visibleLength);
+
+        return $maskedUsername . '@' . $domain;
+    }
+
+    public function maskedCustomerPhone(): string
+    {
+        $phone = (string) $this->customer_phone;
+        $len = strlen($phone);
+        if ($len <= 4) {
+            return $phone;
+        }
+
+        return Str::mask($phone, '*', 4, max(0, $len - 6));
+    }
+
+    public function maskedCustomerName(): string
+    {
+        $name = trim((string) $this->customer_name);
+        $words = explode(' ', $name);
+
+        if (count($words) === 1) {
+            return Str::mask($words[0], '*', 3);
+        }
+
+        $firstName = array_shift($words);
+        $maskedRest = array_map(fn ($w) => Str::mask($w, '*', 1), $words);
+
+        return $firstName . ' ' . implode(' ', $maskedRest);
+    }
+
+    public function maskedShippingAddress(): ?string
+    {
+        if (! filled($this->shipping_address)) {
+            return null;
+        }
+
+        $address = (string) $this->shipping_address;
+        $len = mb_strlen($address);
+
+        if ($len <= 15) {
+            return $address;
+        }
+
+        $start = min(10, (int) floor($len * 0.25));
+        $maskLength = (int) floor($len * 0.5);
+
+        return Str::mask($address, '*', $start, $maskLength);
+    }
 }
+

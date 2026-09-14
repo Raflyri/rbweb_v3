@@ -17,9 +17,14 @@ class AchievementPolicy
         return $authUser->can('ViewAny:Achievement');
     }
 
+    protected function ownsOrIsAdmin(AuthUser $authUser, Achievement $achievement): bool
+    {
+        return $authUser->id === $achievement->user_id || $authUser->hasAnyRole(['super_admin', 'admin']);
+    }
+
     public function view(AuthUser $authUser, Achievement $achievement): bool
     {
-        return $authUser->can('View:Achievement');
+        return $authUser->can('View:Achievement') && $this->ownsOrIsAdmin($authUser, $achievement);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,13 +34,14 @@ class AchievementPolicy
 
     public function update(AuthUser $authUser, Achievement $achievement): bool
     {
-        return $authUser->can('Update:Achievement');
+        return $authUser->can('Update:Achievement') && $this->ownsOrIsAdmin($authUser, $achievement);
     }
 
     public function delete(AuthUser $authUser, Achievement $achievement): bool
     {
-        return $authUser->can('Delete:Achievement');
+        return $authUser->can('Delete:Achievement') && $this->ownsOrIsAdmin($authUser, $achievement);
     }
+
 
     public function restore(AuthUser $authUser, Achievement $achievement): bool
     {

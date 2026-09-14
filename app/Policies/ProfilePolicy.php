@@ -17,9 +17,14 @@ class ProfilePolicy
         return $authUser->can('ViewAny:Profile');
     }
 
+    protected function ownsOrIsAdmin(AuthUser $authUser, Profile $profile): bool
+    {
+        return $authUser->id === $profile->user_id || $authUser->hasAnyRole(['super_admin', 'admin']);
+    }
+
     public function view(AuthUser $authUser, Profile $profile): bool
     {
-        return $authUser->can('View:Profile');
+        return $authUser->can('View:Profile') && $this->ownsOrIsAdmin($authUser, $profile);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,13 +34,14 @@ class ProfilePolicy
 
     public function update(AuthUser $authUser, Profile $profile): bool
     {
-        return $authUser->can('Update:Profile');
+        return $authUser->can('Update:Profile') && $this->ownsOrIsAdmin($authUser, $profile);
     }
 
     public function delete(AuthUser $authUser, Profile $profile): bool
     {
-        return $authUser->can('Delete:Profile');
+        return $authUser->can('Delete:Profile') && $this->ownsOrIsAdmin($authUser, $profile);
     }
+
 
     public function restore(AuthUser $authUser, Profile $profile): bool
     {

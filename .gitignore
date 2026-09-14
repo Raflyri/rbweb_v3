@@ -44,3 +44,15 @@ Thumbs.db
 /*_cleanup.php
 /test.php
 /test_compiled.php
+
+# ── Security & Deployment Artifacts ────────────────────────────────────
+/public/rb-*.php
+/public/*.zip
+/public/*.bak
+/deploy.key
+*.sql
+*.dump
+*.sqlite
+/core.zip
+/public.zip
+

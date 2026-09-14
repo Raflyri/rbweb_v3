@@ -11,7 +11,9 @@ use App\Services\Payment\PaymentGatewayResolver;
 use App\Support\PaymentStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
 
 /**
  * Midtrans calls this to say what happened to a payment.
@@ -73,24 +75,29 @@ class MidtransNotificationController extends Controller
             return response()->json(['message' => 'Invalid signature.'], 403);
         }
 
-        $order = Order::where('order_number', $orderId)->first();
+        $result = DB::transaction(function () use ($orderId, $request, $payments, $isValidSignature) {
+            $order = Order::where('order_number', $orderId)->lockForUpdate()->first();
 
-        if (! $order) {
-            Log::warning('Midtrans notification for an unknown order', [
-                'order_id' => $orderId,
-            ]);
+            if (! $order) {
+                Log::warning('Midtrans notification for an unknown order', [
+                    'order_id' => $orderId,
+                ]);
 
-            $this->recordLog($request, $isValidSignature, false, 404, 'Order not found.');
+                $this->recordLog($request, $isValidSignature, false, 404, 'Order not found.');
 
-            return response()->json(['message' => 'Order not found.'], 404);
-        }
+                return response()->json(['message' => 'Order not found.'], 404);
+            }
 
-        $this->apply($order, $request, $payments);
+            $this->apply($order, $request, $payments);
 
-        $this->recordLog($request, true, false, 200, 'OK.');
+            $this->recordLog($request, true, false, 200, 'OK.');
 
-        return response()->json(['message' => 'OK.']);
+            return response()->json(['message' => 'OK.']);
+        });
+
+        return $result;
     }
+
 
     /**
      * sha512(order_id + status_code + gross_amount + server_key), per Midtrans'
@@ -129,7 +136,28 @@ class MidtransNotificationController extends Controller
 
         $this->warnOnAmountMismatch($order, $request);
 
+        $paid = (float) $request->input('gross_amount');
+        $owed = (float) $order->payableAmount();
+
+        // Anti-Underpayment Attack: jika nominal bayar kurang dari tagihan, jangan pernah dilunaskan otomatis!
+        if (in_array($status, ['capture', 'settlement'], true) && $paid > 0.0 && ($owed - $paid) >= 0.01) {
+            Log::warning('Midtrans underpayment detected', [
+                'order_number' => $order->order_number,
+                'paid'         => $paid,
+                'owed'         => $owed,
+            ]);
+
+            $order->forceFill([
+                'payment_status' => PaymentStatus::MENUNGGU_VERIFIKASI,
+                'payment_method' => MidtransGateway::KEY,
+                'payment_note'   => "Nominal dibayar (Rp {$paid}) kurang dari total tagihan (Rp {$owed}). Menunggu verifikasi admin.",
+            ])->save();
+
+            return;
+        }
+
         switch ($status) {
+
             case 'capture':
                 // Card payments land here first. 'challenge' means Midtrans
                 // wants a human to look before the money is treated as real.

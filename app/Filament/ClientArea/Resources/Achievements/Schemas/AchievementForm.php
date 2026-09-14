@@ -14,10 +14,8 @@ class AchievementForm
     {
         return $schema
             ->components([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
                 TextInput::make('title')
+
                     ->required(),
                 DatePicker::make('date'),
                 Textarea::make('description')

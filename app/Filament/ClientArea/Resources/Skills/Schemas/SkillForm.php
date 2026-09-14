@@ -12,10 +12,8 @@ class SkillForm
     {
         return $schema
             ->components([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
                 TextInput::make('skill_name')
+
                     ->required(),
                 TextInput::make('proficiency'),
             ]);

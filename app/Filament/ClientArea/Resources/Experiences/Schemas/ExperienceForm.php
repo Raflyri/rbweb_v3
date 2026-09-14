@@ -14,10 +14,8 @@ class ExperienceForm
     {
         return $schema
             ->components([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
                 TextInput::make('company')
+
                     ->required(),
                 TextInput::make('role')
                     ->required(),

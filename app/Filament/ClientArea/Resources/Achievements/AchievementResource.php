@@ -55,4 +55,13 @@ class AchievementResource extends Resource
             'edit' => EditAchievement::route('/{record}/edit'),
         ];
     }
+
+    /**
+     * Data Isolation: Hanya tampilkan pencapaian milik user yang sedang login.
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->where('user_id', \Illuminate\Support\Facades\Auth::id());
+    }
 }
+
