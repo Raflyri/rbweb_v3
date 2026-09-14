@@ -21,6 +21,21 @@ class PaymentGatewayResolver
         };
     }
 
+    public function resolveForOrder(?\App\Models\Order $order = null): PaymentGateway
+    {
+        if ($order) {
+            if ($order->payment_method === MidtransGateway::KEY || filled($order->midtrans_payment_type)) {
+                return $this->midtransOrFallback();
+            }
+
+            if ($order->payment_method === ManualTransferGateway::KEY) {
+                return new ManualTransferGateway();
+            }
+        }
+
+        return $this->resolve();
+    }
+
     public function activeGatewayKey(): string
     {
         if (app()->runningUnitTests()) {

@@ -109,6 +109,48 @@
                                   placeholder="{{ $product->isBarang() ? __('order_ui.notes_placeholder_goods') : __('order_ui.notes_placeholder_services') }}">{{ old('notes') }}</textarea>
                     </div>
 
+                    @if(!empty($paymentMethods))
+                        <div class="order-field" style="margin-top:0.5rem;">
+                            <label style="font-size:0.95rem; font-weight:800; color:#F5F5F5; margin-bottom:0.5rem;">
+                                Metode Pembayaran <span class="order-req">*</span>
+                            </label>
+                            <div class="payment-methods-grid">
+                                @php
+                                    $defaultSelected = old('payment_method', array_key_first($paymentMethods));
+                                @endphp
+                                @foreach($paymentMethods as $channelKey => $method)
+                                    <label class="payment-method-card {{ $defaultSelected === $channelKey ? 'payment-method-card--active' : '' }}">
+                                        <input type="radio" name="payment_method" value="{{ $channelKey }}"
+                                               class="payment-method-radio"
+                                               {{ $defaultSelected === $channelKey ? 'checked' : '' }}
+                                               onchange="highlightPaymentMethod(this)">
+
+                                        <div class="payment-method-body">
+                                            <div class="payment-method-header">
+                                                <div class="payment-method-title-wrap">
+                                                    @if($method['category'] === 'qris')
+                                                        <span class="payment-icon">📱</span>
+                                                    @elseif(in_array($method['category'], ['va', 'bill'], true))
+                                                        <span class="payment-icon">🏦</span>
+                                                    @else
+                                                        <span class="payment-icon">💳</span>
+                                                    @endif
+                                                    <strong class="payment-method-name">{{ $method['name'] }}</strong>
+                                                </div>
+
+                                                @if(!empty($method['badge']))
+                                                    <span class="payment-method-badge">{{ $method['badge'] }}</span>
+                                                @endif
+                                            </div>
+
+                                            <p class="payment-method-desc">{{ $method['description'] }}</p>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Honeypot: hidden from people, irresistible to bots. Anything
                          typed here fails validation (see StoreOrderRequest). --}}
                     <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;">
@@ -296,5 +338,66 @@
 @media (max-width: 560px) {
     .order-row { grid-template-columns: 1fr; }
 }
+
+/* ── Payment Methods Grid ── */
+.payment-methods-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+.payment-method-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.payment-method-card:hover {
+    border-color: rgba(220,38,38,0.4);
+    background: rgba(255,255,255,0.035);
+}
+.payment-method-card--active {
+    border-color: var(--rb-red) !important;
+    background: rgba(220,38,38,0.06) !important;
+    box-shadow: 0 0 12px rgba(220,38,38,0.15);
+}
+.payment-method-radio {
+    margin-top: 0.25rem;
+    accent-color: var(--rb-red);
+    cursor: pointer;
+    width: 18px; height: 18px;
+}
+.payment-method-body {
+    flex: 1; display: flex; flex-direction: column; gap: 0.35rem;
+}
+.payment-method-header {
+    display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+}
+.payment-method-title-wrap {
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.payment-icon { font-size: 1.1rem; }
+.payment-method-name { font-size: 0.95rem; font-weight: 700; color: #F5F5F5; }
+.payment-method-badge {
+    font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem;
+    border-radius: 999px; background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.3); color: #34D399;
+}
+.payment-method-desc { font-size: 0.8rem; color: var(--color-muted); line-height: 1.45; margin: 0; }
 </style>
+
+<script>
+function highlightPaymentMethod(radio) {
+    document.querySelectorAll('.payment-method-card').forEach(function(card) {
+        card.classList.remove('payment-method-card--active');
+    });
+    if (radio.checked) {
+        radio.closest('.payment-method-card').classList.add('payment-method-card--active');
+    }
+}
+</script>
 @endsection

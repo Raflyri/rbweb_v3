@@ -66,6 +66,31 @@ class OrderForm
                             ->label('Subtotal')
                             ->prefix('Rp')
                             ->disabled(),
+
+                        Placeholder::make('order_items_list')
+                            ->label('Daftar Rincian Produk')
+                            ->content(function (?Order $record) {
+                                if (! $record) {
+                                    return '-';
+                                }
+                                $items = $record->allItems();
+                                if ($items->isEmpty()) {
+                                    return '-';
+                                }
+
+                                $html = '<div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.875rem;">';
+                                foreach ($items as $item) {
+                                    $html .= '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.35rem;">';
+                                    $html .= '<div><strong>' . e($item->product_name_snapshot) . '</strong> <span style="font-size:0.75rem; color:#94A3B8;">(' . e(ProductType::label($item->product_type_snapshot)) . ')</span> &times; ' . e($item->qty) . '</div>';
+                                    $html .= '<div style="font-weight:700; font-family:monospace;">' . e($item->formattedSubtotal()) . '</div>';
+                                    $html .= '</div>';
+                                }
+                                $html .= '</div>';
+
+                                return new HtmlString($html);
+                            })
+                            ->columnSpanFull()
+                            ->visible(fn (?Order $record): bool => (bool) $record?->items()->exists()),
                     ]),
 
                 // ── What the buyer told us (frozen) ─────────────────────

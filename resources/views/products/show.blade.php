@@ -154,21 +154,45 @@
                         <div class="pdp-order-error" role="alert">{{ session('order_error') }}</div>
                     @endif
 
-                    <div class="pdp-actions">
-                        @if($product->hasPrice() && $product->isInStock())
-                            <a href="{{ route('order.create', $product->slug) }}" class="rb-btn-primary pdp-btn">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                                </svg>
-                                {{ __('product_ui.order_now') }}
-                            </a>
-                        @endif
+                    @if($product->hasPrice() && $product->isInStock())
+                        <form method="POST" action="{{ route('cart.add', $product->slug) }}" class="pdp-cart-form">
+                            @csrf
+                            <div class="pdp-qty-row">
+                                <label for="pdp-qty" class="pdp-qty-label">Jumlah</label>
+                                <div class="cart-qty-control">
+                                    <button type="button" class="cart-qty-btn" onclick="pdpUpdateQty(-1)">-</button>
+                                    <input type="number" id="pdp-qty" name="qty" value="1" min="1"
+                                           max="{{ $product->tracksStock() ? $product->stock : 999 }}"
+                                           class="cart-qty-input">
+                                    <button type="button" class="cart-qty-btn" onclick="pdpUpdateQty(1)">+</button>
+                                </div>
+                            </div>
 
+                            <div class="pdp-actions" style="margin-top:0.75rem;">
+                                <button type="submit" name="action" value="add_cart" class="rb-btn-primary pdp-btn pdp-btn--cart" style="cursor:pointer;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+                                        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                                    </svg>
+                                    Tambah ke Keranjang
+                                </button>
+
+                                <button type="submit" name="buy_now" value="1" class="rb-btn-primary pdp-btn pdp-btn--buy" style="cursor:pointer; background:rgba(255,255,255,0.06); border:1px solid var(--color-border); color:#F5F5F5;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                                    </svg>
+                                    Beli Langsung
+                                </button>
+                            </div>
+                        </form>
+                    @endif
+
+                    <div class="pdp-actions pdp-actions--secondary" style="margin-top:0.5rem;">
                         @if($contact['whatsapp'])
                             <a href="{{ $contact['whatsapp'] }}?text={{ $waMessage }}"
-                               class="rb-btn-primary pdp-btn" target="_blank" rel="noopener">
+                               class="rb-btn-ghost pdp-btn" target="_blank" rel="noopener">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
@@ -541,5 +565,55 @@
 @media (max-width: 640px) {
     .catalog-grid { grid-template-columns: 1fr; }
 }
+
+/* ── PDP Cart & Quantity Control ── */
+.pdp-cart-form {
+    display: flex; flex-direction: column; gap: 0.85rem;
+}
+.pdp-qty-row {
+    display: flex; align-items: center; gap: 1rem;
+}
+.pdp-qty-label {
+    font-size: 0.85rem; font-weight: 700; color: var(--color-text);
+}
+.cart-qty-control {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--color-border); border-radius: 0.5rem; overflow: hidden;
+    background: rgba(255,255,255,0.03);
+}
+.cart-qty-btn {
+    background: none; border: none; color: var(--color-text); width: 32px; height: 36px;
+    cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+}
+.cart-qty-btn:hover { background: rgba(255,255,255,0.1); }
+.cart-qty-input {
+    width: 44px; height: 36px; text-align: center; background: none; border: none;
+    color: #F5F5F5; font-size: 0.95rem; font-weight: 700; -moz-appearance: textfield;
+}
+.cart-qty-input::-webkit-outer-spin-button,
+.cart-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pdp-btn--cart {
+    background: var(--rb-red); color: #FFFFFF;
+}
+.pdp-btn--cart:hover {
+    background: #C53030;
+}
+.pdp-actions--secondary {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+}
 </style>
+
+<script>
+function pdpUpdateQty(delta) {
+    const input = document.getElementById('pdp-qty');
+    if (!input) return;
+    let current = parseInt(input.value) || 1;
+    let max = parseInt(input.max) || 999;
+    let next = current + delta;
+    if (next < 1) next = 1;
+    if (next > max) next = max;
+    input.value = next;
+}
+</script>
 @endsection

@@ -32,20 +32,26 @@ class OrderController extends Controller
      * item sends the buyer back to its page — where the WhatsApp and email
      * buttons are — instead of showing a form that could not be honoured.
      */
-    public function create(Product $product): View|RedirectResponse
+    public function create(Product $product, PaymentGatewayResolver $gateways): View|RedirectResponse
     {
         if ($redirect = $this->guardOrderable($product)) {
             return $redirect;
         }
 
+        $checkoutCtrl = new CheckoutController(app(\App\Services\Cart\CartService::class), $gateways);
+
         return view('orders.create', [
-            'product' => $product,
-            'locale'  => ArticleLocale::current(),
+            'product'        => $product,
+            'locale'         => ArticleLocale::current(),
+            'paymentMethods' => $checkoutCtrl->availablePaymentMethods(),
         ]);
     }
 
-    public function store(StoreOrderRequest $request, Product $product): RedirectResponse
-    {
+    public function store(
+        StoreOrderRequest $request,
+        Product $product,
+        PaymentGatewayResolver $gateways
+    ): RedirectResponse {
         if ($redirect = $this->guardOrderable($product)) {
             return $redirect;
         }
@@ -58,6 +64,10 @@ class OrderController extends Controller
         // the buyer can edit.
         $price    = (float) $product->price;
         $subtotal = $price * $qty;
+
+        $paymentMethodInput = (string) ($data['payment_method'] ?? '');
+        $isMidtransChannel = array_key_exists($paymentMethodInput, MidtransGateway::ALL_CHANNELS);
+        $orderPaymentMethod = $isMidtransChannel ? MidtransGateway::KEY : ($paymentMethodInput ?: \App\Services\Payment\ManualTransferGateway::KEY);
 
         $order = Order::place([
             'product_id'            => $product->id,
@@ -75,7 +85,29 @@ class OrderController extends Controller
             'shipping_address'      => $product->isBarang() ? $data['shipping_address'] : null,
             'preferred_date'        => $product->isJasa() ? ($data['preferred_date'] ?? null) : null,
             'notes'                 => $data['notes'] ?? null,
+            'payment_method'        => $orderPaymentMethod,
         ]);
+
+        $order->items()->create([
+            'product_id'            => $product->id,
+            'product_name_snapshot' => $product->translate('name', 'id') ?: $product->slug,
+            'product_type_snapshot' => $product->type,
+            'price_snapshot'        => $price,
+            'qty'                   => $qty,
+            'subtotal'              => $subtotal,
+        ]);
+
+        if ($isMidtransChannel && $gateways->midtransIsActive()) {
+            try {
+                (new MidtransGateway())->chargeChannel($order, $paymentMethodInput);
+            } catch (\Throwable $e) {
+                Log::warning('Direct order auto-charge failed', [
+                    'order_number' => $order->order_number,
+                    'channel'      => $paymentMethodInput,
+                    'error'        => $e->getMessage(),
+                ]);
+            }
+        }
 
         $this->notifyAdmin($order);
 
@@ -91,7 +123,7 @@ class OrderController extends Controller
      */
     public function pending(Order $order, PaymentGatewayResolver $gateways): View
     {
-        $gateway = $gateways->resolve();
+        $gateway = $gateways->resolveForOrder($order);
 
         try {
             // Whatever the active gateway needs the page to say. The controller
@@ -114,10 +146,13 @@ class OrderController extends Controller
             ];
         }
 
+        $checkoutCtrl = new CheckoutController(app(\App\Services\Cart\CartService::class), $gateways);
+
         return view('orders.pending', [
-            'order'   => $order,
-            'contact' => $this->contactLinks(),
-            'payment' => $payment,
+            'order'          => $order,
+            'contact'        => $this->contactLinks(),
+            'payment'        => $payment,
+            'paymentMethods' => $checkoutCtrl->availablePaymentMethods(),
         ]);
     }
 
@@ -275,14 +310,31 @@ class OrderController extends Controller
         }
 
         $channel = (string) $request->input('channel');
-        $gateway = $gateways->resolve();
+
+        if ($channel === \App\Services\Payment\ManualTransferGateway::KEY) {
+            $order->update([
+                'payment_method'           => \App\Services\Payment\ManualTransferGateway::KEY,
+                'midtrans_payment_type'    => null,
+                'midtrans_payment_payload' => null,
+            ]);
+
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_info', 'Metode pembayaran diubah ke Transfer Bank Manual.');
+        }
+
+        $gateway = $gateways->resolveForOrder($order);
 
         if (! ($gateway instanceof MidtransGateway)) {
+            $gateway = new MidtransGateway();
+        }
+
+        if (! $gateways->midtransIsActive()) {
             return redirect()->route('order.pending', $order->public_token)
                 ->with('payment_error', 'Metode pembayaran online sedang tidak aktif.');
         }
 
         try {
+            $order->update(['payment_method' => MidtransGateway::KEY]);
             $gateway->chargeChannel($order, $channel);
 
             return redirect()->route('order.pending', $order->public_token)
@@ -309,12 +361,15 @@ class OrderController extends Controller
     {
         if (! $order->isPaid() && ! $order->isCancelled()) {
             $order->update([
+                'payment_method'           => null,
+                'midtrans_transaction_id'  => null,
                 'midtrans_payment_type'    => null,
                 'midtrans_payment_payload' => null,
             ]);
         }
 
-        return redirect()->route('order.pending', $order->public_token);
+        return redirect()->route('order.pending', $order->public_token)
+            ->with('payment_info', 'Silakan pilih metode pembayaran yang diinginkan.');
     }
 
     /**

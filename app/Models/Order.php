@@ -140,6 +140,39 @@ class Order extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Return all order items, falling back to a synthetic item for legacy single-item orders.
+     *
+     * @return \Illuminate\Support\Collection<int, OrderItem>
+     */
+    public function allItems(): \Illuminate\Support\Collection
+    {
+        if ($this->relationLoaded('items') ? $this->items->isNotEmpty() : $this->items()->exists()) {
+            return $this->items;
+        }
+
+        if (filled($this->product_name_snapshot)) {
+            $synthetic = new OrderItem([
+                'order_id'              => $this->id,
+                'product_id'            => $this->product_id,
+                'product_name_snapshot' => $this->product_name_snapshot,
+                'product_type_snapshot' => $this->product_type_snapshot,
+                'price_snapshot'        => $this->price_snapshot,
+                'qty'                   => $this->qty,
+                'subtotal'              => $this->subtotal,
+            ]);
+
+            return collect([$synthetic]);
+        }
+
+        return collect();
+    }
+
     // ── Scopes ───────────────────────────────────────────────────────────
     /** Named for the status, not "new" — that reads as newInstance() here. */
     public function scopeBaru(Builder $query): Builder
@@ -214,6 +247,10 @@ class Order extends Model
     // ── State helpers ────────────────────────────────────────────────────
     public function needsShipping(): bool
     {
+        if ($this->relationLoaded('items') ? $this->items->isNotEmpty() : $this->items()->exists()) {
+            return $this->items->where('product_type_snapshot', ProductType::BARANG)->isNotEmpty();
+        }
+
         return $this->product_type_snapshot === ProductType::BARANG;
     }
 

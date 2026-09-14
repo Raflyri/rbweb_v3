@@ -8,6 +8,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\StorageFileController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Payment\MidtransNotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AboutController;
@@ -27,6 +29,19 @@ Route::get('/blog/{slug}', [ArticleController::class, 'show'])->name('blog.show'
 // market that buys them. The route names stay English to match blog.index /
 // blog.show, so every route() call in the codebase reads the same way.
 Route::get('/produk-layanan', [ProductController::class, 'index'])->name('products.index');
+
+// ── Shopping Cart (Keranjang Belanja) ───────────────────────────
+Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
+Route::post('/keranjang/tambah/{product:slug}', [CartController::class, 'add'])->name('cart.add');
+Route::post('/keranjang/update', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/keranjang/hapus/{productId}', [CartController::class, 'remove'])->name('cart.remove');
+Route::post('/keranjang/kosongkan', [CartController::class, 'clear'])->name('cart.clear');
+
+// ── Multi-Item Checkout ─────────────────────────────────────────
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [CheckoutController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('checkout.store');
 
 // ── Ordering ────────────────────────────────────────────────────
 // Declared before /produk-layanan/{slug} so "pesan" is never swallowed by the

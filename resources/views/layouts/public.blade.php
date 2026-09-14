@@ -84,6 +84,52 @@
          Vite — CSS + JS (includes Tailwind v4 + Typography plugin)
     ══════════════════════════════════════════════════════ --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+    .rb-cart-icon-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--color-border);
+        color: #F5F5F5;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+    .rb-cart-icon-btn:hover {
+        background: rgba(220, 38, 38, 0.12);
+        border-color: var(--rb-red);
+        color: var(--rb-red);
+    }
+    .rb-cart-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #E53E3E;
+        color: #FFFFFF;
+        font-size: 0.65rem;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        padding: 0 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+    @media (max-width: 868px) {
+        .rb-mobile-nav-controls {
+            display: flex !important;
+            align-items: center;
+            gap: 0.75rem;
+        }
+    }
+    </style>
 </head>
 
 <body>
@@ -120,7 +166,7 @@
                 <a href="{{ route('about') }}" class="rb-nav-link @yield('nav_about_active')">{{ __('nav.about') }}</a>
             </nav>
 
-            {{-- Language switcher + CTA --}}
+            {{-- Language switcher + Cart + CTA --}}
             <div class="rb-desktop-nav" style="display:flex;align-items:center;gap:0.875rem;">
                 {{-- Plain links, not buttons: scroll-effects.js (which powers the
                      homepage switcher) is only loaded on the homepage, and the
@@ -137,6 +183,19 @@
                     @endforeach
                 </div>
 
+                @php
+                    $cartCount = app(\App\Services\Cart\CartService::class)->count();
+                @endphp
+                <a href="{{ route('cart.index') }}" class="rb-cart-icon-btn" aria-label="Keranjang Belanja" title="Keranjang Belanja">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+                        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                    </svg>
+                    @if($cartCount > 0)
+                        <span class="rb-cart-badge">{{ $cartCount }}</span>
+                    @endif
+                </a>
+
                 <a href="mailto:hello@rbeverything.com" class="rb-btn-primary">
                     {{ __('nav.cta') }}
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -146,11 +205,25 @@
                 </a>
             </div>
 
-            {{-- Hamburger --}}
-            <button id="rb-hamburger" class="rb-hamburger"
-                    aria-label="Open navigation menu" aria-expanded="false" aria-controls="rb-mobile-menu">
-                <span></span><span></span><span></span>
-            </button>
+            {{-- Mobile Nav Controls (Cart + Hamburger) --}}
+            <div class="rb-mobile-nav-controls" style="display:none;">
+                @php
+                    $cartCount = $cartCount ?? app(\App\Services\Cart\CartService::class)->count();
+                @endphp
+                <a href="{{ route('cart.index') }}" class="rb-cart-icon-btn" aria-label="Keranjang Belanja">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+                        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+                    </svg>
+                    @if($cartCount > 0)
+                        <span class="rb-cart-badge">{{ $cartCount }}</span>
+                    @endif
+                </a>
+                <button id="rb-hamburger" class="rb-hamburger"
+                        aria-label="Open navigation menu" aria-expanded="false" aria-controls="rb-mobile-menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -159,6 +232,7 @@
         <nav style="display:flex;flex-direction:column;gap:0.25rem;">
             <a href="{{ route('products.index', ['type' => 'barang']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.products') }}</a>
             <a href="{{ route('products.index', ['type' => 'jasa']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.services') }}</a>
+            <a href="{{ route('cart.index') }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Keranjang Belanja {{ $cartCount > 0 ? '(' . $cartCount . ')' : '' }}</a>
             <a href="/blog"      style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.blog') }}</a>
             <a href="{{ route('about') }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.about') }}</a>
         </nav>

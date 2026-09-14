@@ -34,6 +34,7 @@ class StoreOrderRequest extends FormRequest
             'shipping_address' => [$this->orderedProduct()?->isBarang() ? 'required' : 'nullable', 'string', 'max:1000'],
             'preferred_date'   => ['nullable', 'date', 'after_or_equal:today'],
             'notes'            => ['nullable', 'string', 'max:2000'],
+            'payment_method'   => ['nullable', 'string', 'max:50'],
 
             // Honeypot. Real people never see this field, so anything in it is
             // a bot filling every input on the page.

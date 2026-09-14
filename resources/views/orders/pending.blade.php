@@ -56,18 +56,42 @@
                     </div>
                 </div>
 
+                @php
+                    $orderItems = $order->allItems();
+                @endphp
+
+                @if($orderItems->count() > 1)
+                    <div class="receipt-items-wrap">
+                        <h3 class="receipt-block__title">Rincian Produk Dipesan</h3>
+                        <div class="receipt-items-table">
+                            @foreach($orderItems as $item)
+                                <div class="receipt-item-row">
+                                    <div class="receipt-item-info">
+                                        <strong>{{ $item->product_name_snapshot }}</strong>
+                                        <span class="receipt-type">{{ ProductType::label($item->product_type_snapshot) }}</span>
+                                    </div>
+                                    <div class="receipt-item-qty">&times; {{ $item->qty }}</div>
+                                    <div class="receipt-item-subtotal">{{ $item->formattedSubtotal() }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <dl class="receipt-lines">
-                    <div class="receipt-line">
-                        <dt>{{ __('receipt_ui.product') }}</dt>
-                        <dd>
-                            {{ $order->product_name_snapshot }}
-                            <span class="receipt-type">{{ ProductType::label($order->product_type_snapshot) }}</span>
-                        </dd>
-                    </div>
-                    <div class="receipt-line">
-                        <dt>{{ __('receipt_ui.qty') }}</dt>
-                        <dd>{{ $order->qty }}</dd>
-                    </div>
+                    @if($orderItems->count() <= 1)
+                        <div class="receipt-line">
+                            <dt>{{ __('receipt_ui.product') }}</dt>
+                            <dd>
+                                {{ $order->product_name_snapshot }}
+                                <span class="receipt-type">{{ ProductType::label($order->product_type_snapshot) }}</span>
+                            </dd>
+                        </div>
+                        <div class="receipt-line">
+                            <dt>{{ __('receipt_ui.qty') }}</dt>
+                            <dd>{{ $order->qty }}</dd>
+                        </div>
+                    @endif
                     <div class="receipt-line">
                         <dt>{{ __('receipt_ui.subtotal') }}</dt>
                         <dd>{{ $order->formattedSubtotal() }}</dd>
@@ -121,31 +145,47 @@
                     @endif
 
                     @if($order->isPaid())
-                        <p>
-                            @php
-                                $paidDateStr = $order->paid_at ? __('receipt_ui.paid_on', ['date' => $order->paid_at->format('d/m/Y H:i')]) : '';
-                            @endphp
-                            {!! __('receipt_ui.paid_message', ['date' => $paidDateStr]) !!}
-                        </p>
+                        <div class="receipt-paid-box">
+                            <div class="receipt-paid-check" aria-hidden="true">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 6 9 17l-5-5"/>
+                                </svg>
+                            </div>
+                            <h3 class="receipt-paid-title">Pembayaran Berhasil & Terverifikasi!</h3>
+                            <p class="receipt-paid-desc">
+                                @php
+                                    $paidDateStr = $order->paid_at ? __('receipt_ui.paid_on', ['date' => $order->paid_at->format('d/m/Y H:i')]) : '';
+                                @endphp
+                                {!! __('receipt_ui.paid_message', ['date' => $paidDateStr]) !!}
+                            </p>
+                            <p style="font-size:0.875rem; color:var(--color-muted); margin:0;">
+                                Tim kami segera memproses pesanan Anda. Pemberitahuan akan dikirimkan ke <strong>{{ $order->customer_email }}</strong>.
+                            </p>
+                        </div>
                     @elseif($order->isCancelled())
                         <p>{{ __('receipt_ui.cancelled_message') }}</p>
-                    @elseif($payment['type'] === 'unavailable')
-                        {{-- The gateway threw; the buyer gets a sentence they can
-                             act on instead of a 500. --}}
-                        <p>{{ $payment['message'] }} {!! __('receipt_ui.unavailable_contact', ['number' => $order->order_number]) !!}</p>
-                    @elseif($payment['type'] === 'channel_selection')
+                    @elseif($payment['type'] === 'unavailable' || $payment['type'] === 'channel_selection')
                         <p style="margin-bottom:1rem;">
-                            Silakan pilih metode pembayaran online untuk menyelesaikan pesanan sebesar <strong>{{ $payment['formatted_amount'] }}</strong>:
+                            Silakan pilih metode pembayaran untuk menyelesaikan pesanan sebesar <strong>{{ $payment['formatted_amount'] ?? $order->formattedTotal() }}</strong>:
                         </p>
 
                         <div class="coreapi-channels">
-                            @foreach($payment['channels'] as $channelId => $channel)
+                            @foreach($paymentMethods as $channelId => $channel)
                                 <form method="POST" action="{{ route('order.midtrans.charge', $order->public_token) }}" class="coreapi-channel-form">
                                     @csrf
                                     <input type="hidden" name="channel" value="{{ $channelId }}">
                                     <button type="submit" class="coreapi-channel-card">
                                         <div class="coreapi-channel-header">
-                                            <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
+                                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                                @if(($channel['category'] ?? '') === 'qris')
+                                                    <span>📱</span>
+                                                @elseif(in_array(($channel['category'] ?? ''), ['va', 'bill'], true))
+                                                    <span>🏦</span>
+                                                @else
+                                                    <span>💳</span>
+                                                @endif
+                                                <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
+                                            </div>
                                             @if(!empty($channel['badge']))
                                                 <span class="coreapi-badge">{{ $channel['badge'] }}</span>
                                             @endif
@@ -302,6 +342,16 @@
                         </p>
                     @elseif($payment['type'] === 'manual_transfer' && $payment['configured'])
 
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                            <span style="font-size:0.85rem; color:var(--color-muted);">Metode Pembayaran: <strong>Transfer Bank Manual</strong></span>
+                            <form method="POST" action="{{ route('order.midtrans.reset', $order->public_token) }}">
+                                @csrf
+                                <button type="submit" class="coreapi-btn-change" title="Ganti Metode Pembayaran">
+                                    Ganti Metode
+                                </button>
+                            </form>
+                        </div>
+
                         <div class="pay-account">
                             <div class="pay-account__row">
                                 <span>{{ __('receipt_ui.bank_name') }}</span>
@@ -309,7 +359,10 @@
                             </div>
                             <div class="pay-account__row">
                                 <span>{{ __('receipt_ui.account_number') }}</span>
-                                <strong class="pay-account__number">{{ $payment['account']['account_number'] }}</strong>
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <strong class="pay-account__number">{{ $payment['account']['account_number'] }}</strong>
+                                    <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ $payment['account']['account_number'] }}', this)">Salin</button>
+                                </div>
                             </div>
                             <div class="pay-account__row">
                                 <span>{{ __('receipt_ui.account_holder') }}</span>
@@ -317,7 +370,10 @@
                             </div>
                             <div class="pay-account__row pay-account__row--amount">
                                 <span>{{ __('receipt_ui.transfer_amount') }}</span>
-                                <strong>{{ $payment['formatted_amount'] }}</strong>
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <strong>{{ $payment['formatted_amount'] }}</strong>
+                                    <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ (int) round($payment['amount']) }}', this)">Salin</button>
+                                </div>
                             </div>
                         </div>
 
@@ -359,11 +415,40 @@
                         @endif
 
                     @else
-                        {{-- No account configured yet: better to say so than to print
-                             a placeholder that looks like a real bank account. --}}
-                        <p>
-                            {!! __('receipt_ui.manual_instructions_notice', ['number' => $order->order_number]) !!}
+                        {{-- No manual account configured or fallback: offer other channels --}}
+                        <p style="margin-bottom:1rem;">
+                            Silakan pilih metode pembayaran yang tersedia di bawah ini untuk menyelesaikan pesanan sebesar <strong>{{ $payment['formatted_amount'] ?? $order->formattedTotal() }}</strong>:
                         </p>
+
+                        <div class="coreapi-channels">
+                            @foreach($paymentMethods as $channelId => $channel)
+                                <form method="POST" action="{{ route('order.midtrans.charge', $order->public_token) }}" class="coreapi-channel-form">
+                                    @csrf
+                                    <input type="hidden" name="channel" value="{{ $channelId }}">
+                                    <button type="submit" class="coreapi-channel-card">
+                                        <div class="coreapi-channel-header">
+                                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                                @if(($channel['category'] ?? '') === 'qris')
+                                                    <span>📱</span>
+                                                @elseif(in_array(($channel['category'] ?? ''), ['va', 'bill'], true))
+                                                    <span>🏦</span>
+                                                @else
+                                                    <span>💳</span>
+                                                @endif
+                                                <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
+                                            </div>
+                                            @if(!empty($channel['badge']))
+                                                <span class="coreapi-badge">{{ $channel['badge'] }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="coreapi-channel-desc">{{ $channel['description'] }}</div>
+                                        <div class="coreapi-channel-action">
+                                            <span>Pilih metode ini &rarr;</span>
+                                        </div>
+                                    </button>
+                                </form>
+                            @endforeach
+                        </div>
                     @endif
 
                     <div class="receipt-actions">
@@ -469,9 +554,54 @@
 }
 .receipt-block { border-top: 1px solid var(--color-border); padding-top: 1.5rem; }
 
-.receipt-payment { border-top: 1px solid var(--color-border); padding-top: 1.5rem; }
-.receipt-payment p { font-size: 0.9rem; color: var(--color-muted); line-height: 1.75; margin: 0 0 1.25rem; }
-.receipt-payment strong { color: var(--color-text); }
+.receipt-items-wrap {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.receipt-items-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.receipt-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    font-size: 0.875rem;
+}
+.receipt-item-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+.receipt-item-info strong { color: #F5F5F5; }
+.receipt-item-qty { color: var(--color-muted); font-size: 0.85rem; }
+.receipt-item-subtotal { font-weight: 700; color: #F5F5F5; }
+
+.receipt-paid-box {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: 1rem;
+    background: rgba(52, 211, 153, 0.06);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    margin-bottom: 1.5rem;
+}
+.receipt-paid-check {
+    width: 3.5rem; height: 3.5rem; margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(52, 211, 153, 0.15);
+    border: 1px solid rgba(52, 211, 153, 0.4);
+}
+.receipt-paid-title {
+    font-size: 1.35rem; font-weight: 900; color: #34D399; margin: 0 0 0.5rem;
+}
+.receipt-paid-desc {
+    font-size: 0.95rem; color: #F5F5F5; line-height: 1.6; margin: 0 0 0.75rem !important;
+}
 
 /* ── Payment ────────────────────────────────────────── */
 .receipt-alert {
