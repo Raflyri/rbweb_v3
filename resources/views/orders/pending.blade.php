@@ -111,11 +111,11 @@
                 <div class="receipt-block">
                     <h2 class="receipt-block__title">{{ __('receipt_ui.customer_title') }}</h2>
                     <dl class="receipt-lines receipt-lines--plain">
-                        <div class="receipt-line"><dt>{{ __('receipt_ui.name') }}</dt><dd>{{ $order->maskedCustomerName() }}</dd></div>
-                        <div class="receipt-line"><dt>{{ __('receipt_ui.email') }}</dt><dd>{{ $order->maskedCustomerEmail() }}</dd></div>
-                        <div class="receipt-line"><dt>{{ __('receipt_ui.phone') }}</dt><dd>{{ $order->maskedCustomerPhone() }}</dd></div>
+                        <div class="receipt-line"><dt>{{ __('receipt_ui.name') }}</dt><dd>{{ $order->customer_name }}</dd></div>
+                        <div class="receipt-line"><dt>{{ __('receipt_ui.email') }}</dt><dd>{{ $order->customer_email }}</dd></div>
+                        <div class="receipt-line"><dt>{{ __('receipt_ui.phone') }}</dt><dd>{{ $order->customer_phone }}</dd></div>
                         @if($order->shipping_address)
-                            <div class="receipt-line"><dt>{{ __('receipt_ui.address') }}</dt><dd>{{ $order->maskedShippingAddress() }}</dd></div>
+                            <div class="receipt-line"><dt>{{ __('receipt_ui.address') }}</dt><dd>{{ $order->shipping_address }}</dd></div>
                         @endif
 
                         @if($order->preferred_date)
