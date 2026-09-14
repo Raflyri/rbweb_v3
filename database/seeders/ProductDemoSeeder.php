@@ -103,6 +103,46 @@ class ProductDemoSeeder extends Seeder
                     'en' => 'Hands-on help moving hosts or servers, priced by the size of the system.',
                 ],
             ],
+            [
+                'type'  => ProductType::BARANG,
+                'price' => 350000,
+                'stock' => 25,
+                'name'  => ['id' => 'Switch Hub Gigabit 8-Port', 'en' => '8-Port Gigabit Desktop Switch'],
+                'short' => [
+                    'id' => 'Switch ethernet 8 port gigabit 10/100/1000 Mbps hemat daya dan siap pakai.',
+                    'en' => '8-port Gigabit 10/100/1000 Mbps plug-and-play desktop switch with energy-saving technology.',
+                ],
+            ],
+            [
+                'type'  => ProductType::BARANG,
+                'price' => 1250000,
+                'stock' => 15,
+                'name'  => ['id' => 'SSD NVMe M.2 1TB PCIe Gen4', 'en' => '1TB PCIe Gen4 NVMe M.2 SSD'],
+                'short' => [
+                    'id' => 'Penyimpanan internal kecepatan tinggi hingga 5000MB/s untuk PC dan laptop.',
+                    'en' => 'High-speed internal storage up to 5000MB/s for desktop PCs and laptops.',
+                ],
+            ],
+            [
+                'type'  => ProductType::BARANG,
+                'price' => 420000,
+                'stock' => 20,
+                'name'  => ['id' => 'Webcam Pro Full HD 1080p', 'en' => 'Full HD 1080p Pro Webcam'],
+                'short' => [
+                    'id' => 'Kamera web resolusi Full HD dengan mikrofon stereo peredam kebisingan.',
+                    'en' => 'Full HD web camera with noise-cancelling dual stereo microphones.',
+                ],
+            ],
+            [
+                'type'  => ProductType::JASA,
+                'price' => 650000,
+                'stock' => null,
+                'name'  => ['id' => 'Paket Setup VPS Cloud & Hardening Linux', 'en' => 'Cloud VPS Setup & Linux Hardening Package'],
+                'short' => [
+                    'id' => 'Konfigurasi awal server VPS, optimasi Nginx/PHP, firewall, SSH hardening, dan SSL otomatis.',
+                    'en' => 'Initial cloud VPS setup, Nginx/PHP optimization, UFW firewall, SSH hardening, and automated SSL.',
+                ],
+            ],
         ];
 
         foreach ($samples as $index => $sample) {
