@@ -25,6 +25,10 @@ Route::get('/signed/rb', function () {
     return view('signed.rb');
 })->name('signed.rb');
 
+Route::get('/offering/rb', function () {
+    return view('offering.rb');
+})->name('offering.rb');
+
 // ── Blog Public Routes ──────────────────────────────────────────
 Route::get('/blog', [ArticleController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [ArticleController::class, 'show'])->name('blog.show');
