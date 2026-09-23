@@ -20,6 +20,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/tentang-kami', [AboutController::class, 'index'])->name('about');
 Route::redirect('/about', '/tentang-kami');
 
+// ── Document Signature Verification ─────────────────────────────
+Route::get('/signed/rb', function () {
+    return view('signed.rb');
+})->name('signed.rb');
+
 // ── Blog Public Routes ──────────────────────────────────────────
 Route::get('/blog', [ArticleController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [ArticleController::class, 'show'])->name('blog.show');
