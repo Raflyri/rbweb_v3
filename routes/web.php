@@ -13,6 +13,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Payment\MidtransNotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\CustomPageController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -20,14 +21,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/tentang-kami', [AboutController::class, 'index'])->name('about');
 Route::redirect('/about', '/tentang-kami');
 
-// ── Document Signature Verification ─────────────────────────────
-Route::get('/signed/rb', function () {
-    return view('signed.rb');
-})->name('signed.rb');
-
-Route::get('/offering/rb', function () {
-    return view('offering.rb');
-})->name('offering.rb');
+// ── Document Signature Verification (Database Driven) ────────────
+Route::get('/signed/rb', fn () => app(CustomPageController::class)->show('signed/rb'))->name('signed.rb');
+Route::get('/offering/rb', fn () => app(CustomPageController::class)->show('offering/rb'))->name('offering.rb');
 
 // ── Blog Public Routes ──────────────────────────────────────────
 Route::get('/blog', [ArticleController::class, 'index'])->name('blog.index');
@@ -125,3 +121,11 @@ Route::get('/@{slug}', [PortfolioController::class, 'show'])->name('portfolio.sh
 Route::get('/storage/{path}', [StorageFileController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.file');
+
+// ── Dynamic Custom Pages (Catch-All) ───────────────────────────
+// Matches any custom path managed via the Filament admin panel.
+// Placed at the end with negative lookahead so it never intercepts
+// admin panels, storage, or internal endpoints.
+Route::get('/{path}', [CustomPageController::class, 'show'])
+    ->where('path', '^(?!rbdashboard|client-area|filament|livewire|storage|system|lang).*$')
+    ->name('custom-page.show');
