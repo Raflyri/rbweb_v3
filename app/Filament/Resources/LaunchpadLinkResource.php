@@ -81,6 +81,11 @@ class LaunchpadLinkResource extends Resource
                 Toggle::make('is_active')
                     ->label('Active (show in client area dashboard)')
                     ->default(true),
+
+                Toggle::make('is_monitored')
+                    ->label('Aktifkan Uptime Monitor')
+                    ->helperText('Sistem akan mengecek status UP/DOWN URL secara otomatis setiap 5 menit.')
+                    ->default(false),
             ]),
 
             // ── Section 3: Homepage product card ────────────────────────────
@@ -179,10 +184,28 @@ class LaunchpadLinkResource extends Resource
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean(),
+                
+                TextColumn::make('monitoring_status')
+                    ->label('Uptime')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'up' => 'success',
+                        'down' => 'danger',
+                        'timeout' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state) => strtoupper($state))
+                    ->description(fn ($record) => $record->http_response_time ? $record->http_response_time . ' ms' : null),
 
                 TextColumn::make('updated_at')
                     ->since()
-                    ->label('Updated'),
+                    ->label('Updated')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                
+                TextColumn::make('last_checked_at')
+                    ->label('Last Checked')
+                    ->since()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('sort_order')
             ->reorderable('sort_order')

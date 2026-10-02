@@ -55,6 +55,22 @@
                             @endif
                         </div>
 
+                        {{-- Uptime Status Indicator --}}
+                        @if($link['is_monitored'])
+                            <div class="absolute left-3 top-3 flex items-center gap-1.5" title="Status: {{ strtoupper($link['monitoring_status'] ?? 'PENDING') }}">
+                                @if($link['monitoring_status'] === 'up')
+                                    <span class="relative flex h-2.5 w-2.5">
+                                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                    </span>
+                                @elseif($link['monitoring_status'] === 'down' || $link['monitoring_status'] === 'timeout')
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                                @else
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gray-400"></span>
+                                @endif
+                            </div>
+                        @endif
+
                         {{-- External link badge --}}
                         @if($link['is_external'])
                             <x-heroicon-o-arrow-top-right-on-square

@@ -78,6 +78,11 @@ class SystemHealthWidget extends BaseWidget
                 ->description('Awaiting admin review')
                 ->color($pendingArticles > 0 ? 'warning' : 'success')
                 ->icon('heroicon-o-document-text'),
+            
+            Stat::make('Uptime Monitor', \App\Models\LaunchpadLink::where('is_monitored', true)->count())
+                ->description('Active monitored links')
+                ->color('success')
+                ->icon('heroicon-o-signal'),
         ];
     }
 }

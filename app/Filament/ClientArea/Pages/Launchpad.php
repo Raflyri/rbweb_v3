@@ -35,13 +35,15 @@ class Launchpad extends Page
                     || $user->can($link->required_permission);
 
                 return [
-                    'id'          => $link->id,
-                    'title'       => $link->title,
-                    'description' => $link->description,
-                    'icon'        => $link->icon ?? 'squares-2x2',
-                    'url'         => $link->url,
-                    'is_external' => $link->is_external,
-                    'has_access'  => $hasAccess,
+                    'id'                => $link->id,
+                    'title'             => $link->title,
+                    'description'       => $link->description,
+                    'icon'              => $link->icon ?? 'squares-2x2',
+                    'url'               => $link->url,
+                    'is_external'       => $link->is_external,
+                    'has_access'        => $hasAccess,
+                    'is_monitored'      => $link->is_monitored,
+                    'monitoring_status' => $link->monitoring_status,
                 ];
             });
     }

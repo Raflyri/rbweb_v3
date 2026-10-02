@@ -14,10 +14,13 @@ class LaunchpadLink extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'is_external'       => 'boolean',
-        'is_active'         => 'boolean',
-        'show_on_homepage'  => 'boolean',
-        'sort_order'        => 'integer',
+        'is_external'        => 'boolean',
+        'is_active'          => 'boolean',
+        'show_on_homepage'   => 'boolean',
+        'sort_order'         => 'integer',
+        'is_monitored'       => 'boolean',
+        'last_checked_at'    => 'datetime',
+        'http_response_time' => 'integer',
     ];
 
     public function getActivitylogOptions(): LogOptions

@@ -39,3 +39,6 @@ Schedule::command('app:generate-sitemap')->daily();
 // `schedule:run` cron, so the primary trigger is a cPanel cron job calling
 // /system/emergency-command with the app:publish-scheduled-articles command.
 Schedule::command('app:publish-scheduled-articles')->everyMinute()->withoutOverlapping();
+
+// Monitor Launchpad Links uptime (runs every 5 minutes)
+Schedule::command('rbeverything:monitor-links')->everyFiveMinutes()->withoutOverlapping();
