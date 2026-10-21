@@ -72,6 +72,7 @@ class ProductForm
                     ->schema([
                         ProductFields::slugField(),
                         ProductFields::typeField(),
+                        ProductFields::categoryField(),
                         ProductFields::priceField(),
                         ProductFields::currencyField(),
                         ProductFields::stockField(),

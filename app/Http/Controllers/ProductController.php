@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Policies\ProductPolicy;
 use App\Settings\GeneralSettings;
@@ -29,9 +30,16 @@ class ProductController extends Controller
         $type = $request->query('type');
         $type = ProductType::isValid($type) ? $type : null;
 
+        $categorySlug = $request->query('category');
+        $selectedCategory = is_string($categorySlug) && $categorySlug !== ''
+            ? Category::where('slug', $categorySlug)->first()
+            : null;
+
         $products = Product::query()
+            ->with('category')
             ->active()
             ->when($type, fn ($query) => $query->ofType($type))
+            ->when($selectedCategory, fn ($query) => $query->where('category_id', $selectedCategory->id))
             ->inDisplayOrder()
             ->paginate(12)
             ->withQueryString();
@@ -44,7 +52,7 @@ class ProductController extends Controller
             ProductType::JASA    => Product::active()->jasa()->count(),
         ];
 
-        return view('products.index', compact('products', 'type', 'counts', 'locale'));
+        return view('products.index', compact('products', 'type', 'selectedCategory', 'counts', 'locale'));
     }
 
     /**

@@ -48,6 +48,13 @@ class ProductsTable
                     ->formatStateUsing(fn (?string $state) => ProductType::label($state))
                     ->color(fn (?string $state) => ProductType::color($state)),
 
+                TextColumn::make('category.name')
+                    ->label('Kategori')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('gray')
+                    ->toggleable(),
+
                 TextColumn::make('price')
                     ->label('Harga')
                     ->formatStateUsing(fn (Product $record) => $record->formattedPrice() ?? 'Hubungi Kami')

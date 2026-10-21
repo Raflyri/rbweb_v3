@@ -69,6 +69,14 @@
                         <span class="catalog-tab__count">{{ $tab['count'] }}</span>
                     </a>
                 @endforeach
+
+                @if(isset($selectedCategory) && $selectedCategory)
+                    <a href="{{ route('products.index', $type ? ['type' => $type] : []) }}"
+                       class="catalog-tab catalog-tab--active"
+                       title="Hapus filter kategori">
+                        Kategori: {{ $selectedCategory->name }} &times;
+                    </a>
+                @endif
             </div>
         </div>
     </section>
@@ -122,6 +130,11 @@
                                     <span class="product-badge product-badge--{{ $product->type }}">
                                         {{ ProductType::label($product->type) }}
                                     </span>
+                                    @if($product->category)
+                                        <span class="product-badge product-badge--empty">
+                                            {{ $product->category->name }}
+                                        </span>
+                                    @endif
                                     @if(! $product->isInStock())
                                         <span class="product-badge product-badge--empty">{{ __('catalog.out_of_stock') }}</span>
                                     @endif

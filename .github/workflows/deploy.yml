@@ -125,6 +125,10 @@ jobs:
             -x ".github/*" \
             -x "node_modules/*" \
             -x "public/*" \
+            -x "storage/app/public/*" \
+            -x "storage/app/private/*" \
+            -x "storage/logs/*" \
+            -x "database/*.sqlite" \
             -x ".env" \
             -x ".env.*" \
             -x "*.zip"
@@ -133,6 +137,8 @@ jobs:
         run: |
           cd public
           zip -r /tmp/public.zip . \
+            -x "storage/*" \
+            -x "sitemap.xml" \
             -x "rb-*.php" \
             -x "*.zip" \
             -x "*.bak" \

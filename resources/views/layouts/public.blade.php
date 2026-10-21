@@ -129,6 +129,50 @@
             gap: 0.75rem;
         }
     }
+    .rb-nav-dropdown {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+    .rb-nav-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 0.6rem);
+        left: 0;
+        min-width: 14rem;
+        background: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        padding: 0.45rem;
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(6px);
+        transition: all 0.2s ease;
+        z-index: 100;
+    }
+    .rb-nav-dropdown:hover .rb-nav-dropdown-menu,
+    .rb-nav-dropdown:focus-within .rb-nav-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .rb-nav-dropdown-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        color: #CBD5E1;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    .rb-nav-dropdown-item:hover {
+        background: rgba(220, 38, 38, 0.14);
+        color: #FFFFFF;
+    }
     </style>
 </head>
 
@@ -158,8 +202,21 @@
 
             {{-- Desktop Nav --}}
             <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
-                <a href="{{ route('products.index', ['type' => 'barang']) }}"
-                   class="rb-nav-link @yield('nav_products_active')">{{ __('nav.products') }}</a>
+                <div class="rb-nav-dropdown">
+                    <a href="{{ route('products.index', ['type' => 'barang']) }}"
+                       class="rb-nav-link @yield('nav_products_active')">{{ __('nav.products') }}</a>
+                    @if(isset($globalCategories) && $globalCategories->isNotEmpty())
+                        <div class="rb-nav-dropdown-menu" role="menu">
+                            @foreach($globalCategories as $navCategory)
+                                <a href="{{ route('products.index', ['type' => strtolower($navCategory->type), 'category' => $navCategory->slug]) }}"
+                                   class="rb-nav-dropdown-item" role="menuitem">
+                                    <span>{{ $navCategory->name }}</span>
+                                    <span style="font-size:0.65rem;opacity:0.65;">{{ $navCategory->type }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
                 <a href="{{ route('products.index', ['type' => 'jasa']) }}"
                    class="rb-nav-link @yield('nav_services_active')">{{ __('nav.services') }}</a>
                 <a href="/blog"      class="rb-nav-link @yield('nav_blog_active')">{{ __('nav.blog') }}</a>

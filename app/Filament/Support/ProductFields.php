@@ -135,6 +135,20 @@ class ProductFields
             );
     }
 
+    public static function categoryField(): Select
+    {
+        return Select::make('category_id')
+            ->label('Kategori')
+            ->relationship('category', 'name')
+            ->searchable()
+            ->preload()
+            ->nullable()
+            ->hintIcon(
+                self::HINT_ICON,
+                'Opsional — pilih kategori produk atau layanan agar dapat difilter melalui menu dropdown navigasi.',
+            );
+    }
+
     public static function priceField(): TextInput
     {
         return TextInput::make('price')

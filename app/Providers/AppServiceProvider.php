@@ -6,6 +6,7 @@ use App\Listeners\AssignClientRoleOnRegister;
 use App\Listeners\LogSuccessfulLogin;
 use App\Listeners\LogSuccessfulLogout;
 use App\Models\Article;
+use App\Models\Category;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\Profile;
@@ -17,6 +18,8 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -65,6 +68,25 @@ class AppServiceProvider extends ServiceProvider
 
         // ✅ Register nested language lines from lang/{locale}.json into the translator
         $this->registerJsonTranslations();
+
+        // ✅ Share dynamic product & service categories globally with main layout views
+        View::composer(['layouts.public', 'welcome'], function ($view) {
+            try {
+                if (Schema::hasTable('categories')) {
+                    $categories = Category::orderBy('name')->get();
+                } else {
+                    $categories = collect();
+                }
+            } catch (\Throwable $e) {
+                $categories = collect();
+            }
+
+            $view->with([
+                'globalCategories' => $categories,
+                'barangCategories' => $categories->where('type', Category::TYPE_BARANG)->values(),
+                'jasaCategories'   => $categories->where('type', Category::TYPE_JASA)->values(),
+            ]);
+        });
     }
 
     /**

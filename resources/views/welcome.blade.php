@@ -60,7 +60,20 @@
 
             {{-- DESKTOP NAV --}}
             <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
-                <a href="{{ route('products.index', ['type' => 'barang']) }}" class="rb-nav-link" data-i18n="nav.products">Products</a>
+                <div class="rb-nav-dropdown" style="position:relative;display:inline-flex;align-items:center;">
+                    <a href="{{ route('products.index', ['type' => 'barang']) }}" class="rb-nav-link" data-i18n="nav.products">Products</a>
+                    @if(isset($globalCategories) && $globalCategories->isNotEmpty())
+                        <div class="rb-nav-dropdown-menu" role="menu">
+                            @foreach($globalCategories as $navCategory)
+                                <a href="{{ route('products.index', ['type' => strtolower($navCategory->type), 'category' => $navCategory->slug]) }}"
+                                   class="rb-nav-dropdown-item" role="menuitem">
+                                    <span>{{ $navCategory->name }}</span>
+                                    <span style="font-size:0.65rem;opacity:0.65;">{{ $navCategory->type }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
                 <a href="{{ route('products.index', ['type' => 'jasa']) }}" class="rb-nav-link" data-i18n="nav.services">Services</a>
                 <a href="/blog" class="rb-nav-link" data-i18n="nav.blog">Blog</a>
                 <a href="#about" class="rb-nav-link" data-i18n="nav.about">About Us</a>

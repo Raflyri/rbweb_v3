@@ -14,6 +14,21 @@ use App\Http\Controllers\Payment\MidtransNotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\CustomPageController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ArcadeGameController;
+use App\Http\Controllers\ArcadeFrontendController;
+
+// ── Arcade Subdomain Routes (arcade.rbeverything.com) ───────────
+Route::domain('arcade.rbeverything.com')->name('arcade.')->group(function () {
+    Route::get('/', [ArcadeFrontendController::class, 'index'])->name('index');
+    Route::get('/play/{slug}', [ArcadeFrontendController::class, 'play'])->name('play');
+});
+
+// ── RBdashboard CMS CRUD Routes (Categories & Arcade Games) ─────
+Route::middleware(['auth'])->prefix('rbdashboard')->group(function () {
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::resource('arcade-games', ArcadeGameController::class)->except(['show']);
+});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
