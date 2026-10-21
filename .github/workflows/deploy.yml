@@ -106,6 +106,13 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v4
 
+      - name: ⚙️ Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, pdo_mysql, bcmath, soap, intl, gd, exif, iconv
+          coverage: none
+
       # ----------------------------------------------------------------
       # STAGE 1: INSTALL DEPENDENCIES & BUILD ASSETS
       # ----------------------------------------------------------------
