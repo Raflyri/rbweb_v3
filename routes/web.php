@@ -24,11 +24,12 @@ Route::domain('arcade.rbeverything.com')->name('arcade.')->group(function () {
     Route::get('/play/{slug}', [ArcadeFrontendController::class, 'play'])->name('play');
 
     // Automatic redirect: any non-arcade URL on arcade.rbeverything.com jumps to apex domain https://rbeverything.com
-    Route::fallback(function () {
+    Route::any('/{any}', function ($any = '') {
         $apexUrl = rtrim(config('app.url', 'https://rbeverything.com'), '/');
         $apexUrl = preg_replace('#^https?://arcade\.#i', 'https://', $apexUrl);
-        return redirect()->to($apexUrl . request()->getRequestUri(), 301);
-    });
+        $uri = request()->getRequestUri();
+        return redirect()->to($apexUrl . $uri, 301);
+    })->where('any', '.*');
 });
 
 // ── RBdashboard CMS CRUD Routes (Categories & Arcade Games) ─────

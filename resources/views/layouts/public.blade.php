@@ -300,14 +300,16 @@
          NAVIGATION
     ════════════════════════════════════════════════════════════ --}}
     @php
-        $mainDomainUrl = rtrim(config('app.url', 'https://rbeverything.com'), '/');
-        $mainDomainUrl = preg_replace('#^https?://arcade\.#i', 'https://', $mainDomainUrl);
+        $isArcadeSubdomain = str_starts_with(request()->getHost(), 'arcade.');
+        $mainDomainPrefix = $isArcadeSubdomain
+            ? preg_replace('#^https?://arcade\.#i', 'https://', rtrim(config('app.url', 'https://rbeverything.com'), '/'))
+            : '';
     @endphp
     <header id="rb-nav" class="rb-nav scrolled" role="banner">
         <div style="max-width:80rem;margin:0 auto;padding:0 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
 
             {{-- Logo --}}
-            <a href="{{ $mainDomainUrl }}/" style="text-decoration:none;flex-shrink:0;" aria-label="RBeverything — Home">
+            <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/' : '/' }}" style="text-decoration:none;flex-shrink:0;" aria-label="RBeverything — Home">
                 <span style="font-size:1.3rem;font-weight:900;letter-spacing:-0.04em;background:linear-gradient(135deg,#E53E3E,#C53030);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
                     RBeverything
                 </span>
@@ -316,12 +318,12 @@
             {{-- Desktop Nav --}}
             <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:1.75rem;" aria-label="Main navigation">
                 <div class="rb-nav-dropdown">
-                    <a href="{{ $mainDomainUrl }}/produk-layanan?type=barang"
+                    <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/produk-layanan?type=barang' : route('products.index', ['type' => 'barang']) }}"
                        class="rb-nav-link @yield('nav_products_active')">{{ __('nav.products') }}</a>
                     @if(isset($globalCategories) && $globalCategories->isNotEmpty())
                         <div class="rb-nav-dropdown-menu" role="menu">
                             @foreach($globalCategories as $navCategory)
-                                <a href="{{ $mainDomainUrl }}/produk-layanan?type={{ $navCategory->slug }}"
+                                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/produk-layanan?type=' . $navCategory->slug : route('products.index', ['type' => $navCategory->slug]) }}"
                                    class="rb-nav-dropdown-item" role="menuitem">
                                     <span>{{ $navCategory->name }}</span>
                                 </a>
@@ -329,7 +331,7 @@
                         </div>
                     @endif
                 </div>
-                <a href="{{ $mainDomainUrl }}/produk-layanan?type=jasa"
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/produk-layanan?type=jasa' : route('products.index', ['type' => 'jasa']) }}"
                    class="rb-nav-link @yield('nav_services_active')">{{ __('nav.services') }}</a>
                 <a href="{{ route('arcade.index') }}" class="rb-nav-arcade-btn" aria-label="RBeverything Arcade Games">
                     <span class="rb-arcade-icon" aria-hidden="true">
@@ -343,8 +345,8 @@
                     <span class="rb-arcade-text">{{ __('nav.arcade') }}</span>
                     <span class="rb-arcade-badge">PLAY</span>
                 </a>
-                <a href="{{ $mainDomainUrl }}/blog"      class="rb-nav-link @yield('nav_blog_active')">{{ __('nav.blog') }}</a>
-                <a href="{{ $mainDomainUrl }}/tentang-kami" class="rb-nav-link @yield('nav_about_active')">{{ __('nav.about') }}</a>
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/blog' : '/blog' }}"      class="rb-nav-link @yield('nav_blog_active')">{{ __('nav.blog') }}</a>
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/tentang-kami' : route('about') }}" class="rb-nav-link @yield('nav_about_active')">{{ __('nav.about') }}</a>
             </nav>
 
             {{-- Language switcher + Cart + CTA --}}
@@ -355,7 +357,7 @@
                      language has to change with a real request. --}}
                 <div class="rb-lang-switcher" role="group" aria-label="Language selector">
                     @foreach(\App\Support\ArticleLocale::enabledLabels() as $code => $label)
-                        <a href="{{ $mainDomainUrl }}/lang/switch/{{ $code }}"
+                        <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/lang/' . $code : route('lang.switch', $code) }}"
                            class="rb-lang-btn {{ \App\Support\ArticleLocale::current() === $code ? 'active' : '' }}"
                            style="text-decoration:none;display:inline-block;"
                            data-set-locale="{{ $code }}"
@@ -367,7 +369,7 @@
                 @php
                     $cartCount = app(\App\Services\Cart\CartService::class)->count();
                 @endphp
-                <a href="{{ $mainDomainUrl }}/keranjang" class="rb-cart-icon-btn" aria-label="Keranjang Belanja" title="Keranjang Belanja">
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/keranjang' : route('cart.index') }}" class="rb-cart-icon-btn" aria-label="Keranjang Belanja" title="Keranjang Belanja">
                     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
                         <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
@@ -391,7 +393,7 @@
                 @php
                     $cartCount = $cartCount ?? app(\App\Services\Cart\CartService::class)->count();
                 @endphp
-                <a href="{{ $mainDomainUrl }}/keranjang" class="rb-cart-icon-btn" aria-label="Keranjang Belanja">
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/keranjang' : route('cart.index') }}" class="rb-cart-icon-btn" aria-label="Keranjang Belanja">
                     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
                         <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
@@ -411,8 +413,8 @@
     {{-- Mobile Menu --}}
     <div id="rb-mobile-menu" class="rb-mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
         <nav style="display:flex;flex-direction:column;gap:0.35rem;">
-            <a href="{{ $mainDomainUrl }}/produk-layanan?type=barang" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.products') }}</a>
-            <a href="{{ $mainDomainUrl }}/produk-layanan?type=jasa" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.services') }}</a>
+            <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/produk-layanan?type=barang' : route('products.index', ['type' => 'barang']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.products') }}</a>
+            <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/produk-layanan?type=jasa' : route('products.index', ['type' => 'jasa']) }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.services') }}</a>
             <div style="padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
                 <a href="{{ route('arcade.index') }}" class="rb-mobile-arcade-btn" aria-label="RBeverything Arcade Portal">
                     <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -429,13 +431,13 @@
                     <span class="rb-arcade-badge" style="font-size:0.65rem;padding:0.18rem 0.55rem;">PLAY NOW</span>
                 </a>
             </div>
-            <a href="{{ $mainDomainUrl }}/keranjang" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Keranjang Belanja {{ $cartCount > 0 ? '(' . $cartCount . ')' : '' }}</a>
-            <a href="{{ $mainDomainUrl }}/blog"      style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.blog') }}</a>
-            <a href="{{ $mainDomainUrl }}/tentang-kami" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.about') }}</a>
+            <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/keranjang' : route('cart.index') }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">Keranjang Belanja {{ $cartCount > 0 ? '(' . $cartCount . ')' : '' }}</a>
+            <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/blog' : '/blog' }}"      style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.blog') }}</a>
+            <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/tentang-kami' : route('about') }}" style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">{{ __('nav.about') }}</a>
         </nav>
         <div class="rb-lang-switcher" style="margin-top:1.5rem;width:fit-content;">
             @foreach(\App\Support\ArticleLocale::enabledLabels() as $code => $label)
-                <a href="{{ $mainDomainUrl }}/lang/switch/{{ $code }}"
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/lang/' . $code : route('lang.switch', $code) }}"
                    class="rb-lang-btn {{ \App\Support\ArticleLocale::current() === $code ? 'active' : '' }}"
                    style="text-decoration:none;display:inline-block;"
                    data-set-locale="{{ $code }}"
@@ -462,7 +464,7 @@
     ════════════════════════════════════════════════════════════ --}}
     <footer class="rb-footer" aria-label="Footer">
         <div style="max-width:80rem;margin:0 auto;text-align:center;">
-            <a href="{{ $mainDomainUrl }}/" style="text-decoration:none;">
+            <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/' : '/' }}" style="text-decoration:none;">
                 <span class="rb-footer-logo">RBeverything</span>
             </a>
             <p style="font-size:0.85rem;color:var(--color-muted);margin-top:0.75rem;line-height:1.6;">
@@ -472,9 +474,9 @@
         <div class="rb-footer-bottom">
             <span>© {{ date('Y') }} RBeverything. {{ __('footer.copyright') }}</span>
             <div style="display:flex;gap:1.5rem;">
-                <a href="{{ $mainDomainUrl }}/"    class="rb-footer-link" style="margin:0;">{{ __('nav.home') }}</a>
-                <a href="{{ $mainDomainUrl }}/produk-layanan" class="rb-footer-link" style="margin:0;">{{ __('nav.catalog') }}</a>
-                <a href="{{ $mainDomainUrl }}/blog" class="rb-footer-link" style="margin:0;">{{ __('nav.blog') }}</a>
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/' : '/' }}"    class="rb-footer-link" style="margin:0;">{{ __('nav.home') }}</a>
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/produk-layanan' : route('products.index') }}" class="rb-footer-link" style="margin:0;">{{ __('nav.catalog') }}</a>
+                <a href="{{ $mainDomainPrefix ? $mainDomainPrefix . '/blog' : route('blog.index') }}" class="rb-footer-link" style="margin:0;">{{ __('nav.blog') }}</a>
             </div>
         </div>
     </footer>

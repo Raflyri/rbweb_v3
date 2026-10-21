@@ -338,7 +338,8 @@ it('ensures arcade header HUD does not overlap the iframe canvas', function () {
     $response->assertOk();
     $response->assertSee('arcade-hud-bar', false);
     $response->assertSee('arcade-frame-wrapper', false);
-    // Ensure height calculation calc(100vh - 52px) or flex layout prevents overlap
-    $response->assertSee('calc(100vh - 52px)', false);
+    // Ensure height calculation calc(100vh - var(--hud-height)) and --hud-height: 52px prevents overlap
+    $response->assertSee('calc(100vh - var(--hud-height))', false);
+    $response->assertSee('--hud-height: 52px', false);
 });
 
