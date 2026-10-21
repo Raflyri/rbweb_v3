@@ -107,6 +107,169 @@ html.lenis { height: auto; }
     transform: scaleX(1);
 }
 
+/* ── Dropdown navigation ── */
+.rb-nav-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.rb-nav-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    min-width: 13.5rem;
+    background: rgba(10, 15, 29, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: 0.45rem;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+}
+
+.rb-nav-dropdown:hover .rb-nav-dropdown-menu,
+.rb-nav-dropdown:focus-within .rb-nav-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.rb-nav-dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.85rem;
+    border-radius: 0.5rem;
+    color: #CBD5E1;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.rb-nav-dropdown-item:hover {
+    background: rgba(220, 38, 38, 0.16);
+    color: #FFFFFF;
+    transform: translateX(2px);
+}
+
+/* ── Futuristic Gaming Arcade Button ── */
+@keyframes arcadeGlowPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(229, 62, 62, 0.35), 0 0 20px rgba(139, 92, 246, 0.2), inset 0 0 8px rgba(229, 62, 62, 0.15);
+        border-color: rgba(229, 62, 62, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 16px rgba(229, 62, 62, 0.65), 0 0 28px rgba(139, 92, 246, 0.45), inset 0 0 12px rgba(139, 92, 246, 0.3);
+        border-color: rgba(139, 92, 246, 0.85);
+    }
+}
+
+@keyframes arcadeBadgeFlash {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(0.96); }
+}
+
+.rb-nav-arcade-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.12), rgba(139, 92, 246, 0.18), rgba(15, 23, 42, 0.9));
+    border: 1px solid rgba(229, 62, 62, 0.55);
+    color: #F8FAFC;
+    text-decoration: none;
+    font-size: 0.825rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    animation: arcadeGlowPulse 3s infinite ease-in-out;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+}
+
+.rb-nav-arcade-btn:hover {
+    transform: translateY(-1px) scale(1.04);
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.25), rgba(139, 92, 246, 0.32), rgba(15, 23, 42, 0.95));
+    border-color: #F43F5E;
+    box-shadow: 0 0 22px rgba(244, 63, 94, 0.65), 0 0 35px rgba(139, 92, 246, 0.5);
+    color: #FFFFFF;
+}
+
+.rb-nav-arcade-btn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.rb-nav-arcade-btn .rb-arcade-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FB7185;
+    filter: drop-shadow(0 0 4px rgba(251, 113, 133, 0.7));
+    transition: transform 0.25s ease;
+}
+
+.rb-nav-arcade-btn:hover .rb-arcade-icon {
+    transform: rotate(-10deg) scale(1.15);
+    color: #38BDF8;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.9));
+}
+
+.rb-nav-arcade-btn .rb-arcade-text {
+    font-family: var(--font-mono), monospace;
+    font-weight: 800;
+    background: linear-gradient(135deg, #FFFFFF, #E2E8F0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.rb-nav-arcade-btn .rb-arcade-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.12rem 0.45rem;
+    font-size: 0.6rem;
+    font-family: var(--font-mono), monospace;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: #030508;
+    background: linear-gradient(135deg, #38BDF8, #A78BFA);
+    border-radius: 9999px;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    animation: arcadeBadgeFlash 2s infinite ease-in-out;
+}
+
+/* ── Mobile Arcade Link ── */
+.rb-mobile-arcade-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.85rem;
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.16), rgba(139, 92, 246, 0.22), rgba(15, 23, 42, 0.9));
+    border: 1px solid rgba(229, 62, 62, 0.5);
+    color: #FFFFFF;
+    text-decoration: none;
+    box-shadow: 0 0 18px rgba(229, 62, 62, 0.35);
+    transition: all 0.2s ease;
+}
+
+.rb-mobile-arcade-btn:hover {
+    background: linear-gradient(135deg, rgba(229, 62, 62, 0.28), rgba(139, 92, 246, 0.35), rgba(15, 23, 42, 0.95));
+    border-color: #38BDF8;
+}
+
 /* CTA Button */
 .rb-btn-primary {
     display: inline-flex;

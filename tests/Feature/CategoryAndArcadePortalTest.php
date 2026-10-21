@@ -251,3 +251,24 @@ it('dynamically expands ProductType options from database categories and syncs c
     expect($product->fresh()->category_id)->toBe($digitalType->id)
         ->and($product->fresh()->isJasa())->toBeTrue();
 });
+
+it('renders futuristic arcade button and does not display category type in navbar dropdown', function () {
+    Category::factory()->barang()->create([
+        'name' => 'Perangkat Jaringan Unik',
+        'slug' => 'perangkat-jaringan-unik',
+    ]);
+
+    get(route('home'))
+        ->assertOk()
+        ->assertSee('rb-nav-arcade-btn', false)
+        ->assertSee(route('arcade.index'), false)
+        ->assertSee('Perangkat Jaringan Unik')
+        ->assertDontSee('<span style="font-size:0.65rem;opacity:0.65;">', false);
+
+    get(route('products.index'))
+        ->assertOk()
+        ->assertSee('rb-nav-arcade-btn', false)
+        ->assertSee(route('arcade.index'), false)
+        ->assertSee('Perangkat Jaringan Unik')
+        ->assertDontSee('<span style="font-size:0.65rem;opacity:0.65;">', false);
+});

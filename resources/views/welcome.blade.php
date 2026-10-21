@@ -30,7 +30,162 @@
         echo 'window.RB_PAGE_DATA = ' . Illuminate\Support\Js::from($pageData)->toHtml() . ";\n";
         echo '</' . 'script' . '>' ;
         @endphp
-        </head>
+            <style>
+    .rb-nav-dropdown {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+    .rb-nav-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 0.6rem);
+        left: 0;
+        min-width: 14rem;
+        background: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        padding: 0.45rem;
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(6px);
+        transition: all 0.2s ease;
+        z-index: 100;
+    }
+    .rb-nav-dropdown:hover .rb-nav-dropdown-menu,
+    .rb-nav-dropdown:focus-within .rb-nav-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .rb-nav-dropdown-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        color: #CBD5E1;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    .rb-nav-dropdown-item:hover {
+        background: rgba(220, 38, 38, 0.14);
+        color: #FFFFFF;
+    }
+
+    /* ── Futuristic Gaming Arcade Button ── */
+    @keyframes arcadeGlowPulse {
+        0%, 100% {
+            box-shadow: 0 0 10px rgba(229, 62, 62, 0.35), 0 0 20px rgba(139, 92, 246, 0.2), inset 0 0 8px rgba(229, 62, 62, 0.15);
+            border-color: rgba(229, 62, 62, 0.6);
+        }
+        50% {
+            box-shadow: 0 0 16px rgba(229, 62, 62, 0.65), 0 0 28px rgba(139, 92, 246, 0.45), inset 0 0 12px rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.85);
+        }
+    }
+
+    @keyframes arcadeBadgeFlash {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(0.96); }
+    }
+
+    .rb-nav-arcade-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, rgba(229, 62, 62, 0.12), rgba(139, 92, 246, 0.18), rgba(15, 23, 42, 0.9));
+        border: 1px solid rgba(229, 62, 62, 0.55);
+        color: #F8FAFC;
+        text-decoration: none;
+        font-size: 0.825rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        animation: arcadeGlowPulse 3s infinite ease-in-out;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+    }
+
+    .rb-nav-arcade-btn:hover {
+        transform: translateY(-1px) scale(1.04);
+        background: linear-gradient(135deg, rgba(229, 62, 62, 0.25), rgba(139, 92, 246, 0.32), rgba(15, 23, 42, 0.95));
+        border-color: #F43F5E;
+        box-shadow: 0 0 22px rgba(244, 63, 94, 0.65), 0 0 35px rgba(139, 92, 246, 0.5);
+        color: #FFFFFF;
+    }
+
+    .rb-nav-arcade-btn:active {
+        transform: translateY(0) scale(0.97);
+    }
+
+    .rb-nav-arcade-btn .rb-arcade-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FB7185;
+        filter: drop-shadow(0 0 4px rgba(251, 113, 133, 0.7));
+        transition: transform 0.25s ease;
+    }
+
+    .rb-nav-arcade-btn:hover .rb-arcade-icon {
+        transform: rotate(-10deg) scale(1.15);
+        color: #38BDF8;
+        filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.9));
+    }
+
+    .rb-nav-arcade-btn .rb-arcade-text {
+        font-family: var(--font-mono), monospace;
+        font-weight: 800;
+        background: linear-gradient(135deg, #FFFFFF, #E2E8F0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .rb-nav-arcade-btn .rb-arcade-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.12rem 0.45rem;
+        font-size: 0.6rem;
+        font-family: var(--font-mono), monospace;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: #030508;
+        background: linear-gradient(135deg, #38BDF8, #A78BFA);
+        border-radius: 9999px;
+        box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+        animation: arcadeBadgeFlash 2s infinite ease-in-out;
+    }
+
+    .rb-mobile-arcade-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.85rem;
+        background: linear-gradient(135deg, rgba(229, 62, 62, 0.16), rgba(139, 92, 246, 0.22), rgba(15, 23, 42, 0.9));
+        border: 1px solid rgba(229, 62, 62, 0.5);
+        color: #FFFFFF;
+        text-decoration: none;
+        box-shadow: 0 0 18px rgba(229, 62, 62, 0.35);
+        transition: all 0.2s ease;
+    }
+
+    .rb-mobile-arcade-btn:hover {
+        background: linear-gradient(135deg, rgba(229, 62, 62, 0.28), rgba(139, 92, 246, 0.35), rgba(15, 23, 42, 0.95));
+        border-color: #38BDF8;
+    }
+    </style>
+</head>
 
 <body>
 
@@ -59,8 +214,8 @@
             </a>
 
             {{-- DESKTOP NAV --}}
-            <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:2rem;" aria-label="Main navigation">
-                <div class="rb-nav-dropdown" style="position:relative;display:inline-flex;align-items:center;">
+            <nav class="rb-desktop-nav" style="display:flex;align-items:center;gap:1.75rem;" aria-label="Main navigation">
+                <div class="rb-nav-dropdown">
                     <a href="{{ route('products.index', ['type' => 'barang']) }}" class="rb-nav-link" data-i18n="nav.products">Products</a>
                     @if(isset($globalCategories) && $globalCategories->isNotEmpty())
                         <div class="rb-nav-dropdown-menu" role="menu">
@@ -68,13 +223,24 @@
                                 <a href="{{ route('products.index', ['type' => $navCategory->slug]) }}"
                                    class="rb-nav-dropdown-item" role="menuitem">
                                     <span>{{ $navCategory->name }}</span>
-                                    <span style="font-size:0.65rem;opacity:0.65;">{{ $navCategory->type }}</span>
                                 </a>
                             @endforeach
                         </div>
                     @endif
                 </div>
                 <a href="{{ route('products.index', ['type' => 'jasa']) }}" class="rb-nav-link" data-i18n="nav.services">Services</a>
+                <a href="{{ route('arcade.index') }}" class="rb-nav-arcade-btn" aria-label="RBeverything Arcade Games">
+                    <span class="rb-arcade-icon" aria-hidden="true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="6" width="20" height="12" rx="2"/>
+                            <path d="M6 12h4m-2-2v4"/>
+                            <line x1="15" y1="11" x2="15.01" y2="11"/>
+                            <line x1="18" y1="13" x2="18.01" y2="13"/>
+                        </svg>
+                    </span>
+                    <span class="rb-arcade-text" data-i18n="nav.arcade">Arcade</span>
+                    <span class="rb-arcade-badge">PLAY</span>
+                </a>
                 <a href="/blog" class="rb-nav-link" data-i18n="nav.blog">Blog</a>
                 <a href="#about" class="rb-nav-link" data-i18n="nav.about">About Us</a>
             </nav>
@@ -107,13 +273,29 @@
 
     {{-- ── MOBILE MENU ── --}}
     <div id="rb-mobile-menu" class="rb-mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
-        <nav style="display:flex;flex-direction:column;gap:0.25rem;">
+        <nav style="display:flex;flex-direction:column;gap:0.35rem;">
             <a href="{{ route('products.index', ['type' => 'barang']) }}"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.products">Products</a>
             <a href="{{ route('products.index', ['type' => 'jasa']) }}"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.services">Services</a>
+            <div style="padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <a href="{{ route('arcade.index') }}" class="rb-mobile-arcade-btn" aria-label="RBeverything Arcade Portal">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <span class="rb-arcade-icon" aria-hidden="true" style="display:flex;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                <path d="M6 12h4m-2-2v4"/>
+                                <line x1="15" y1="11" x2="15.01" y2="11"/>
+                                <line x1="18" y1="13" x2="18.01" y2="13"/>
+                            </svg>
+                        </span>
+                        <span style="font-family:var(--font-mono), monospace;font-weight:800;font-size:1.35rem;letter-spacing:0.02em;">ARCADE</span>
+                    </div>
+                    <span class="rb-arcade-badge" style="font-size:0.65rem;padding:0.18rem 0.55rem;">PLAY NOW</span>
+                </a>
+            </div>
             <a href="/blog"
                 style="font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;color:#F1F5F9;text-decoration:none;padding:0.5rem 0;border-bottom:1px solid rgba(255,255,255,0.06);"
                 data-i18n="nav.blog">Blog</a>
