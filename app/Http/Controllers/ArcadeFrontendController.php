@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArcadeGame;
+use App\Models\GameCategory;
 use Illuminate\View\View;
 
 class ArcadeFrontendController extends Controller
@@ -12,11 +13,16 @@ class ArcadeFrontendController extends Controller
      */
     public function index(): View
     {
-        $games = ArcadeGame::where('status', ArcadeGame::STATUS_TAYANGKAN)
+        $games = ArcadeGame::with('category')
+            ->where('status', ArcadeGame::STATUS_TAYANGKAN)
             ->latest()
             ->get();
 
-        return view('arcade.index', compact('games'));
+        $categories = GameCategory::withCount(['games' => function ($query) {
+            $query->where('status', ArcadeGame::STATUS_TAYANGKAN);
+        }])->get();
+
+        return view('arcade.index', compact('games', 'categories'));
     }
 
     /**
@@ -24,7 +30,8 @@ class ArcadeFrontendController extends Controller
      */
     public function play(string $slug): View
     {
-        $game = ArcadeGame::where('slug', $slug)
+        $game = ArcadeGame::with('category')
+            ->where('slug', $slug)
             ->where('status', ArcadeGame::STATUS_TAYANGKAN)
             ->firstOrFail();
 

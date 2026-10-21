@@ -20,51 +20,52 @@
             --neon-red: #FF2E63;
             --neon-cyan: #08D9D6;
             --bg-game: #050811;
+            --hud-height: 52px;
         }
 
         html, body {
             width: 100%;
             height: 100%;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
             background-color: var(--bg-game);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: #F1F5F9;
         }
 
+        /* ── Full viewport column layout ── */
         .arcade-viewport {
-            position: relative;
             width: 100vw;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
             background-color: #000000;
         }
 
-        /* ── Floating Gaming HUD Topbar ───────────────────────────── */
+        /* ── Header HUD: Always anchored at top, NEVER covering game content ── */
         .arcade-hud-bar {
-            position: fixed;
-            top: 0.85rem;
-            left: 0.85rem;
-            right: 0.85rem;
+            position: relative;
+            width: 100%;
+            height: var(--hud-height);
+            flex-shrink: 0;
             z-index: 100;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            padding: 0.5rem 1.25rem;
-            border-radius: 9999px;
-            background: rgba(10, 15, 29, 0.88);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            padding: 0 1.25rem;
+            background: #090D18;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
         }
 
         .arcade-hud-left {
             display: flex;
             align-items: center;
             gap: 1rem;
+            min-width: 0;
         }
 
         .arcade-back-link {
@@ -73,20 +74,21 @@
             gap: 0.45rem;
             color: #F8FAFC;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.825rem;
             font-weight: 700;
             padding: 0.35rem 0.85rem;
             border-radius: 9999px;
             background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .arcade-back-link:hover {
-            background: rgba(255, 46, 99, 0.2);
+            background: rgba(255, 46, 99, 0.25);
             border-color: #FF2E63;
             color: #FF2E63;
-            box-shadow: 0 0 12px rgba(255, 46, 99, 0.4);
+            box-shadow: 0 0 14px rgba(255, 46, 99, 0.45);
         }
 
         .arcade-hud-game-info {
@@ -95,6 +97,7 @@
             gap: 0.65rem;
             border-left: 1px solid rgba(255, 255, 255, 0.12);
             padding-left: 1rem;
+            min-width: 0;
         }
 
         .arcade-hud-title {
@@ -102,6 +105,9 @@
             font-weight: 800;
             color: #FFFFFF;
             letter-spacing: -0.01em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .arcade-live-pill {
@@ -118,6 +124,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            flex-shrink: 0;
         }
 
         .arcade-live-dot {
@@ -138,14 +145,15 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-shrink: 0;
         }
 
         .arcade-action-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -162,12 +170,14 @@
             transform: scale(1.08);
         }
 
-        /* ── Game Iframe & Loading State ──────────────────────────── */
+        /* ── Game Iframe Container: exactly remaining height below header ── */
         .arcade-frame-wrapper {
             position: relative;
             width: 100%;
-            height: 100%;
-            flex: 1;
+            flex: 1 1 0%;
+            min-height: 0;
+            height: calc(100vh - var(--hud-height));
+            overflow: hidden;
             background: #000000;
         }
 
@@ -198,8 +208,8 @@
         }
 
         .arcade-spinner {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: 3px solid rgba(255, 255, 255, 0.1);
             border-top-color: #FF2E63;
@@ -237,11 +247,11 @@
         }
 
         @media (max-width: 640px) {
+            :root {
+                --hud-height: 48px;
+            }
             .arcade-hud-bar {
-                top: 0.5rem;
-                left: 0.5rem;
-                right: 0.5rem;
-                padding: 0.45rem 0.85rem;
+                padding: 0 0.85rem;
             }
             .arcade-live-pill {
                 display: none;
@@ -251,7 +261,7 @@
 </head>
 <body>
     <div class="arcade-viewport" id="arcade-viewport">
-        {{-- Floating Topbar HUD --}}
+        {{-- Header HUD: firmly anchored at top, normal flow so it NEVER covers game --}}
         <header class="arcade-hud-bar" role="banner">
             <div class="arcade-hud-left">
                 <a href="{{ route('arcade.index') }}" class="arcade-back-link" aria-label="Kembali ke Portal Arcade">
@@ -263,6 +273,11 @@
 
                 <div class="arcade-hud-game-info">
                     <span class="arcade-hud-title">{{ $game->title }}</span>
+                    @if($game->category)
+                        <span style="font-size:0.75rem;padding:0.12rem 0.5rem;border-radius:999px;background:rgba(8,217,214,0.15);color:#08D9D6;font-weight:700;border:1px solid rgba(8,217,214,0.3);flex-shrink:0;">
+                            {{ $game->category->name }}
+                        </span>
+                    @endif
                     <span class="arcade-live-pill">
                         <span class="arcade-live-dot"></span>
                         Now Playing
@@ -272,7 +287,7 @@
 
             <div class="arcade-hud-right">
                 <button type="button" class="arcade-action-btn" id="btn-reload" title="Muat Ulang Game" aria-label="Muat Ulang Game">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                         <path d="M3 3v5h5"/>
                         <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
@@ -281,7 +296,7 @@
                 </button>
 
                 <button type="button" class="arcade-action-btn" id="btn-share" title="Salin Tautan Game" aria-label="Salin Tautan Game">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
                         <polyline points="16 6 12 2 8 6"/>
                         <line x1="12" y1="2" x2="12" y2="15"/>
@@ -289,15 +304,15 @@
                 </button>
 
                 <button type="button" class="arcade-action-btn" id="btn-fullscreen" title="Layar Penuh" aria-label="Layar Penuh">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
                     </svg>
                 </button>
             </div>
         </header>
 
-        {{-- Game Container with Loading Shield --}}
-        <div class="arcade-frame-wrapper">
+        {{-- Game Container: fills 100% of remaining space below header --}}
+        <main class="arcade-frame-wrapper" role="main">
             <div class="arcade-loader" id="arcade-loader">
                 <div class="arcade-spinner"></div>
                 <p style="font-family:'JetBrains Mono', monospace; font-size:0.85rem; color:#94A3B8; letter-spacing:0.05em;">
@@ -313,7 +328,7 @@
                 allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write; keyboard-map"
                 allowfullscreen>
             </iframe>
-        </div>
+        </main>
 
         <div id="arcade-toast" class="arcade-toast">Tautan berhasil disalin ke clipboard!</div>
     </div>
@@ -332,7 +347,6 @@
             iframe.addEventListener('load', function () {
                 if (loader) loader.classList.add('loaded');
             });
-            // Fallback timeout in case event is missed
             setTimeout(function () {
                 if (loader) loader.classList.add('loaded');
             }, 3000);

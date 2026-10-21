@@ -36,4 +36,12 @@ class ArcadeGameFactory extends Factory
     {
         return $this->state(fn () => ['status' => ArcadeGame::STATUS_TAYANGKAN]);
     }
+
+    public function spotlight(): static
+    {
+        return $this->state(fn () => [
+            'status'       => ArcadeGame::STATUS_TAYANGKAN,
+            'is_spotlight' => true,
+        ]);
+    }
 }

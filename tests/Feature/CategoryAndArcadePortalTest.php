@@ -2,6 +2,7 @@
 
 use App\Models\ArcadeGame;
 use App\Models\Category;
+use App\Models\GameCategory;
 use App\Models\Product;
 use App\Models\User;
 use App\Support\ProductType;
@@ -272,3 +273,72 @@ it('renders futuristic arcade button and does not display category type in navba
         ->assertSee('Perangkat Jaringan Unik')
         ->assertDontSee('<span style="font-size:0.65rem;opacity:0.65;">', false);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Game Categories, Manual Spotlight, and Domain Redirections
+|--------------------------------------------------------------------------
+*/
+
+it('links game categories and arcade games with hasMany and belongsTo', function () {
+    $category = GameCategory::create([
+        'name' => 'Retro Arcade & 8-Bit',
+        'slug' => 'retro-arcade-8-bit',
+    ]);
+
+    $game = ArcadeGame::factory()->create([
+        'game_category_id' => $category->id,
+        'title'            => 'Space Invaders RB',
+    ]);
+
+    expect($category->games)->toHaveCount(1)
+        ->and($category->games->first()->id)->toBe($game->id)
+        ->and($game->category->id)->toBe($category->id);
+});
+
+it('only displays spotlight banner when an arcade game is explicitly marked as is_spotlight', function () {
+    $normalGame = ArcadeGame::factory()->published()->create([
+        'title'        => 'Normal Game Alpha',
+        'is_spotlight' => false,
+    ]);
+
+    get('http://arcade.rbeverything.com/')
+        ->assertOk()
+        ->assertDontSee('SPOTLIGHT GAME')
+        ->assertSee('Normal Game Alpha')
+        ->assertDontSee('RBeverything Arcade Hub · v3.0')
+        ->assertDontSee('Cloudflare Edge Optimized');
+
+    $spotlightGame = ArcadeGame::factory()->published()->create([
+        'title'        => 'Flagship Retro Quest',
+        'is_spotlight' => true,
+    ]);
+
+    get('http://arcade.rbeverything.com/')
+        ->assertOk()
+        ->assertSee('SPOTLIGHT GAME')
+        ->assertSee('Flagship Retro Quest');
+});
+
+it('redirects non-arcade routes on arcade subdomain back to apex domain', function () {
+    get('http://arcade.rbeverything.com/layanan')
+        ->assertRedirect('https://rbeverything.com/layanan');
+
+    get('http://arcade.rbeverything.com/blog/artikel-baru')
+        ->assertRedirect('https://rbeverything.com/blog/artikel-baru');
+});
+
+it('ensures arcade header HUD does not overlap the iframe canvas', function () {
+    $game = ArcadeGame::factory()->published()->create([
+        'title' => 'Tetris HUD Check',
+        'slug'  => 'tetris-hud-check',
+    ]);
+
+    $response = get('http://arcade.rbeverything.com/play/' . $game->slug);
+    $response->assertOk();
+    $response->assertSee('arcade-hud-bar', false);
+    $response->assertSee('arcade-frame-wrapper', false);
+    // Ensure height calculation calc(100vh - 52px) or flex layout prevents overlap
+    $response->assertSee('calc(100vh - 52px)', false);
+});
+

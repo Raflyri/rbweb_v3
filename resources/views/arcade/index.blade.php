@@ -19,7 +19,7 @@
 .arcade-container {
     max-width: 80rem;
     margin: 0 auto;
-    padding: 1.5rem 1.5rem 5rem;
+    padding: 1rem 1.5rem 5rem;
     position: relative;
     z-index: 2;
 }
@@ -44,41 +44,9 @@
 /* ── Hero Header ──────────────────────────────────────────────── */
 .arcade-hero {
     text-align: center;
-    padding: 2.5rem 1rem 3.5rem;
+    padding: 2rem 1rem 3rem;
     position: relative;
     z-index: 2;
-}
-
-.arcade-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 1rem;
-    border-radius: 9999px;
-    background: linear-gradient(135deg, rgba(255, 46, 99, 0.15), rgba(8, 217, 214, 0.15));
-    border: 1px solid rgba(8, 217, 214, 0.4);
-    box-shadow: 0 0 16px rgba(8, 217, 214, 0.2);
-    font-size: 0.75rem;
-    font-family: var(--font-mono), monospace;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #F8FAFC;
-    text-transform: uppercase;
-    margin-bottom: 1.25rem;
-}
-
-.arcade-badge-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #08D9D6;
-    box-shadow: 0 0 8px #08D9D6;
-    animation: arcadePulseDot 1.6s infinite ease-in-out;
-}
-
-@keyframes arcadePulseDot {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.4); opacity: 0.5; }
 }
 
 .arcade-title {
@@ -101,7 +69,7 @@
     font-size: 1.05rem;
     color: #94A3B8;
     max-width: 42rem;
-    margin: 0 auto 2rem;
+    margin: 0 auto 1.75rem;
     line-height: 1.7;
 }
 
@@ -111,20 +79,20 @@
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 1.5rem;
-    margin-top: 1rem;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
 }
 
 .arcade-stat-item {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.4rem 0.9rem;
+    padding: 0.45rem 1rem;
     border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     color: #CBD5E1;
-    font-size: 0.8rem;
+    font-size: 0.825rem;
     font-weight: 600;
 }
 
@@ -140,7 +108,7 @@
     border: 1px solid rgba(255, 46, 99, 0.35);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 46, 99, 0.15);
     overflow: hidden;
-    margin-bottom: 4rem;
+    margin-bottom: 3.5rem;
     transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -314,16 +282,22 @@
     color: #FFFFFF;
 }
 
-/* ── SEARCH & FILTER CONTROLS ─────────────────────────────────── */
-.arcade-toolbar {
+/* ── SEARCH & CATEGORY TOOLBAR ────────────────────────────────── */
+.arcade-toolbar-container {
+    margin-bottom: 2.25rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.arcade-toolbar-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1.25rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .arcade-section-heading {
@@ -340,7 +314,7 @@
 }
 
 .arcade-badge-counter {
-    padding: 0.2rem 0.6rem;
+    padding: 0.2rem 0.65rem;
     border-radius: 9999px;
     background: rgba(8, 217, 214, 0.12);
     border: 1px solid rgba(8, 217, 214, 0.35);
@@ -352,7 +326,7 @@
 
 .arcade-search-box {
     position: relative;
-    min-width: 16rem;
+    min-width: 17rem;
 }
 
 @media (max-width: 600px) {
@@ -365,7 +339,7 @@
     width: 100%;
     padding: 0.6rem 1rem 0.6rem 2.5rem;
     border-radius: 0.75rem;
-    background: rgba(15, 23, 42, 0.8);
+    background: rgba(15, 23, 42, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #F8FAFC;
     font-size: 0.85rem;
@@ -386,6 +360,39 @@
     transform: translateY(-50%);
     color: #64748B;
     pointer-events: none;
+}
+
+/* Category Filter Tabs */
+.arcade-category-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.arcade-cat-tab {
+    padding: 0.4rem 0.9rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94A3B8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.arcade-cat-tab:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.arcade-cat-tab.active {
+    background: linear-gradient(135deg, rgba(255, 46, 99, 0.25), rgba(8, 217, 214, 0.25));
+    border-color: #08D9D6;
+    color: #FFFFFF;
+    box-shadow: 0 0 14px rgba(8, 217, 214, 0.35);
 }
 
 /* ── GAME CARDS GRID ─────────────────────────────────────────── */
@@ -444,6 +451,23 @@
     color: #FF2E63;
 }
 
+.arcade-card-cat-badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.5rem;
+    background: rgba(10, 15, 29, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(8, 217, 214, 0.4);
+    color: #08D9D6;
+    font-size: 0.7rem;
+    font-family: var(--font-mono), monospace;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    z-index: 2;
+}
+
 .arcade-card-play-overlay {
     position: absolute;
     inset: 0;
@@ -454,6 +478,7 @@
     justify-content: center;
     opacity: 0;
     transition: opacity 0.25s ease;
+    z-index: 3;
 }
 
 .arcade-game-card:hover .arcade-card-play-overlay {
@@ -555,11 +580,6 @@
     {{-- HERO ARENA HEADER --}}
     {{-- ═══════════════════════════════════════════════════════════ --}}
     <header class="arcade-hero">
-        <div class="arcade-badge">
-            <span class="arcade-badge-dot"></span>
-            <span>RBeverything Arcade Hub · v3.0</span>
-        </div>
-
         <h1 class="arcade-title">
             NEXT-GEN <span class="arcade-title-gradient">ARCADE</span> PORTAL
         </h1>
@@ -585,116 +605,140 @@
                 </svg>
                 <span>Keyboard & Touch Controls</span>
             </div>
-            <div class="arcade-stat-item">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span>Cloudflare Edge Optimized</span>
-            </div>
         </div>
     </header>
 
     @if($games->count() > 0)
         @php
-            $spotlightGame = $games->first();
+            // Only show spotlight banner if an admin specifically designated a game as spotlight
+            $spotlightGame = $games->firstWhere('is_spotlight', true);
         @endphp
 
         {{-- ═══════════════════════════════════════════════════════════ --}}
-        {{-- SPOTLIGHT FEATURED GAME SHOWCASE --}}
+        {{-- SPOTLIGHT FEATURED GAME SHOWCASE (Manual Triggered) --}}
         {{-- ═══════════════════════════════════════════════════════════ --}}
-        <section class="arcade-spotlight" aria-label="Game Unggulan">
-            <div class="arcade-spotlight-inner">
-                <a href="{{ route('arcade.play', $spotlightGame->slug) }}" class="arcade-spotlight-preview" aria-label="Mainkan {{ $spotlightGame->title }}">
-                    <span class="arcade-spotlight-tag">★ SPOTLIGHT GAME</span>
-                    @if($spotlightGame->thumbnail)
-                        <img src="{{ \Illuminate\Support\Facades\Storage::url($spotlightGame->thumbnail) }}"
-                             alt="{{ $spotlightGame->title }}"
-                             loading="eager">
-                    @else
-                        <div class="arcade-card-media-placeholder">
-                            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <rect x="2" y="6" width="20" height="12" rx="2"/>
-                                <path d="M6 12h4m-2-2v4"/>
-                                <line x1="15" y1="11" x2="15.01" y2="11"/>
-                                <line x1="18" y1="13" x2="18.01" y2="13"/>
-                            </svg>
+        @if($spotlightGame)
+            <section class="arcade-spotlight" aria-label="Game Unggulan">
+                <div class="arcade-spotlight-inner">
+                    <a href="{{ route('arcade.play', $spotlightGame->slug) }}" class="arcade-spotlight-preview" aria-label="Mainkan {{ $spotlightGame->title }}">
+                        <span class="arcade-spotlight-tag">★ SPOTLIGHT GAME</span>
+                        @if($spotlightGame->thumbnail)
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url($spotlightGame->thumbnail) }}"
+                                 alt="{{ $spotlightGame->title }}"
+                                 loading="eager">
+                        @else
+                            <div class="arcade-card-media-placeholder">
+                                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                    <path d="M6 12h4m-2-2v4"/>
+                                    <line x1="15" y1="11" x2="15.01" y2="11"/>
+                                    <line x1="18" y1="13" x2="18.01" y2="13"/>
+                                </svg>
+                            </div>
+                        @endif
+                        <div class="arcade-spotlight-overlay">
+                            <div class="arcade-play-big-btn">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="6 3 20 12 6 21 6 3"/>
+                                </svg>
+                            </div>
                         </div>
-                    @endif
-                    <div class="arcade-spotlight-overlay">
-                        <div class="arcade-play-big-btn">
-                            <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="6 3 20 12 6 21 6 3"/>
+                    </a>
+
+                    <div class="arcade-spotlight-content">
+                        <div class="arcade-spotlight-label">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                             </svg>
+                            Koleksi Unggulan Pilihan
                         </div>
-                    </div>
-                </a>
 
-                <div class="arcade-spotlight-content">
-                    <div class="arcade-spotlight-label">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        Koleksi Unggulan Paling Populer
-                    </div>
+                        <h2 class="arcade-spotlight-title">
+                            {{ $spotlightGame->title }}
+                        </h2>
 
-                    <h2 class="arcade-spotlight-title">
-                        {{ $spotlightGame->title }}
-                    </h2>
+                        @if($spotlightGame->description)
+                            <p class="arcade-spotlight-desc">
+                                {{ $spotlightGame->description }}
+                            </p>
+                        @endif
 
-                    @if($spotlightGame->description)
-                        <p class="arcade-spotlight-desc">
-                            {{ $spotlightGame->description }}
-                        </p>
-                    @endif
+                        <div class="arcade-spotlight-meta">
+                            @if($spotlightGame->category)
+                                <span class="arcade-meta-pill" style="color:#08D9D6;border-color:rgba(8,217,214,0.35);">
+                                    📁 {{ $spotlightGame->category->name }}
+                                </span>
+                            @endif
+                            <span class="arcade-meta-pill">🕹️ Web Play</span>
+                            <span class="arcade-meta-pill">⚡ HTML5</span>
+                            <span class="arcade-meta-pill">📱 Mobile Responsive</span>
+                        </div>
 
-                    <div class="arcade-spotlight-meta">
-                        <span class="arcade-meta-pill">🕹️ Web Arcade</span>
-                        <span class="arcade-meta-pill">⚡ 60 FPS HTML5</span>
-                        <span class="arcade-meta-pill">📱 Mobile Responsive</span>
-                    </div>
-
-                    <div>
-                        <a href="{{ route('arcade.play', $spotlightGame->slug) }}" class="arcade-cta-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="6 3 20 12 6 21 6 3"/>
-                            </svg>
-                            Mainkan Sekarang
-                        </a>
+                        <div>
+                            <a href="{{ route('arcade.play', $spotlightGame->slug) }}" class="arcade-cta-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="6 3 20 12 6 21 6 3"/>
+                                </svg>
+                                Mainkan Sekarang
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        @endif
 
         {{-- ═══════════════════════════════════════════════════════════ --}}
-        {{-- GAME CATALOG WITH LIVE SEARCH --}}
+        {{-- GAME CATALOG WITH DYNAMIC CATEGORIES & LIVE SEARCH --}}
         {{-- ═══════════════════════════════════════════════════════════ --}}
         <section aria-label="Daftar Semua Game">
-            <div class="arcade-toolbar">
-                <div class="arcade-section-heading">
-                    <h2>Katalog Permainan</h2>
-                    <span id="game-counter" class="arcade-badge-counter">{{ $games->count() }} GAME TERSEDIA</span>
+            <div class="arcade-toolbar-container">
+                <div class="arcade-toolbar-top">
+                    <div class="arcade-section-heading">
+                        <h2>Katalog Permainan</h2>
+                        <span id="game-counter" class="arcade-badge-counter">{{ $games->count() }} GAME TERSEDIA</span>
+                    </div>
+
+                    <div class="arcade-search-box">
+                        <svg class="arcade-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text"
+                               id="arcade-search-input"
+                               class="arcade-search-input"
+                               placeholder="Cari nama atau deskripsi game..."
+                               autocomplete="off">
+                    </div>
                 </div>
 
-                <div class="arcade-search-box">
-                    <svg class="arcade-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                    <input type="text"
-                           id="arcade-search-input"
-                           class="arcade-search-input"
-                           placeholder="Cari nama game..."
-                           autocomplete="off">
-                </div>
+                {{-- Dynamic Category Filter Tabs --}}
+                @if(isset($categories) && $categories->isNotEmpty())
+                    <div class="arcade-category-tabs" role="tablist" aria-label="Filter Kategori Game">
+                        <button type="button" class="arcade-cat-tab active" data-category="all">
+                            Semua ({{ $games->count() }})
+                        </button>
+                        @foreach($categories as $category)
+                            @if($category->games_count > 0)
+                                <button type="button" class="arcade-cat-tab" data-category="{{ $category->slug }}">
+                                    {{ $category->name }} ({{ $category->games_count }})
+                                </button>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <div id="arcade-grid" class="arcade-cards-grid">
                 @foreach($games as $game)
                     <article class="arcade-game-card"
                              data-title="{{ strtolower($game->title) }}"
-                             data-desc="{{ strtolower($game->description ?? '') }}">
+                             data-desc="{{ strtolower($game->description ?? '') }}"
+                             data-category="{{ $game->category?->slug ?? 'all' }}">
                         <a href="{{ route('arcade.play', $game->slug) }}" class="arcade-card-media" aria-label="Mainkan {{ $game->title }}">
+                            @if($game->category)
+                                <span class="arcade-card-cat-badge">{{ $game->category->name }}</span>
+                            @endif
+
                             @if($game->thumbnail)
                                 <img src="{{ \Illuminate\Support\Facades\Storage::url($game->thumbnail) }}"
                                      alt="{{ $game->title }}"
@@ -751,8 +795,8 @@
             </div>
 
             <div id="arcade-no-match" style="display:none;text-align:center;padding:4rem 1.5rem;color:#94A3B8;">
-                <p style="font-size:1.1rem;margin:0 0 0.5rem;color:#F1F5F9;font-weight:700;">Tidak ada game yang sesuai pencarian</p>
-                <p style="font-size:0.9rem;margin:0;">Coba ketik kata kunci lain pada kolom pencarian.</p>
+                <p style="font-size:1.1rem;margin:0 0 0.5rem;color:#F1F5F9;font-weight:700;">Tidak ada game yang sesuai filter</p>
+                <p style="font-size:0.9rem;margin:0;">Coba pilih kategori lain atau ganti kata kunci pencarian.</p>
             </div>
         </section>
     @else
@@ -762,7 +806,7 @@
             <p style="font-size:0.95rem;color:#94A3B8;max-width:30rem;margin:0 auto 1.5rem;">
                 Koleksi game interaktif kami sedang dalam tahap kurasi dan segera ditayangkan. Silakan kembali lagi nanti!
             </p>
-            <a href="{{ route('home') }}" class="arcade-cta-btn" style="margin:0 auto;">
+            <a href="{{ $mainDomainUrl }}/" class="arcade-cta-btn" style="margin:0 auto;">
                 Kembali ke Beranda
             </a>
         </div>
@@ -772,34 +816,56 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('arcade-search-input');
+    const catTabs = document.querySelectorAll('.arcade-cat-tab');
     const cards = document.querySelectorAll('.arcade-game-card');
     const noMatch = document.getElementById('arcade-no-match');
     const counter = document.getElementById('game-counter');
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function (e) {
-            const query = e.target.value.toLowerCase().trim();
-            let visibleCount = 0;
+    let currentCategory = 'all';
+    let searchQuery = '';
 
-            cards.forEach(card => {
-                const title = card.getAttribute('data-title') || '';
-                const desc = card.getAttribute('data-desc') || '';
-                if (title.includes(query) || desc.includes(query)) {
-                    card.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+    function filterGames() {
+        let visibleCount = 0;
 
-            if (noMatch) {
-                noMatch.style.display = visibleCount === 0 ? 'block' : 'none';
-            }
-            if (counter) {
-                counter.textContent = visibleCount + ' GAME DITEMUKAN';
+        cards.forEach(card => {
+            const title = card.getAttribute('data-title') || '';
+            const desc = card.getAttribute('data-desc') || '';
+            const cardCat = card.getAttribute('data-category') || '';
+
+            const matchesCategory = (currentCategory === 'all' || cardCat === currentCategory);
+            const matchesSearch = (!searchQuery || title.includes(searchQuery) || desc.includes(searchQuery));
+
+            if (matchesCategory && matchesSearch) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
             }
         });
+
+        if (noMatch) {
+            noMatch.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+        if (counter) {
+            counter.textContent = visibleCount + ' GAME TERSEDIA';
+        }
     }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+            searchQuery = e.target.value.toLowerCase().trim();
+            filterGames();
+        });
+    }
+
+    catTabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            catTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentCategory = this.getAttribute('data-category') || 'all';
+            filterGames();
+        });
+    });
 });
 </script>
 @endsection

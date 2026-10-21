@@ -14,11 +14,13 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -87,12 +89,29 @@ class ArcadeGameResource extends Resource
                         ->required()
                         ->columnSpanFull(),
 
-                    FileUpload::make('thumbnail')
-                        ->label('Thumbnail Game')
-                        ->image()
-                        ->disk('public')
-                        ->directory('arcade-thumbnails')
-                        ->maxSize(2048),
+                    Select::make('game_category_id')
+                        ->label('Kategori Game')
+                        ->relationship('category', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->createOptionForm([
+                            TextInput::make('name')
+                                ->label('Nama Kategori')
+                                ->required()
+                                ->maxLength(255)
+                                ->live(debounce: 500)
+                                ->afterStateUpdated(function (Set $set, ?string $state) {
+                                    $set('slug', Str::slug($state ?? ''));
+                                }),
+                            TextInput::make('slug')
+                                ->label('Slug Kategori')
+                                ->required()
+                                ->maxLength(255)
+                                ->unique('game_categories', 'slug'),
+                        ])
+                        ->createOptionAction(fn ($action) => $action->modalHeading('Tambah Kategori Game'))
+                        ->placeholder('Pilih atau buat kategori game baru...')
+                        ->native(false),
 
                     Select::make('status')
                         ->label('Status Publikasi')
@@ -103,6 +122,18 @@ class ArcadeGameResource extends Resource
                         ->default(ArcadeGame::STATUS_DRAFT)
                         ->required()
                         ->native(false),
+
+                    FileUpload::make('thumbnail')
+                        ->label('Thumbnail Game')
+                        ->image()
+                        ->disk('public')
+                        ->directory('arcade-thumbnails')
+                        ->maxSize(2048),
+
+                    Toggle::make('is_spotlight')
+                        ->label('Tampilkan sebagai Spotlight Game')
+                        ->helperText('Jika diaktifkan, game ini akan ditampilkan di banner utama Spotlight pada halaman Arcade.')
+                        ->default(false),
                 ]),
         ]);
     }
@@ -122,14 +153,27 @@ class ArcadeGameResource extends Resource
                     ->sortable()
                     ->weight('bold'),
 
+                TextColumn::make('category.name')
+                    ->label('Kategori')
+                    ->badge()
+                    ->color('info')
+                    ->sortable()
+                    ->placeholder('-'),
+
+                IconColumn::make('is_spotlight')
+                    ->label('Spotlight')
+                    ->boolean()
+                    ->sortable(),
+
                 TextColumn::make('slug')
                     ->label('Slug')
                     ->searchable()
-                    ->copyable(),
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('game_url')
                     ->label('Game URL')
-                    ->limit(35)
+                    ->limit(30)
                     ->copyable(),
 
                 TextColumn::make('status')
@@ -144,6 +188,10 @@ class ArcadeGameResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
+                SelectFilter::make('game_category_id')
+                    ->label('Kategori')
+                    ->relationship('category', 'name'),
+
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options([

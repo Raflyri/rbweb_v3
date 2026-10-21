@@ -21,8 +21,30 @@ class ArcadeGame extends Model
         'description',
         'thumbnail',
         'game_url',
+        'game_category_id',
         'status',
+        'is_spotlight',
     ];
+
+    protected $casts = [
+        'is_spotlight' => 'boolean',
+    ];
+
+    /**
+     * Relationship: An ArcadeGame belongs to a GameCategory.
+     */
+    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(GameCategory::class, 'game_category_id');
+    }
+
+    /**
+     * Scope to only spotlight games.
+     */
+    public function scopeSpotlight(Builder $query): Builder
+    {
+        return $query->where('is_spotlight', true);
+    }
 
     protected static function booted(): void
     {
