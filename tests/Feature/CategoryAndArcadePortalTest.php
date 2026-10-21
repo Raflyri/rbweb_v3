@@ -321,11 +321,14 @@ it('only displays spotlight banner when an arcade game is explicitly marked as i
 });
 
 it('redirects non-arcade routes on arcade subdomain back to apex domain', function () {
+    $apexUrl = rtrim(config('app.url', 'https://rbeverything.com'), '/');
+    $apexUrl = preg_replace('#^https?://arcade\.#i', 'https://', $apexUrl);
+
     get('http://arcade.rbeverything.com/layanan')
-        ->assertRedirect('https://rbeverything.com/layanan');
+        ->assertRedirect($apexUrl . '/layanan');
 
     get('http://arcade.rbeverything.com/blog/artikel-baru')
-        ->assertRedirect('https://rbeverything.com/blog/artikel-baru');
+        ->assertRedirect($apexUrl . '/blog/artikel-baru');
 });
 
 it('ensures arcade header HUD does not overlap the iframe canvas', function () {
