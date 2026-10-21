@@ -208,7 +208,7 @@
                     @if(isset($globalCategories) && $globalCategories->isNotEmpty())
                         <div class="rb-nav-dropdown-menu" role="menu">
                             @foreach($globalCategories as $navCategory)
-                                <a href="{{ route('products.index', ['type' => strtolower($navCategory->type), 'category' => $navCategory->slug]) }}"
+                                <a href="{{ route('products.index', ['type' => $navCategory->slug]) }}"
                                    class="rb-nav-dropdown-item" role="menuitem">
                                     <span>{{ $navCategory->name }}</span>
                                     <span style="font-size:0.65rem;opacity:0.65;">{{ $navCategory->type }}</span>

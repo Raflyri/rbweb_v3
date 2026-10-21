@@ -52,6 +52,12 @@ class ProductController extends Controller
             ProductType::JASA    => Product::active()->jasa()->count(),
         ];
 
+        foreach (array_keys(ProductType::options($locale)) as $typeKey) {
+            if (! array_key_exists($typeKey, $counts)) {
+                $counts[$typeKey] = Product::active()->ofType($typeKey)->count();
+            }
+        }
+
         return view('products.index', compact('products', 'type', 'selectedCategory', 'counts', 'locale'));
     }
 

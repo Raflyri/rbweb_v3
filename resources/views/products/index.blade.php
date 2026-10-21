@@ -25,6 +25,16 @@
         ['key' => ProductType::BARANG,  'label' => __('catalog.tab_barang'),  'count' => $counts[ProductType::BARANG]],
         ['key' => ProductType::JASA,    'label' => __('catalog.tab_jasa'),    'count' => $counts[ProductType::JASA]],
     ];
+
+    foreach (ProductType::options($locale) as $dynKey => $dynLabel) {
+        if (! in_array($dynKey, [ProductType::BARANG, ProductType::JASA], true)) {
+            $tabs[] = [
+                'key'   => $dynKey,
+                'label' => $dynLabel,
+                'count' => $counts[$dynKey] ?? 0,
+            ];
+        }
+    }
 @endphp
 
 @section('content')
@@ -127,14 +137,9 @@
                             <div class="product-card__body">
 
                                 <div class="product-card__badges">
-                                    <span class="product-badge product-badge--{{ $product->type }}">
+                                    <span class="product-badge product-badge--{{ $product->isJasa() ? 'jasa' : 'barang' }}">
                                         {{ ProductType::label($product->type) }}
                                     </span>
-                                    @if($product->category)
-                                        <span class="product-badge product-badge--empty">
-                                            {{ $product->category->name }}
-                                        </span>
-                                    @endif
                                     @if(! $product->isInStock())
                                         <span class="product-badge product-badge--empty">{{ __('catalog.out_of_stock') }}</span>
                                     @endif

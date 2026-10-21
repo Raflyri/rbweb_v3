@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use App\Models\Category;
 use App\Support\ProductType;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -124,28 +125,64 @@ class ProductFields
     {
         return Select::make('type')
             ->label('Jenis')
-            ->options(ProductType::options())
+            ->options(fn (): array => ProductType::options('id'))
             ->default(ProductType::DEFAULT)
             ->required()
-            ->native(false)
-            ->live()
-            ->hintIcon(
-                self::HINT_ICON,
-                'Wajib — "Barang" untuk produk fisik yang perlu dikirim (pembeli mengisi alamat saat memesan), "Jasa" untuk layanan yang tidak perlu pengiriman.',
-            );
-    }
-
-    public static function categoryField(): Select
-    {
-        return Select::make('category_id')
-            ->label('Kategori')
-            ->relationship('category', 'name')
             ->searchable()
             ->preload()
-            ->nullable()
+            ->native(false)
+            ->live()
+            ->searchPrompt('Ketik untuk mencari jenis produk...')
+            ->noSearchResultsMessage('Jenis tidak ditemukan. Klik tombol + di sebelah kanan untuk menambahkan jenis baru.')
+            ->createOptionModalHeading('Tambah Jenis Produk Baru')
+            ->createOptionForm([
+                TextInput::make('name')
+                    ->label('Nama Jenis Produk')
+                    ->placeholder('Contoh: Produk Digital, Software / SaaS, Perangkat Jaringan')
+                    ->required()
+                    ->maxLength(255)
+                    ->live(debounce: 400)
+                    ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                        if (blank($get('slug'))) {
+                            $set('slug', Str::slug($state ?? ''));
+                        }
+                    }),
+
+                TextInput::make('slug')
+                    ->label('Slug URL')
+                    ->placeholder('Otomatis dari nama jenis')
+                    ->required()
+                    ->maxLength(255),
+
+                Select::make('type')
+                    ->label('Mekanisme Pesanan & Pengiriman')
+                    ->options([
+                        Category::TYPE_BARANG => 'Barang Fisik (Perlu Alamat Pengiriman & Dapat Lacak Stok)',
+                        Category::TYPE_JASA   => 'Jasa / Non-Fisik (Tanpa Pengiriman Fisik)',
+                    ])
+                    ->default(Category::TYPE_BARANG)
+                    ->required()
+                    ->native(false),
+            ])
+            ->createOptionUsing(function (array $data): string {
+                $slug = filled($data['slug'] ?? null)
+                    ? Str::slug($data['slug'])
+                    : Category::generateUniqueSlug($data['name']);
+
+                $category = Category::updateOrCreate(
+                    ['slug' => $slug],
+                    [
+                        'name' => $data['name'],
+                        'type' => $data['type'] ?? Category::TYPE_BARANG,
+                    ],
+                );
+
+                return $category->slug;
+            })
+            ->helperText('Pilih jenis yang ada atau klik tombol + di sebelah kanan untuk menambahkan jenis baru ke database.')
             ->hintIcon(
                 self::HINT_ICON,
-                'Opsional — pilih kategori produk atau layanan agar dapat difilter melalui menu dropdown navigasi.',
+                'Wajib — pilih jenis produk/layanan dari database, atau klik tombol (+) pada kolom ini untuk membuat jenis baru secara langsung.',
             );
     }
 
@@ -173,11 +210,25 @@ class ProductFields
             ->maxValue(4294967295)
             // Stock only means anything for physical goods; a service has no
             // shelf to run out of.
-            ->visible(fn (Get $get): bool => $get('type') === ProductType::BARANG)
+            ->visible(function (Get $get): bool {
+                $type = $get('type');
+                if ($type === ProductType::BARANG) {
+                    return true;
+                }
+                if (blank($type) || $type === ProductType::JASA) {
+                    return false;
+                }
+
+                try {
+                    return Category::where('slug', $type)->value('type') === Category::TYPE_BARANG;
+                } catch (\Throwable $e) {
+                    return false;
+                }
+            })
             ->helperText('Kosongkan kalau stok tidak dilacak.')
             ->hintIcon(
                 self::HINT_ICON,
-                'Opsional — hanya untuk Barang. Kosong berarti stok tidak dilacak sama sekali. Isi 0 berarti dilacak dan sedang habis.',
+                'Opsional — hanya untuk jenis berbasis Barang fisik. Kosong berarti stok tidak dilacak sama sekali. Isi 0 berarti dilacak dan sedang habis.',
             );
     }
 

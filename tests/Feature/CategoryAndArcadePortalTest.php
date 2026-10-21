@@ -225,4 +225,29 @@ it('shares categories globally to the public layout and filters catalogue by cat
         ->assertSee('Networking Gear')
         ->assertSee('Switch Gigabit 8 Port')
         ->assertDontSee('SSD NVMe 1TB');
+
+    get(route('products.index', ['type' => 'networking-gear']))
+        ->assertOk()
+        ->assertSee('Networking Gear')
+        ->assertSee('Switch Gigabit 8 Port')
+        ->assertDontSee('SSD NVMe 1TB');
+});
+
+it('dynamically expands ProductType options from database categories and syncs category_id from type', function () {
+    $digitalType = Category::create([
+        'name' => 'Produk Digital & SaaS',
+        'slug' => 'produk-digital-saas',
+        'type' => Category::TYPE_JASA,
+    ]);
+
+    expect(ProductType::options('id'))->toHaveKey('produk-digital-saas', 'Produk Digital & SaaS')
+        ->and(ProductType::isValid('produk-digital-saas'))->toBeTrue();
+
+    $product = Product::factory()->create([
+        'type' => 'produk-digital-saas',
+        'name' => ['id' => 'Lisensi RB POS Cloud'],
+    ]);
+
+    expect($product->fresh()->category_id)->toBe($digitalType->id)
+        ->and($product->fresh()->isJasa())->toBeTrue();
 });

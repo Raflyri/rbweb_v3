@@ -48,13 +48,6 @@ class ProductsTable
                     ->formatStateUsing(fn (?string $state) => ProductType::label($state))
                     ->color(fn (?string $state) => ProductType::color($state)),
 
-                TextColumn::make('category.name')
-                    ->label('Kategori')
-                    ->placeholder('—')
-                    ->badge()
-                    ->color('gray')
-                    ->toggleable(),
-
                 TextColumn::make('price')
                     ->label('Harga')
                     ->formatStateUsing(fn (Product $record) => $record->formattedPrice() ?? 'Hubungi Kami')
@@ -93,7 +86,7 @@ class ProductsTable
             ->filters([
                 SelectFilter::make('type')
                     ->label('Jenis')
-                    ->options(ProductType::options()),
+                    ->options(fn (): array => ProductType::options('id')),
 
                 TernaryFilter::make('is_active')
                     ->label('Status tayang')

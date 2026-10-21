@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Support\Str;
@@ -84,6 +85,32 @@ class Product extends Model
         'is_featured' => 'boolean',
         'sort_order'  => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Product $product) {
+            try {
+                if (! Schema::hasTable('categories')) {
+                    return;
+                }
+
+                // If `type` was changed or set, keep `category_id` synced when `category_id` wasn't explicitly set to something else
+                if (filled($product->type) && (! $product->isDirty('category_id') || blank($product->category_id))) {
+                    $matchedCategory = Category::where('slug', $product->type)->first();
+                    if ($matchedCategory) {
+                        $product->category_id = $matchedCategory->id;
+                    }
+                } elseif (filled($product->category_id) && blank($product->type)) {
+                    $matchedCategory = Category::find($product->category_id);
+                    if ($matchedCategory) {
+                        $product->type = $matchedCategory->slug;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Ignore if DB is not ready
+            }
+        });
+    }
 
     // ── Slug ─────────────────────────────────────────────────────────────
     public function getSlugOptions(): SlugOptions
@@ -184,7 +211,10 @@ class Product extends Model
 
     public function scopeOfType(Builder $query, string $type): Builder
     {
-        return $query->where('type', $type);
+        return $query->where(function (Builder $q) use ($type) {
+            $q->where('type', $type)
+                ->orWhereHas('category', fn (Builder $cq) => $cq->where('slug', $type));
+        });
     }
 
     public function scopeBarang(Builder $query): Builder
@@ -240,7 +270,7 @@ class Product extends Model
     /** Services, and goods left with a NULL stock, are always orderable. */
     public function tracksStock(): bool
     {
-        return $this->type === ProductType::BARANG && $this->stock !== null;
+        return $this->isBarang() && $this->stock !== null;
     }
 
     public function isInStock(): bool
@@ -251,12 +281,28 @@ class Product extends Model
     // ── Type helpers ─────────────────────────────────────────────────────
     public function isBarang(): bool
     {
-        return $this->type === ProductType::BARANG;
+        if ($this->type === ProductType::BARANG) {
+            return true;
+        }
+
+        if ($this->type === ProductType::JASA) {
+            return false;
+        }
+
+        return $this->category?->type === Category::TYPE_BARANG;
     }
 
     public function isJasa(): bool
     {
-        return $this->type === ProductType::JASA;
+        if ($this->type === ProductType::JASA) {
+            return true;
+        }
+
+        if ($this->type === ProductType::BARANG) {
+            return false;
+        }
+
+        return $this->category?->type === Category::TYPE_JASA;
     }
 
     // ── Activity Log Config ──────────────────────────────────────────────

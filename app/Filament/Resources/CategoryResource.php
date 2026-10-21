@@ -30,11 +30,11 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationLabel = 'Kategori Produk';
+    protected static ?string $navigationLabel = 'Jenis Produk';
 
-    protected static ?string $modelLabel = 'Kategori';
+    protected static ?string $modelLabel = 'Jenis Produk';
 
-    protected static ?string $pluralModelLabel = 'Kategori Produk';
+    protected static ?string $pluralModelLabel = 'Jenis Produk';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Katalog';
 
