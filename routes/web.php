@@ -11,12 +11,29 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Payment\MidtransNotificationController;
+use App\Http\Controllers\Payment\PaylabsNotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\CustomPageController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ArcadeGameController;
 use App\Http\Controllers\ArcadeFrontendController;
+use App\Http\Controllers\SoftwareCatalogController;
+use App\Http\Controllers\SoftwareCatalogFrontendController;
+
+// ── Software Catalog Subdomain Routes (software-catalog.rbeverything.com) ──
+Route::domain('software-catalog.rbeverything.com')->name('software-catalog.')->group(function () {
+    Route::get('/', [SoftwareCatalogFrontendController::class, 'index'])->name('index');
+    Route::get('/preview/{slug}', [SoftwareCatalogFrontendController::class, 'show'])->name('show');
+
+    // Automatic redirect: any non-catalog URL jumps to apex domain https://rbeverything.com
+    Route::any('/{any}', function ($any = '') {
+        $apexUrl = rtrim(config('app.url', 'https://rbeverything.com'), '/');
+        $apexUrl = preg_replace('#^https?://software-catalog\.#i', 'https://', $apexUrl);
+        $uri = request()->getRequestUri();
+        return redirect()->to($apexUrl . $uri, 301);
+    })->where('any', '.*');
+});
 
 // ── Arcade Subdomain Routes (arcade.rbeverything.com) ───────────
 Route::domain('arcade.rbeverything.com')->name('arcade.')->group(function () {
@@ -32,10 +49,11 @@ Route::domain('arcade.rbeverything.com')->name('arcade.')->group(function () {
     })->where('any', '.*');
 });
 
-// ── RBdashboard CMS CRUD Routes (Categories & Arcade Games) ─────
+// ── RBdashboard CMS CRUD Routes (Categories, Arcade Games & Software Catalog) ─────
 Route::middleware(['auth'])->prefix('rbdashboard')->group(function () {
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('arcade-games', ArcadeGameController::class)->except(['show']);
+    Route::resource('software-catalog', SoftwareCatalogController::class)->except(['show']);
 });
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -126,6 +144,12 @@ Route::post('/payment/midtrans/notification', [MidtransNotificationController::c
     ->middleware('throttle:60,1')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
+// Paylabs Payment Webhook Callback
+Route::post('/payment/paylabs/notification', [PaylabsNotificationController::class, 'handle'])
+    ->name('payment.paylabs.notification')
+    ->middleware('throttle:60,1')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
 // Emergency route to execute commands without SSH
 Route::post('/system/emergency-command', [EmergencyCommandController::class, 'run'])
     ->name('system.emergency.command')
@@ -145,10 +169,14 @@ Route::get('/storage/{path}', [StorageFileController::class, 'show'])
     ->where('path', '.*')
     ->name('storage.file');
 
+// ── Software Catalog Direct / Local Preview Routes ───────────────
+Route::get('/software-catalog', [SoftwareCatalogFrontendController::class, 'index'])->name('software-catalog.direct.index');
+Route::get('/software-catalog/{slug}', [SoftwareCatalogFrontendController::class, 'show'])->name('software-catalog.direct.show');
+
 // ── Dynamic Custom Pages (Catch-All) ───────────────────────────
 // Matches any custom path managed via the Filament admin panel.
 // Placed at the end with negative lookahead so it never intercepts
 // admin panels, storage, or internal endpoints.
 Route::get('/{path}', [CustomPageController::class, 'show'])
-    ->where('path', '^(?!rbdashboard|client-area|filament|livewire|storage|system|lang).*$')
+    ->where('path', '^(?!rbdashboard|client-area|filament|livewire|storage|system|lang|software-catalog).*$')
     ->name('custom-page.show');

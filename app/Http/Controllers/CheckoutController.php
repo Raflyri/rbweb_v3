@@ -10,6 +10,7 @@ use App\Notifications\NewOrderReceived;
 use App\Services\Cart\CartService;
 use App\Services\Payment\ManualTransferGateway;
 use App\Services\Payment\MidtransGateway;
+use App\Services\Payment\PaylabsGateway;
 use App\Services\Payment\PaymentGatewayResolver;
 use App\Settings\GeneralSettings;
 use App\Support\ProductType;
@@ -110,8 +111,12 @@ class CheckoutController extends Controller
             : $firstItem['name'] . ' (+' . ($itemCount - 1) . ' produk lainnya)';
 
         $paymentMethodInput = (string) $data['payment_method'];
-        $isMidtransChannel = array_key_exists($paymentMethodInput, MidtransGateway::ALL_CHANNELS);
-        $orderPaymentMethod = $isMidtransChannel ? MidtransGateway::KEY : ManualTransferGateway::KEY;
+        $isPaylabsChannel   = array_key_exists($paymentMethodInput, PaylabsGateway::ALL_CHANNELS);
+        $isMidtransChannel  = array_key_exists($paymentMethodInput, MidtransGateway::ALL_CHANNELS);
+
+        $orderPaymentMethod = $isPaylabsChannel
+            ? PaylabsGateway::KEY
+            : ($isMidtransChannel ? MidtransGateway::KEY : ManualTransferGateway::KEY);
 
         $order = Order::place([
             'product_id'            => $firstItem['product_id'] ?? null,
@@ -141,9 +146,19 @@ class CheckoutController extends Controller
             ]);
         }
 
-
-        // If a Midtrans channel was selected and Midtrans is active, charge it immediately
-        if ($isMidtransChannel && $this->gateways->midtransIsActive()) {
+        // Auto-charge online gateway if specific channel was chosen at checkout
+        if ($isPaylabsChannel && $this->gateways->paylabsIsActive()) {
+            try {
+                $paylabs = new PaylabsGateway();
+                $paylabs->chargeChannel($order, $paymentMethodInput);
+            } catch (\Throwable $e) {
+                Log::warning('Auto-charge Paylabs channel failed on checkout, fallback to selection', [
+                    'order_number' => $order->order_number,
+                    'channel'      => $paymentMethodInput,
+                    'error'        => $e->getMessage(),
+                ]);
+            }
+        } elseif ($isMidtransChannel && $this->gateways->midtransIsActive()) {
             try {
                 $midtrans = new MidtransGateway();
                 $midtrans->chargeChannel($order, $paymentMethodInput);
@@ -189,6 +204,23 @@ class CheckoutController extends Controller
                 $methods[$id] = [
                     'id'          => $id,
                     'type'        => 'midtrans',
+                    'name'        => $info['name'],
+                    'label'       => $info['label'],
+                    'description' => $info['description'],
+                    'badge'       => $info['badge'] ?? null,
+                    'category'    => $info['category'] ?? 'va',
+                ];
+            }
+        }
+
+        if ($this->gateways->paylabsIsActive()) {
+            $paylabs = new PaylabsGateway();
+            $channels = $paylabs->enabledChannels();
+
+            foreach ($channels as $id => $info) {
+                $methods[$id] = [
+                    'id'          => $id,
+                    'type'        => 'paylabs',
                     'name'        => $info['name'],
                     'label'       => $info['label'],
                     'description' => $info['description'],

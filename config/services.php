@@ -84,4 +84,18 @@ return [
         'is_active'     => env('MIDTRANS_IS_ACTIVE', false),
     ],
 
+    /*
+    | Paylabs — Direct Payment Gateway integration (QRIS, VA, E-Wallet, Retail).
+    |
+    | 'is_active' is the master switch and defaults to false.
+    */
+    'paylabs' => [
+        'merchant_id'   => env('PAYLABS_MERCHANT_ID', ''),
+        'store_id'      => env('PAYLABS_STORE_ID', ''),
+        'private_key'   => env('PAYLABS_PRIVATE_KEY', ''),
+        'public_key'    => env('PAYLABS_PUBLIC_KEY', ''),
+        'is_production' => env('PAYLABS_IS_PRODUCTION', false),
+        'is_active'     => env('PAYLABS_IS_ACTIVE', false),
+    ],
+
 ];

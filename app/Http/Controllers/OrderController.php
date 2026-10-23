@@ -9,7 +9,9 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Notifications\NewOrderReceived;
 use App\Policies\OrderPolicy;
+use App\Services\Payment\ManualTransferGateway;
 use App\Services\Payment\MidtransGateway;
+use App\Services\Payment\PaylabsGateway;
 use App\Services\Payment\PaymentActions;
 use App\Services\Payment\PaymentGatewayResolver;
 use App\Settings\GeneralSettings;
@@ -66,8 +68,12 @@ class OrderController extends Controller
         $subtotal = $price * $qty;
 
         $paymentMethodInput = (string) ($data['payment_method'] ?? '');
-        $isMidtransChannel = array_key_exists($paymentMethodInput, MidtransGateway::ALL_CHANNELS);
-        $orderPaymentMethod = $isMidtransChannel ? MidtransGateway::KEY : ($paymentMethodInput ?: \App\Services\Payment\ManualTransferGateway::KEY);
+        $isPaylabsChannel   = array_key_exists($paymentMethodInput, PaylabsGateway::ALL_CHANNELS);
+        $isMidtransChannel  = array_key_exists($paymentMethodInput, MidtransGateway::ALL_CHANNELS);
+
+        $orderPaymentMethod = $isPaylabsChannel
+            ? PaylabsGateway::KEY
+            : ($isMidtransChannel ? MidtransGateway::KEY : ($paymentMethodInput ?: ManualTransferGateway::KEY));
 
         $order = Order::place([
             'product_id'            => $product->id,
@@ -97,11 +103,21 @@ class OrderController extends Controller
             'subtotal'              => $subtotal,
         ]);
 
-        if ($isMidtransChannel && $gateways->midtransIsActive()) {
+        if ($isPaylabsChannel && $gateways->paylabsIsActive()) {
+            try {
+                (new PaylabsGateway())->chargeChannel($order, $paymentMethodInput);
+            } catch (\Throwable $e) {
+                Log::warning('Direct order Paylabs auto-charge failed', [
+                    'order_number' => $order->order_number,
+                    'channel'      => $paymentMethodInput,
+                    'error'        => $e->getMessage(),
+                ]);
+            }
+        } elseif ($isMidtransChannel && $gateways->midtransIsActive()) {
             try {
                 (new MidtransGateway())->chargeChannel($order, $paymentMethodInput);
             } catch (\Throwable $e) {
-                Log::warning('Direct order auto-charge failed', [
+                Log::warning('Direct order Midtrans auto-charge failed', [
                     'order_number' => $order->order_number,
                     'channel'      => $paymentMethodInput,
                     'error'        => $e->getMessage(),
@@ -321,22 +337,50 @@ class OrderController extends Controller
 
         $channel = (string) $request->input('channel');
 
-        if ($channel === \App\Services\Payment\ManualTransferGateway::KEY) {
+        if ($channel === ManualTransferGateway::KEY) {
             $order->update([
-                'payment_method'           => \App\Services\Payment\ManualTransferGateway::KEY,
+                'payment_method'           => ManualTransferGateway::KEY,
                 'midtrans_payment_type'    => null,
                 'midtrans_payment_payload' => null,
+                'paylabs_payment_type'     => null,
+                'paylabs_payment_payload'  => null,
             ]);
 
             return redirect()->route('order.pending', $order->public_token)
                 ->with('payment_info', 'Metode pembayaran diubah ke Transfer Bank Manual.');
         }
 
-        $gateway = $gateways->resolveForOrder($order);
+        // If channel belongs to Paylabs
+        if (str_starts_with($channel, 'paylabs_') || array_key_exists($channel, PaylabsGateway::ALL_CHANNELS)) {
+            if (! $gateways->paylabsIsActive()) {
+                return redirect()->route('order.pending', $order->public_token)
+                    ->with('payment_error', 'Metode pembayaran Paylabs sedang tidak aktif.');
+            }
 
-        if (! ($gateway instanceof MidtransGateway)) {
-            $gateway = new MidtransGateway();
+            try {
+                $order->update(['payment_method' => PaylabsGateway::KEY]);
+                $paylabs = new PaylabsGateway();
+                $paylabs->chargeChannel($order, $channel);
+
+                return redirect()->route('order.pending', $order->public_token)
+                    ->with('payment_info', 'Instruksi pembayaran Paylabs telah dibuat. Silakan selesaikan pembayaran Anda.');
+            } catch (PaymentGatewayException $e) {
+                return redirect()->route('order.pending', $order->public_token)
+                    ->with('payment_error', $e->userMessage());
+            } catch (\Throwable $e) {
+                Log::error('Error charging Paylabs channel', [
+                    'order_number' => $order->order_number,
+                    'channel'      => $channel,
+                    'error'        => $e->getMessage(),
+                ]);
+
+                return redirect()->route('order.pending', $order->public_token)
+                    ->with('payment_error', 'Terjadi kendala saat menghubungi server pembayaran Paylabs.');
+            }
         }
+
+        // Default: Midtrans channel
+        $gateway = new MidtransGateway();
 
         if (! $gateways->midtransIsActive()) {
             return redirect()->route('order.pending', $order->public_token)
@@ -375,6 +419,9 @@ class OrderController extends Controller
                 'midtrans_transaction_id'  => null,
                 'midtrans_payment_type'    => null,
                 'midtrans_payment_payload' => null,
+                'paylabs_transaction_id'   => null,
+                'paylabs_payment_type'     => null,
+                'paylabs_payment_payload'  => null,
             ]);
         }
 
@@ -404,11 +451,41 @@ class OrderController extends Controller
                 ->with('payment_success', 'Pembayaran berhasil dan telah lunas.');
         }
 
-        $gateway = $gateways->resolve();
-
-        if ($gateway instanceof MidtransGateway && filled($order->order_number) && filled($order->midtrans_transaction_id)) {
+        // Check Paylabs order status
+        if ($order->payment_method === PaylabsGateway::KEY && filled($order->order_number) && filled($order->paylabs_transaction_id)) {
             try {
-                $status = $gateway->checkStatus($order->order_number);
+                $paylabs = new PaylabsGateway();
+                $res = $paylabs->checkStatus($order->order_number);
+                $errCode = (string) ($res['errCode'] ?? '');
+                $status  = (string) ($res['status'] ?? '');
+
+                if ($errCode === '0' || $status === '02' || strtoupper($status) === 'SUCCESS') {
+                    $payments->confirm($order, PaylabsGateway::KEY);
+
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'status'  => 'lunas',
+                            'paid'    => true,
+                            'message' => 'Pembayaran Paylabs berhasil dikonfirmasi!',
+                        ]);
+                    }
+
+                    return redirect()->route('order.pending', $order->public_token)
+                        ->with('payment_success', 'Pembayaran Paylabs berhasil dan telah lunas.');
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Paylabs status check poll failed', [
+                    'order_number' => $order->order_number,
+                    'error'        => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Check Midtrans order status
+        if ($order->payment_method === MidtransGateway::KEY && filled($order->order_number) && filled($order->midtrans_transaction_id)) {
+            try {
+                $midtrans = new MidtransGateway();
+                $status = $midtrans->checkStatus($order->order_number);
                 $transactionStatus = $status['transaction_status'] ?? null;
                 $fraudStatus = $status['fraud_status'] ?? null;
 

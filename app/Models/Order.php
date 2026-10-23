@@ -50,6 +50,9 @@ class Order extends Model
         'midtrans_transaction_id',
         'midtrans_payment_type',
         'midtrans_payment_payload',
+        'paylabs_transaction_id',
+        'paylabs_payment_type',
+        'paylabs_payment_payload',
         'paid_at',
     ];
 
@@ -62,6 +65,7 @@ class Order extends Model
         'preferred_date'           => 'date',
         'paid_at'                  => 'datetime',
         'midtrans_payment_payload' => 'array',
+        'paylabs_payment_payload'  => 'array',
     ];
 
     /**
