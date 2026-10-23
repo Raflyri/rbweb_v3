@@ -34,7 +34,7 @@ class SoftwareCatalogResource extends Resource
 {
     protected static ?string $model = SoftwareCatalog::class;
 
-    protected static ?string $slug = 'software-catalog';
+    protected static ?string $slug = 'software-portal';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-computer-desktop';
 
