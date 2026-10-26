@@ -237,24 +237,38 @@
                                 </form>
                             </div>
 
-                            @if(in_array($channel, ['qris', 'gopay', 'shopeepay'], true))
+                            @if(in_array($channel, ['qris', 'paylabs_qris', 'gopay', 'shopeepay'], true) || !empty($payload['qr_url']) || !empty($payload['qr_string']))
+                                @php
+                                    $qrSrc = !empty($payload['qr_url'])
+                                        ? $payload['qr_url']
+                                        : (!empty($payload['qr_string'])
+                                            ? 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=' . urlencode($payload['qr_string'])
+                                            : null);
+                                @endphp
+
                                 <div class="coreapi-qris-container">
                                     @if(!empty($payload['deeplink_url']))
                                         <div style="margin-bottom: 1.25rem;">
                                             <a href="{{ $payload['deeplink_url'] }}" class="rb-btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none; padding:0.875rem 1.75rem; border-radius:0.75rem; font-weight:700; font-size:1rem; box-shadow:0 4px 14px rgba(234,88,12,0.35);">
-                                                🚀 Buka Aplikasi {{ $channel === 'gopay' ? 'Gojek' : 'Shopee' }}
+                                                🚀 Buka Aplikasi {{ $channel === 'gopay' ? 'Gojek' : ($channel === 'shopeepay' ? 'Shopee' : 'E-Wallet') }}
                                             </a>
                                         </div>
                                     @endif
 
-                                    @if(!empty($payload['qr_url']))
+                                    @if($qrSrc)
                                         <div class="coreapi-qr-wrapper">
-                                            <img src="{{ $payload['qr_url'] }}" alt="{{ strtoupper($channel) }} QR Code" class="coreapi-qr-image">
+                                            <img src="{{ $qrSrc }}" alt="{{ strtoupper($channel) }} QR Code" class="coreapi-qr-image">
                                         </div>
                                         <div class="coreapi-qr-actions">
-                                            <a href="{{ $payload['qr_url'] }}" download="{{ strtoupper($channel) }}-{{ $order->order_number }}.png" target="_blank" class="coreapi-btn-small">
+                                            <a href="{{ $qrSrc }}" download="{{ strtoupper($channel) }}-{{ $order->order_number }}.png" target="_blank" class="coreapi-btn-small">
                                                 ⬇️ Simpan / Buka QR Code
                                             </a>
+                                        </div>
+                                    @endif
+
+                                    @if(!empty($payload['is_simulated']))
+                                        <div style="margin: 0.75rem auto; max-width: 320px; font-size: 0.8rem; color: #f59e0b; background: rgba(245,158,11,0.1); border: 1px dashed #f59e0b; border-radius: 8px; padding: 0.5rem 0.75rem; text-align: center;">
+                                            🧪 Mode Simulasi Paylabs (QR demo uji coba)
                                         </div>
                                     @endif
 
@@ -272,11 +286,15 @@
                                     </div>
                                 </div>
 
-                            @elseif(in_array($channel, ['bca_va', 'bni_va', 'bri_va', 'permata_va', 'cimb_va'], true))
+                            @elseif(in_array($channel, [
+                                'bca_va', 'bni_va', 'bri_va', 'permata_va', 'cimb_va',
+                                'paylabs_bca_va', 'paylabs_bni_va', 'paylabs_bri_va', 'paylabs_mandiri_va',
+                                'paylabs_permata_va', 'paylabs_cimb_va', 'paylabs_danamon_va', 'paylabs_bsi_va'
+                            ], true) || !empty($payload['va_number']))
                                 <div class="pay-account">
                                     <div class="pay-account__row">
                                         <span>Bank</span>
-                                        <strong>{{ strtoupper($payload['bank'] ?? str_replace('_va', '', $channel)) }}</strong>
+                                        <strong>{{ strtoupper($payload['bank'] ?? str_replace(['paylabs_', '_va'], '', $channel)) }}</strong>
                                     </div>
                                     <div class="pay-account__row">
                                         <span>Nomor Virtual Account</span>
@@ -296,6 +314,11 @@
                                         <div class="pay-account__row">
                                             <span>Batas Pembayaran</span>
                                             <strong style="color:#FBBF24;">{{ \Carbon\Carbon::parse($payload['expiry_time'])->format('d/m/Y H:i') }} WIB</strong>
+                                        </div>
+                                    @endif
+                                    @if(!empty($payload['is_simulated']))
+                                        <div style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #f59e0b; background: rgba(245,158,11,0.1); border: 1px dashed #f59e0b; border-radius: 8px; padding: 0.4rem 0.6rem; text-align: center;">
+                                            🧪 Mode Simulasi Paylabs (Nomor VA demo uji coba)
                                         </div>
                                     @endif
                                 </div>
@@ -344,6 +367,23 @@
                                             <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ $payload['payment_code'] ?? '' }}', this)">Salin</button>
                                         </div>
                                     </div>
+                                    <div class="pay-account__row pay-account__row--amount">
+                                        <span>Total yang Harus Dibayar</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <strong>{{ $payment['formatted_amount'] }}</strong>
+                                            <button type="button" class="coreapi-copy-btn" onclick="copyToClipboard('{{ (int) round($payment['amount']) }}', this)">Salin</button>
+                                        </div>
+                                    </div>
+                                    @if(!empty($payload['expiry_time']))
+                                        <div class="pay-account__row">
+                                            <span>Batas Pembayaran</span>
+                                            <strong style="color:#FBBF24;">{{ \Carbon\Carbon::parse($payload['expiry_time'])->format('d/m/Y H:i') }} WIB</strong>
+                                        </div>
+                                    @endif
+                                </div>
+
+                            @else
+                                <div class="pay-account">
                                     <div class="pay-account__row pay-account__row--amount">
                                         <span>Total yang Harus Dibayar</span>
                                         <div style="display:flex; align-items:center; gap:0.5rem;">

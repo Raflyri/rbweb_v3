@@ -229,3 +229,29 @@ it('flags underpayment when paid amount is less than order total', function () {
     expect($order->isPaid())->toBeFalse()
         ->and($order->payment_status)->toBe(PaymentStatus::MENUNGGU_VERIFIKASI);
 });
+
+it('renders QRIS QR code on pending order page for paylabs_qris channel', function () {
+    activatePaylabs();
+    $order = Order::factory()->create([
+        'payment_method'          => PaylabsGateway::KEY,
+        'paylabs_payment_type'    => PaylabsGateway::CHANNEL_QRIS,
+        'paylabs_transaction_id'  => 'PL-TEST-QR-123',
+        'paylabs_payment_payload' => [
+            'status_code'        => '200',
+            'transaction_id'     => 'PL-TEST-QR-123',
+            'channel'            => PaylabsGateway::CHANNEL_QRIS,
+            'qr_string'          => '00020101021226660014ID.LINKAJA.WWW0118936009180000000001',
+            'qr_url'             => 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=testqris',
+            'gross_amount'       => '50000.00',
+            'is_simulated'       => true,
+        ],
+    ]);
+
+    $response = test()->get(route('order.pending', $order->public_token));
+
+    $response->assertStatus(200);
+    $response->assertSee('coreapi-qr-image', false);
+    $response->assertSee('https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=testqris', false);
+    $response->assertSee('Simpan / Buka QR Code');
+});
+

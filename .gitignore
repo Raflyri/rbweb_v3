@@ -43,6 +43,7 @@ Thumbs.db
 /cleanup.php
 /*_cleanup.php
 /test.php
+/test_*.php
 /test_compiled.php
 
 # ── Security & Deployment Artifacts ────────────────────────────────────
