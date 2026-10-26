@@ -241,7 +241,7 @@ it('renders QRIS QR code on pending order page for paylabs_qris channel', functi
             'transaction_id'     => 'PL-TEST-QR-123',
             'channel'            => PaylabsGateway::CHANNEL_QRIS,
             'qr_string'          => '00020101021226660014ID.LINKAJA.WWW0118936009180000000001',
-            'qr_url'             => 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=testqris',
+            'qr_url'             => 'https://pay.paylabs.co.id/qris/image/PL-TEST-QR-123.png',
             'gross_amount'       => '50000.00',
             'is_simulated'       => true,
         ],
@@ -250,8 +250,8 @@ it('renders QRIS QR code on pending order page for paylabs_qris channel', functi
     $response = test()->get(route('order.pending', $order->public_token));
 
     $response->assertStatus(200);
-    $response->assertSee('coreapi-qr-image', false);
-    $response->assertSee('https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=testqris', false);
+    $response->assertSee('coreapi-qr-image');
+    $response->assertSee('https://pay.paylabs.co.id/qris/image/PL-TEST-QR-123.png');
     $response->assertSee('Simpan / Buka QR Code');
 });
 

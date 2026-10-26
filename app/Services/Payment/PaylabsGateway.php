@@ -498,10 +498,14 @@ class PaylabsGateway implements PaymentGateway
     protected function parseChargeResponse(array $data, string $channel, float $amount): array
     {
         $platformTradeNo = $data['platformTradeNo'] ?? null;
-        $qrContent       = $data['qrContent'] ?? ($data['qrUrl'] ?? null);
+        $qrUrl           = $data['qrUrl'] ?? ($data['qrisUrl'] ?? null);
+        $qrContent       = $data['qrContent'] ?? null;
         $qrImageUrl      = null;
 
-        if ($qrContent) {
+        // Prioritize official hosted QR image URL from Paylabs if returned
+        if (filled($qrUrl) && filter_var($qrUrl, FILTER_VALIDATE_URL)) {
+            $qrImageUrl = $qrUrl;
+        } elseif (filled($qrContent)) {
             $qrImageUrl = filter_var($qrContent, FILTER_VALIDATE_URL)
                 ? $qrContent
                 : 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=' . urlencode($qrContent);
