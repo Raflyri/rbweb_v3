@@ -459,7 +459,8 @@ class OrderController extends Controller
                 $errCode = (string) ($res['errCode'] ?? '');
                 $status  = (string) ($res['status'] ?? '');
 
-                if ($errCode === '0' || $status === '02' || strtoupper($status) === 'SUCCESS') {
+                // Status '02' di Paylabs adalah Settlement / Success (errCode '0' hanya indikasi API berhasil dipanggil)
+                if ($errCode === '0' && ($status === '02' || strtoupper($status) === 'SUCCESS')) {
                     $payments->confirm($order, PaylabsGateway::KEY);
 
                     if ($request->wantsJson()) {

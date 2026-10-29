@@ -127,7 +127,7 @@ class PaylabsNotificationController extends Controller
             }
 
             // Success validation (errCode == '0' and status == '02' / 'SUCCESS')
-            $isSuccessful = ($errCode === '0' || $status === '02' || strtoupper($status) === 'SUCCESS');
+            $isSuccessful = ($errCode === '0' && ($status === '02' || strtoupper($status) === 'SUCCESS'));
 
             if ($isSuccessful) {
                 if (! $order->isPaid()) {

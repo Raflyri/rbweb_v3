@@ -268,21 +268,16 @@ class PaylabsGateway implements PaymentGateway
         $channelInfo = self::ALL_CHANNELS[$channel];
         $paylabsCode = $channelInfo['paylabs_code'];
 
-        // Fallback simulation mode if credentials not configured yet or in local demo
+        if ($channel === self::CHANNEL_QRIS && $amount > 10000000) {
+            throw new PaymentGatewayException('Metode pembayaran QRIS memiliki batas nominal maksimal Rp 10.000.000 (sesuai regulasi Bank Indonesia). Silakan gunakan metode Virtual Account (VA) untuk nominal ini.', self::KEY);
+        }
+
+        // Fallback simulation mode jika kredensial belum dikonfigurasi sama sekali (mode demo lokal)
         if (! $this->isConfigured()) {
             $parsed = $this->createSimulatedCharge($order, $channel, $amount);
         } else {
-            try {
-                $parsed = $this->sendChargeRequest($order, $channel, $paylabsCode, $amount);
-            } catch (\Throwable $e) {
-                Log::error('Paylabs Core API charge failed, fallback to simulation:', [
-                    'order_number' => $order->order_number,
-                    'channel'      => $channel,
-                    'error'        => $e->getMessage(),
-                ]);
-
-                $parsed = $this->createSimulatedCharge($order, $channel, $amount);
-            }
+            // Ketika kredensial sudah diatur, gunakan API Paylabs resmi secara langsung
+            $parsed = $this->sendChargeRequest($order, $channel, $paylabsCode, $amount);
         }
 
         $order->update([
