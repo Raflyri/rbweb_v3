@@ -362,6 +362,19 @@ class PaylabsGateway implements PaymentGateway
 
         if ($errCode !== '0') {
             $errDes = (string) ($data['errCodeDes'] ?? 'Kode error Paylabs: ' . $errCode);
+
+            // Jika pesanan sudah pernah didaftarkan ke Paylabs (duplicate), pulihkan detail transaksi dari Paylabs
+            if (str_contains(strtolower($errDes), 'duplicate')) {
+                try {
+                    $existing = $this->checkStatus($order->order_number);
+                    if (! empty($existing) && (! empty($existing['platformTradeNo']) || ($existing['errCode'] ?? '') === '0')) {
+                        return $this->parseChargeResponse($existing, $channel, $amount);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Paylabs duplicate recovery query failed: ' . $e->getMessage());
+                }
+            }
+
             throw new PaymentGatewayException('Paylabs menolak transaksi: ' . $errDes, self::KEY);
         }
 
