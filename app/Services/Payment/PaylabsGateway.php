@@ -494,7 +494,7 @@ class PaylabsGateway implements PaymentGateway
     {
         $platformTradeNo = $data['platformTradeNo'] ?? null;
         $qrUrl           = $data['qrUrl'] ?? ($data['qrisUrl'] ?? null);
-        $qrContent       = $data['qrContent'] ?? null;
+        $qrContent       = $data['qrContent'] ?? ($data['qrCode'] ?? null);
         $qrImageUrl      = null;
 
         // Prioritize official hosted QR image URL from Paylabs if returned
