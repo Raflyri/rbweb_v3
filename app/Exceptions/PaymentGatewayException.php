@@ -18,6 +18,7 @@ class PaymentGatewayException extends RuntimeException
         string $message,
         public readonly string $gateway = 'unknown',
         ?\Throwable $previous = null,
+        public readonly ?string $customUserMessage = null,
     ) {
         parent::__construct($message, 0, $previous);
     }
@@ -26,7 +27,7 @@ class PaymentGatewayException extends RuntimeException
     public function userMessage(): string
     {
         if (filled($this->customUserMessage)) {
-            return $this->customUserMessage;
+            return (string) $this->customUserMessage;
         }
 
         if ($this->gateway === 'paylabs' && filled($this->getMessage())) {
