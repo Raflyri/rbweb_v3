@@ -22,9 +22,17 @@ class PaymentGatewayException extends RuntimeException
         parent::__construct($message, 0, $previous);
     }
 
-    /** What the buyer is shown. Never the provider's raw error text. */
+    /** What the buyer is shown. Displays specific gateway messages when available. */
     public function userMessage(): string
     {
+        if (filled($this->customUserMessage)) {
+            return $this->customUserMessage;
+        }
+
+        if ($this->gateway === 'paylabs' && filled($this->getMessage())) {
+            return $this->getMessage();
+        }
+
         return 'Pembayaran online sedang tidak tersedia. Silakan hubungi kami untuk menyelesaikan pesanan ini.';
     }
 }

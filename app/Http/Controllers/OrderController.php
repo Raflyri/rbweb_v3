@@ -365,6 +365,11 @@ class OrderController extends Controller
                 return redirect()->route('order.pending', $order->public_token)
                     ->with('payment_info', 'Instruksi pembayaran Paylabs telah dibuat. Silakan selesaikan pembayaran Anda.');
             } catch (PaymentGatewayException $e) {
+                Log::warning('Paylabs charge exception: ' . $e->getMessage(), [
+                    'order_number' => $order->order_number,
+                    'channel'      => $channel,
+                ]);
+
                 return redirect()->route('order.pending', $order->public_token)
                     ->with('payment_error', $e->userMessage());
             } catch (\Throwable $e) {

@@ -134,6 +134,7 @@ class ManagePaymentSettings extends SettingsPage
                     ];
 
                     try {
+                        $minified = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                         $sig = $paylabs->generateSignature('POST', '/payment/v2.3/qris/query', $body, $timestamp, $privKey);
                         $res = Http::withHeaders([
                             'Content-Type' => 'application/json;charset=utf-8',
@@ -141,7 +142,7 @@ class ManagePaymentSettings extends SettingsPage
                             'X-PARTNER-ID' => $merchantId,
                             'X-REQUEST-ID' => $body['requestId'],
                             'X-SIGNATURE'  => $sig,
-                        ])->timeout(8)->post($baseUrl . '/payment/v2.3/qris/query', $body);
+                        ])->withBody($minified, 'application/json;charset=utf-8')->timeout(8)->post($baseUrl . '/payment/v2.3/qris/query');
 
                         $json = $res->json();
                         // If Paylabs responds with valid JSON (even if order not found, signature & auth passed)

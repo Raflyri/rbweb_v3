@@ -334,6 +334,7 @@ class PaylabsGateway implements PaymentGateway
             $body['payer'] = $order->customer_name ?: 'Pelanggan RBeverything';
         }
 
+        $minified = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $signature = $this->generateSignature('POST', $endpoint, $body, $timestamp, $this->getPrivateKey());
 
         $headers = [
@@ -345,8 +346,9 @@ class PaylabsGateway implements PaymentGateway
         ];
 
         $res = Http::withHeaders($headers)
+            ->withBody($minified, 'application/json;charset=utf-8')
             ->timeout(12)
-            ->post($this->getBaseUrl() . $endpoint, $body);
+            ->post($this->getBaseUrl() . $endpoint);
 
         if (! $res->successful()) {
             throw new PaymentGatewayException(
@@ -442,6 +444,7 @@ class PaylabsGateway implements PaymentGateway
 
         // Cek status QRIS atau VA
         $endpoint = '/payment/v2.3/qris/query';
+        $minified = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $signature = $this->generateSignature('POST', $endpoint, $body, $timestamp, $this->getPrivateKey());
 
         $headers = [
@@ -454,8 +457,9 @@ class PaylabsGateway implements PaymentGateway
 
         try {
             $res = Http::withHeaders($headers)
+                ->withBody($minified, 'application/json;charset=utf-8')
                 ->timeout(10)
-                ->post($this->getBaseUrl() . $endpoint, $body);
+                ->post($this->getBaseUrl() . $endpoint);
 
             if ($res->successful()) {
                 $data = $res->json();
@@ -470,8 +474,9 @@ class PaylabsGateway implements PaymentGateway
             $headers['X-SIGNATURE'] = $sigVa;
 
             $resVa = Http::withHeaders($headers)
+                ->withBody($minified, 'application/json;charset=utf-8')
                 ->timeout(10)
-                ->post($this->getBaseUrl() . $endpointVa, $body);
+                ->post($this->getBaseUrl() . $endpointVa);
 
             return $resVa->json() ?: [];
         } catch (\Throwable $e) {
