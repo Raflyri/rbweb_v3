@@ -63,6 +63,8 @@ class PaylabsNotificationController extends Controller
             $isValidSignature = true;
         }
 
+        $requestId = (string) ($payload['requestId'] ?? $request->header('X-REQUEST-ID', ''));
+
         // Test notification simulation
         if ($isTest) {
             Log::info('Paylabs test notification received and accepted', [
@@ -71,7 +73,7 @@ class PaylabsNotificationController extends Controller
             ]);
 
             $this->recordLog($request, $isValidSignature, true, 200, 'Test notification accepted.');
-            return response('SUCCESS', 200)->header('Content-Type', 'text/plain');
+            return $this->buildPaylabsAck($paylabs, $requestId);
         }
 
         if (! $gateways->paylabsIsActive()) {
@@ -93,7 +95,7 @@ class PaylabsNotificationController extends Controller
             return response('Invalid Signature', 403)->header('Content-Type', 'text/plain');
         }
 
-        return DB::transaction(function () use ($orderId, $payload, $request, $payments, $errCode, $status, $isValidSignature) {
+        return DB::transaction(function () use ($orderId, $payload, $request, $payments, $paylabs, $requestId, $errCode, $status, $isValidSignature) {
             $order = Order::where('order_number', $orderId)->lockForUpdate()->first();
 
             if (! $order) {
@@ -123,7 +125,7 @@ class PaylabsNotificationController extends Controller
                 ])->save();
 
                 $this->recordLog($request, true, false, 200, 'Underpayment recorded.');
-                return response('SUCCESS', 200)->header('Content-Type', 'text/plain');
+                return $this->buildPaylabsAck($paylabs, $requestId);
             }
 
             // Success validation (errCode == '0' and status == '02' / 'SUCCESS')
@@ -142,8 +144,50 @@ class PaylabsNotificationController extends Controller
             }
 
             $this->recordLog($request, true, false, 200, 'OK.');
-            return response('SUCCESS', 200)->header('Content-Type', 'text/plain');
+            return $this->buildPaylabsAck($paylabs, $requestId);
         });
+    }
+
+    /**
+     * Build signed JSON acknowledgment required by Paylabs Asynchronous Notification spec v4.8.2.
+     */
+    protected function buildPaylabsAck(PaylabsGateway $paylabs, string $requestId): Response
+    {
+        $merchantId = $paylabs->getMerchantId();
+        $respBody = [
+            'merchantId' => $merchantId,
+            'requestId'  => $requestId,
+            'errCode'    => '0',
+            'errCodeDes' => 'SUCCESS',
+        ];
+
+        $timestamp = (new \DateTime('now', new \DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.vP');
+        $minified  = json_encode($respBody, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $headers = [
+            'Content-Type' => 'application/json;charset=utf-8',
+        ];
+
+        if (filled($paylabs->getPrivateKey())) {
+            try {
+                $sig = $paylabs->generateSignature(
+                    'POST',
+                    '/payment/paylabs/notification',
+                    $respBody,
+                    $timestamp,
+                    $paylabs->getPrivateKey()
+                );
+
+                $headers['X-TIMESTAMP']   = $timestamp;
+                $headers['X-PARTNER-ID']  = $merchantId;
+                $headers['X-REQUEST-ID']  = $requestId;
+                $headers['X-SIGNATURE']   = $sig;
+            } catch (\Throwable $e) {
+                Log::warning('Paylabs notification ack signature failed: ' . $e->getMessage());
+            }
+        }
+
+        return response($minified, 200)->withHeaders($headers);
     }
 
     protected function recordLog(

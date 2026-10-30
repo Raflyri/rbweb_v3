@@ -193,7 +193,7 @@ it('confirms order when a valid Paylabs notification is received', function () {
     ]);
 
     $response->assertStatus(200);
-    expect($response->getContent())->toBe('SUCCESS');
+    expect($response->json('errCode'))->toBe('0');
 
     $order->refresh();
     expect($order->isPaid())->toBeTrue()

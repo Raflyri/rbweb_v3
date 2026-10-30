@@ -318,11 +318,6 @@ class PaylabsGateway implements PaymentGateway
         $cleanName = preg_replace('/\s+/', ' ', $cleanName);
         $productName = mb_substr($cleanName, 0, 50) ?: ('Pesanan ' . $order->order_number);
 
-        $rawPayer = (string) ($order->customer_name ?: 'Pelanggan RBeverything');
-        $cleanPayer = trim(preg_replace('/[^a-zA-Z0-9\s]/', ' ', $rawPayer));
-        $cleanPayer = preg_replace('/\s+/', ' ', $cleanPayer);
-        $payer = mb_substr($cleanPayer, 0, 40) ?: 'Pelanggan RBeverything';
-
         $body = [
             'requestId'       => $requestId,
             'merchantId'      => $merchantId,
@@ -330,13 +325,16 @@ class PaylabsGateway implements PaymentGateway
             'amount'          => number_format($amount, 2, '.', ''),
             'merchantTradeNo' => $order->order_number,
             'productName'     => $productName,
-            'feeType'         => 'BEN',
-            'payer'           => $payer,
             'notifyUrl'       => route('payment.paylabs.notification'),
         ];
 
-        if ($isQris) {
-            $body['expire'] = 3600;
+        // Virtual Account strictly requires 'payer' (String max 30 per Paylabs v4.8.2 spec).
+        // QRIS does NOT accept 'payer' in request parameters (payer is response-only in QRIS).
+        if (! $isQris) {
+            $rawPayer = (string) ($order->customer_name ?: 'Pelanggan RBeverything');
+            $cleanPayer = trim(preg_replace('/[^a-zA-Z0-9\s]/', ' ', $rawPayer));
+            $cleanPayer = preg_replace('/\s+/', ' ', $cleanPayer);
+            $body['payer'] = mb_substr($cleanPayer, 0, 30) ?: 'Pelanggan';
         }
 
         if (filled($storeId)) {
@@ -354,12 +352,26 @@ class PaylabsGateway implements PaymentGateway
             'X-SIGNATURE'   => $signature,
         ];
 
+        Log::info('Paylabs Charge Request', [
+            'endpoint'        => $endpoint,
+            'order_number'    => $order->order_number,
+            'channel'         => $channel,
+            'merchantTradeNo' => $order->order_number,
+            'amount'          => $body['amount'],
+            'body'            => $body,
+        ]);
+
         $res = Http::withHeaders($headers)
             ->withBody($minified, 'application/json;charset=utf-8')
             ->timeout(12)
             ->post($this->getBaseUrl() . $endpoint);
 
         if (! $res->successful()) {
+            Log::error('Paylabs API HTTP Error', [
+                'status' => $res->status(),
+                'body'   => $res->body(),
+            ]);
+
             throw new PaymentGatewayException(
                 'Paylabs API merespon error HTTP ' . $res->status() . ': ' . $res->body(),
                 self::KEY
@@ -372,6 +384,13 @@ class PaylabsGateway implements PaymentGateway
         if ($errCode !== '0') {
             $errDes = (string) ($data['errCodeDes'] ?? 'Kode error Paylabs: ' . $errCode);
 
+            Log::warning('Paylabs API charge rejected', [
+                'order_number' => $order->order_number,
+                'errCode'      => $errCode,
+                'errCodeDes'   => $errDes,
+                'response'     => $data,
+            ]);
+
             // Jika pesanan sudah pernah didaftarkan ke Paylabs (duplicate), pulihkan detail transaksi dari Paylabs
             if (str_contains(strtolower($errDes), 'duplicate')) {
                 try {
@@ -382,6 +401,14 @@ class PaylabsGateway implements PaymentGateway
                 } catch (\Throwable $e) {
                     Log::warning('Paylabs duplicate recovery query failed: ' . $e->getMessage());
                 }
+            }
+
+            // Pesan informatif untuk kendala aktivasi QRIS di sandbox/SIT
+            if ($isQris && ($errCode === 'channelError' || str_contains(strtolower($errDes), 'param error'))) {
+                throw new PaymentGatewayException(
+                    'Kanal QRIS Paylabs (Sandbox/SIT) saat ini belum diaktifkan oleh Paylabs (channelError: ' . $errDes . '). Silakan gunakan metode pembayaran Virtual Account (BCA, BNI, Mandiri, Permata) yang sudah aktif.',
+                    self::KEY
+                );
             }
 
             throw new PaymentGatewayException('Paylabs menolak transaksi: ' . $errDes, self::KEY);
@@ -526,6 +553,72 @@ class PaylabsGateway implements PaymentGateway
             ]);
 
             throw new PaymentGatewayException('Gagal memeriksa status ke Paylabs: ' . $e->getMessage(), self::KEY, $e);
+        }
+    }
+
+    /**
+     * Cancel QRIS transaction via Paylabs API.
+     * Endpoint: POST /payment/v2.3/qris/cancel
+     *
+     * @return array<string, mixed>
+     */
+    public function cancelQris(string $orderNumber, ?string $platformTradeNo = null): array
+    {
+        if (! $this->isConfigured()) {
+            return ['errCode' => '0', 'status' => 'cancelled'];
+        }
+
+        $merchantId = $this->getMerchantId();
+        $storeId    = $this->getStoreId();
+        $endpoint   = '/payment/v2.3/qris/cancel';
+        $requestId  = (string) (date('YmdHis') . str_pad((string) mt_rand(1, 99999), 5, '0', STR_PAD_LEFT));
+        $timestamp  = (new \DateTime('now', new \DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.vP');
+
+        $body = [
+            'requestId'       => $requestId,
+            'merchantId'      => $merchantId,
+            'merchantTradeNo' => $orderNumber,
+        ];
+
+        if (filled($platformTradeNo)) {
+            $body['platformTradeNo'] = $platformTradeNo;
+        }
+
+        if (filled($storeId)) {
+            $body['storeId'] = $storeId;
+        }
+
+        $minified = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $signature = $this->generateSignature('POST', $endpoint, $body, $timestamp, $this->getPrivateKey());
+
+        $headers = [
+            'Content-Type'  => 'application/json;charset=utf-8',
+            'X-TIMESTAMP'   => $timestamp,
+            'X-PARTNER-ID'  => $merchantId,
+            'X-REQUEST-ID'  => $requestId,
+            'X-SIGNATURE'   => $signature,
+        ];
+
+        try {
+            $res = Http::withHeaders($headers)
+                ->withBody($minified, 'application/json;charset=utf-8')
+                ->timeout(10)
+                ->post($this->getBaseUrl() . $endpoint);
+
+            Log::info('Paylabs cancelQris response', [
+                'order_number' => $orderNumber,
+                'status'       => $res->status(),
+                'response'     => $res->json(),
+            ]);
+
+            return $res->json() ?: [];
+        } catch (\Throwable $e) {
+            Log::warning('Paylabs cancelQris call failed', [
+                'order_number' => $orderNumber,
+                'error'        => $e->getMessage(),
+            ]);
+
+            return ['errCode' => 'systemError', 'errCodeDes' => $e->getMessage()];
         }
     }
 

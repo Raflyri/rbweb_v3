@@ -210,7 +210,7 @@ class OrderController extends Controller
     /**
      * Buyer cancels their own unpaid order.
      */
-    public function cancel(Order $order, PaymentActions $payments): RedirectResponse
+    public function cancel(Order $order, PaymentActions $payments, PaylabsGateway $paylabs): RedirectResponse
     {
         if ($order->isPaid()) {
             return redirect()->route('order.pending', $order->public_token)
@@ -220,6 +220,11 @@ class OrderController extends Controller
         if ($order->isCancelled()) {
             return redirect()->route('order.pending', $order->public_token)
                 ->with('payment_info', 'Pesanan ini sudah dibatalkan sebelumnya.');
+        }
+
+        // Cancel on Paylabs gateway if QRIS was created
+        if ($order->payment_method === PaylabsGateway::KEY && $order->paylabs_payment_type === PaylabsGateway::CHANNEL_QRIS) {
+            $paylabs->cancelQris($order->order_number, $order->paylabs_transaction_id);
         }
 
         $payments->cancel($order, 'Dibatalkan oleh pembeli.');
