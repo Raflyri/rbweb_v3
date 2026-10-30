@@ -349,16 +349,24 @@ it('reports honestly that there is nothing to test yet', function () {
 |--------------------------------------------------------------------------
 */
 
-it('shows channel selection when buyer visits order page with Midtrans active', function () {
+it('shows direct payment instructions and cancel button when buyer visits order page', function () {
     activateMidtrans();
 
-    $order = Order::factory()->create();
+    $order = Order::factory()->create([
+        'payment_method'           => MidtransGateway::KEY,
+        'midtrans_transaction_id'  => 'tx-test-12345',
+        'midtrans_payment_type'    => 'qris',
+        'midtrans_payment_payload' => [
+            'qr_url'      => 'https://api.sandbox.midtrans.com/v2/qris/123/qr-code',
+            'qr_string'   => '00020101021226...dummy...',
+            'expiry_time' => '2026-09-13 15:00:00',
+        ],
+    ]);
 
     $this->get(route('order.pending', $order->public_token))
         ->assertOk()
         ->assertSee('QRIS')
-        ->assertSee('BCA Virtual Account')
-        ->assertSee('Pilih metode ini');
+        ->assertSee('Batalkan Pesanan');
 });
 
 it('renders existing QRIS payload directly without re-charging', function () {
@@ -379,7 +387,21 @@ it('renders existing QRIS payload directly without re-charging', function () {
         ->assertOk()
         ->assertSee('https://api.sandbox.midtrans.com/v2/qris/123/qr-code')
         ->assertSee('QRIS')
-        ->assertSee('Ganti Metode');
+        ->assertSee('Batalkan Pesanan');
+});
+
+it('allows buyer to cancel unpaid order', function () {
+    activateMidtrans();
+
+    $order = Order::factory()->create([
+        'payment_method' => MidtransGateway::KEY,
+    ]);
+
+    $this->post(route('order.cancel', $order->public_token))
+        ->assertRedirect(route('order.pending', $order->public_token));
+
+    $order->refresh();
+    expect($order->isCancelled())->toBeTrue();
 });
 
 it('renders existing Virtual Account payload with copy button', function () {
