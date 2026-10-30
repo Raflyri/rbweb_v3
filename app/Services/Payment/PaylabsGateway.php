@@ -310,13 +310,18 @@ class PaylabsGateway implements PaymentGateway
         $storeId    = $this->getStoreId();
         $isQris     = ($channel === self::CHANNEL_QRIS);
         $endpoint   = $isQris ? '/payment/v2.3/qris/create' : '/payment/v2.3/va/create';
-        $requestId  = 'REQ-' . $order->order_number . '-' . time();
+        $requestId  = (string) (date('YmdHis') . str_pad((string) mt_rand(1, 99999), 5, '0', STR_PAD_LEFT));
         $timestamp  = (new \DateTime('now', new \DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.vP');
 
         $rawName = (string) ($order->product_name_snapshot ?? 'Pesanan ' . $order->order_number);
-        $cleanName = trim(preg_replace('/[^a-zA-Z0-9\s\-_]/', ' ', $rawName));
+        $cleanName = trim(preg_replace('/[^a-zA-Z0-9\s]/', ' ', $rawName));
         $cleanName = preg_replace('/\s+/', ' ', $cleanName);
-        $productName = mb_substr($cleanName, 0, 90) ?: ('Pesanan ' . $order->order_number);
+        $productName = mb_substr($cleanName, 0, 50) ?: ('Pesanan ' . $order->order_number);
+
+        $rawPayer = (string) ($order->customer_name ?: 'Pelanggan RBeverything');
+        $cleanPayer = trim(preg_replace('/[^a-zA-Z0-9\s]/', ' ', $rawPayer));
+        $cleanPayer = preg_replace('/\s+/', ' ', $cleanPayer);
+        $payer = mb_substr($cleanPayer, 0, 40) ?: 'Pelanggan RBeverything';
 
         $body = [
             'requestId'       => $requestId,
@@ -325,17 +330,17 @@ class PaylabsGateway implements PaymentGateway
             'amount'          => number_format($amount, 2, '.', ''),
             'merchantTradeNo' => $order->order_number,
             'productName'     => $productName,
+            'feeType'         => 'BEN',
+            'payer'           => $payer,
             'notifyUrl'       => route('payment.paylabs.notification'),
         ];
 
-        if (filled($storeId)) {
-            $body['storeId'] = $storeId;
+        if ($isQris) {
+            $body['expire'] = 3600;
         }
 
-        if (! $isQris) {
-            $rawPayer = (string) ($order->customer_name ?: 'Pelanggan RBeverything');
-            $cleanPayer = trim(preg_replace('/[^a-zA-Z0-9\s\-_]/', ' ', $rawPayer));
-            $body['payer'] = mb_substr($cleanPayer, 0, 50) ?: 'Pelanggan RBeverything';
+        if (filled($storeId)) {
+            $body['storeId'] = $storeId;
         }
 
         $minified = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -370,8 +375,8 @@ class PaylabsGateway implements PaymentGateway
             // Jika pesanan sudah pernah didaftarkan ke Paylabs (duplicate), pulihkan detail transaksi dari Paylabs
             if (str_contains(strtolower($errDes), 'duplicate')) {
                 try {
-                    $existing = $this->checkStatus($order->order_number);
-                    if (! empty($existing) && (! empty($existing['platformTradeNo']) || ($existing['errCode'] ?? '') === '0')) {
+                    $existing = $this->checkStatus($order->order_number, $channel);
+                    if (! empty($existing) && (! empty($existing['platformTradeNo']) || ($existing['errCode'] ?? '') === '0' || ! empty($existing['qrCode']) || ! empty($existing['qrisUrl']) || ! empty($existing['vaCode']))) {
                         return $this->parseChargeResponse($existing, $channel, $amount);
                     }
                 } catch (\Throwable $e) {
@@ -443,24 +448,35 @@ class PaylabsGateway implements PaymentGateway
      *
      * @return array<string, mixed>
      */
-    public function checkStatus(string $orderNumber): array
+    public function checkStatus(string $orderNumber, ?string $paymentType = null): array
     {
         if (! $this->isConfigured()) {
             return ['status' => 'pending'];
         }
 
         $merchantId = $this->getMerchantId();
-        $requestId  = 'QRY-' . $orderNumber . '-' . time();
+        $storeId    = $this->getStoreId();
+        $requestId  = (string) (date('YmdHis') . str_pad((string) mt_rand(1, 99999), 5, '0', STR_PAD_LEFT));
         $timestamp  = (new \DateTime('now', new \DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.vP');
 
+        $isVa = $paymentType && $paymentType !== self::CHANNEL_QRIS && $paymentType !== 'QRIS';
+        $paylabsCode = $isVa
+            ? (self::ALL_CHANNELS[$paymentType]['paylabs_code'] ?? $paymentType)
+            : 'QRIS';
+
+        $endpoint = $isVa ? '/payment/v2.3/va/query' : '/payment/v2.3/qris/query';
+
         $body = [
-            'merchantId'      => $merchantId,
             'requestId'       => $requestId,
+            'merchantId'      => $merchantId,
+            'paymentType'     => $paylabsCode,
             'merchantTradeNo' => $orderNumber,
         ];
 
-        // Cek status QRIS atau VA
-        $endpoint = '/payment/v2.3/qris/query';
+        if (filled($storeId)) {
+            $body['storeId'] = $storeId;
+        }
+
         $minified = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $signature = $this->generateSignature('POST', $endpoint, $body, $timestamp, $this->getPrivateKey());
 
@@ -485,17 +501,24 @@ class PaylabsGateway implements PaymentGateway
                 }
             }
 
-            // Coba endpoint VA query jika QRIS query not found
-            $endpointVa = '/payment/v2.3/va/query';
-            $sigVa = $this->generateSignature('POST', $endpointVa, $body, $timestamp, $this->getPrivateKey());
-            $headers['X-SIGNATURE'] = $sigVa;
+            // Fallback cross-check between QRIS and VA if not found on primary endpoint
+            $fallbackEndpoint = $isVa ? '/payment/v2.3/qris/query' : '/payment/v2.3/va/query';
+            $fallbackBody = $body;
+            $fallbackBody['paymentType'] = $isVa ? 'QRIS' : 'BCAVA';
+            $fallbackRequestId = (string) (date('YmdHis') . str_pad((string) mt_rand(1, 99999), 5, '0', STR_PAD_LEFT));
+            $fallbackBody['requestId'] = $fallbackRequestId;
+            $minFallback = json_encode($fallbackBody, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $sigFallback = $this->generateSignature('POST', $fallbackEndpoint, $fallbackBody, $timestamp, $this->getPrivateKey());
 
-            $resVa = Http::withHeaders($headers)
-                ->withBody($minified, 'application/json;charset=utf-8')
+            $headers['X-SIGNATURE']  = $sigFallback;
+            $headers['X-REQUEST-ID'] = $fallbackRequestId;
+
+            $resFallback = Http::withHeaders($headers)
+                ->withBody($minFallback, 'application/json;charset=utf-8')
                 ->timeout(10)
-                ->post($this->getBaseUrl() . $endpointVa);
+                ->post($this->getBaseUrl() . $fallbackEndpoint);
 
-            return $resVa->json() ?: [];
+            return $resFallback->json() ?: [];
         } catch (\Throwable $e) {
             Log::warning('Paylabs checkStatus query failed', [
                 'order_number' => $orderNumber,

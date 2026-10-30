@@ -142,7 +142,7 @@
                     @if(session('payment_success'))
                         <div class="receipt-alert receipt-alert--ok" role="status">{{ session('payment_success') }}</div>
                     @endif
-                    @if(session('payment_error'))
+                    @if(session('payment_error') && ($payment['type'] ?? '') !== 'unavailable')
                         <div class="receipt-alert receipt-alert--warn" role="alert">{{ session('payment_error') }}</div>
                     @endif
                     @if($order->payment_note && ! $order->isPaid())
