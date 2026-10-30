@@ -132,6 +132,10 @@ Route::get('/pesanan/{order:public_token}/status', [OrderController::class, 'che
     ->middleware('throttle:60,1')
     ->name('order.status');
 
+// Buyer cancels unpaid order
+Route::post('/pesanan/{order:public_token}/batal', [OrderController::class, 'cancel'])
+    ->name('order.cancel');
+
 Route::get('/produk-layanan/{slug}', [ProductController::class, 'show'])->name('products.show');
 
 // ── Payment webhook ─────────────────────────────────────────────

@@ -240,16 +240,13 @@ class PaylabsGateway implements PaymentGateway
             ];
         }
 
-        return [
-            'type'             => 'channel_selection',
-            'gateway'          => self::KEY,
-            'name'             => 'Paylabs Pembayaran Online',
-            'configured'       => $this->isConfigured(),
-            'amount'           => $amount,
-            'formatted_amount' => Order::formatRupiah($amount),
-            'reference'        => $order->order_number,
-            'channels'         => $this->enabledChannels(),
-        ];
+        // Auto-charge if paylabs_payment_type was selected at checkout
+        $channel = (string) ($order->paylabs_payment_type ?: self::CHANNEL_QRIS);
+        if (! array_key_exists($channel, self::ALL_CHANNELS)) {
+            $channel = self::CHANNEL_QRIS;
+        }
+
+        return $this->chargeChannel($order, $channel);
     }
 
     /**
@@ -316,13 +313,18 @@ class PaylabsGateway implements PaymentGateway
         $requestId  = 'REQ-' . $order->order_number . '-' . time();
         $timestamp  = (new \DateTime('now', new \DateTimeZone('Asia/Jakarta')))->format('Y-m-d\TH:i:s.vP');
 
+        $rawName = (string) ($order->product_name_snapshot ?? 'Pesanan ' . $order->order_number);
+        $cleanName = trim(preg_replace('/[^a-zA-Z0-9\s\-_]/', ' ', $rawName));
+        $cleanName = preg_replace('/\s+/', ' ', $cleanName);
+        $productName = mb_substr($cleanName, 0, 90) ?: ('Pesanan ' . $order->order_number);
+
         $body = [
             'requestId'       => $requestId,
             'merchantId'      => $merchantId,
             'paymentType'     => $paylabsCode,
             'amount'          => number_format($amount, 2, '.', ''),
             'merchantTradeNo' => $order->order_number,
-            'productName'     => mb_substr((string) ($order->product_name_snapshot ?? 'Pesanan ' . $order->order_number), 0, 95),
+            'productName'     => $productName,
             'notifyUrl'       => route('payment.paylabs.notification'),
         ];
 
@@ -331,7 +333,9 @@ class PaylabsGateway implements PaymentGateway
         }
 
         if (! $isQris) {
-            $body['payer'] = $order->customer_name ?: 'Pelanggan RBeverything';
+            $rawPayer = (string) ($order->customer_name ?: 'Pelanggan RBeverything');
+            $cleanPayer = trim(preg_replace('/[^a-zA-Z0-9\s\-_]/', ' ', $rawPayer));
+            $body['payer'] = mb_substr($cleanPayer, 0, 50) ?: 'Pelanggan RBeverything';
         }
 
         $minified = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

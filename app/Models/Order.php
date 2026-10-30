@@ -265,7 +265,26 @@ class Order extends Model
 
     public function isCancelled(): bool
     {
-        return $this->status === OrderStatus::DIBATALKAN;
+        return $this->status === OrderStatus::DIBATALKAN || $this->payment_status === PaymentStatus::DIBATALKAN;
+    }
+
+    public function expiresAt(): \Carbon\Carbon
+    {
+        $channel = (string) ($this->paylabs_payment_type ?: ($this->midtrans_payment_type ?: ''));
+        $isQris = in_array($channel, ['qris', 'paylabs_qris', 'gopay', 'shopeepay'], true);
+
+        // QRIS: 60 menit batas wajar pembayaran
+        if ($isQris) {
+            return ($this->created_at ?: now())->copy()->addMinutes(60);
+        }
+
+        // Virtual Account & Transfer Manual: 24 jam
+        return ($this->created_at ?: now())->copy()->addHours(24);
+    }
+
+    public function isExpired(): bool
+    {
+        return ! $this->isPaid() && ! $this->isCancelled() && now()->greaterThan($this->expiresAt());
     }
 
     // ── Activity Log Config ──────────────────────────────────────────────

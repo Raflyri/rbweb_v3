@@ -92,6 +92,8 @@ class OrderController extends Controller
             'preferred_date'        => $product->isJasa() ? ($data['preferred_date'] ?? null) : null,
             'notes'                 => $data['notes'] ?? null,
             'payment_method'        => $orderPaymentMethod,
+            'paylabs_payment_type'  => $isPaylabsChannel ? $paymentMethodInput : null,
+            'midtrans_payment_type' => $isMidtransChannel ? $paymentMethodInput : null,
         ]);
 
         $order->items()->create([
@@ -106,22 +108,38 @@ class OrderController extends Controller
         if ($isPaylabsChannel && $gateways->paylabsIsActive()) {
             try {
                 (new PaylabsGateway())->chargeChannel($order, $paymentMethodInput);
-            } catch (\Throwable $e) {
+            } catch (PaymentGatewayException $e) {
                 Log::warning('Direct order Paylabs auto-charge failed', [
                     'order_number' => $order->order_number,
                     'channel'      => $paymentMethodInput,
                     'error'        => $e->getMessage(),
                 ]);
+                session()->flash('payment_error', $e->userMessage());
+            } catch (\Throwable $e) {
+                Log::error('Direct order Paylabs unexpected error', [
+                    'order_number' => $order->order_number,
+                    'channel'      => $paymentMethodInput,
+                    'error'        => $e->getMessage(),
+                ]);
+                session()->flash('payment_error', 'Terjadi kendala saat menghubungi gateway Paylabs.');
             }
         } elseif ($isMidtransChannel && $gateways->midtransIsActive()) {
             try {
                 (new MidtransGateway())->chargeChannel($order, $paymentMethodInput);
-            } catch (\Throwable $e) {
+            } catch (PaymentGatewayException $e) {
                 Log::warning('Direct order Midtrans auto-charge failed', [
                     'order_number' => $order->order_number,
                     'channel'      => $paymentMethodInput,
                     'error'        => $e->getMessage(),
                 ]);
+                session()->flash('payment_error', $e->userMessage());
+            } catch (\Throwable $e) {
+                Log::error('Direct order Midtrans unexpected error', [
+                    'order_number' => $order->order_number,
+                    'channel'      => $paymentMethodInput,
+                    'error'        => $e->getMessage(),
+                ]);
+                session()->flash('payment_error', 'Terjadi kendala saat menghubungi gateway pembayaran.');
             }
         }
 
@@ -137,29 +155,46 @@ class OrderController extends Controller
      * this page shows a name, a phone number and a home address, and a
      * sequential RB-20260906-0001 in the URL would let anyone walk the list.
      */
-    public function pending(Order $order, PaymentGatewayResolver $gateways): View
-    {
-        $gateway = $gateways->resolveForOrder($order);
+    public function pending(
+        Order $order,
+        PaymentGatewayResolver $gateways,
+        PaymentActions $payments
+    ): View {
+        // Auto-cancel if payment window has expired
+        if ($order->isExpired()) {
+            $payments->cancel($order, 'Pesanan dibatalkan otomatis karena telah melewati batas waktu pembayaran.');
+        }
 
-        try {
-            // Whatever the active gateway needs the page to say. The controller
-            // does not know or care which method that is.
-            $payment = $gateway->charge($order);
-        } catch (PaymentGatewayException $e) {
-            // A provider being down must not cost someone the page holding
-            // their order number. Say so plainly and leave the contact buttons.
-            Log::error('Payment gateway unavailable on the order page', [
-                'order_number' => $order->order_number,
-                'gateway'      => $e->gateway,
-                'error'        => $e->getMessage(),
-            ]);
-
+        if ($order->isCancelled()) {
             $payment = [
-                'type'    => 'unavailable',
-                'gateway' => $e->gateway,
-                'name'    => $gateway->name(),
-                'message' => $e->userMessage(),
+                'type'    => 'cancelled',
+                'gateway' => $order->payment_method,
+                'name'    => 'Pesanan Dibatalkan',
+                'message' => $order->payment_note ?: 'Pesanan ini telah dibatalkan.',
             ];
+        } else {
+            $gateway = $gateways->resolveForOrder($order);
+
+            try {
+                // Whatever the active gateway needs the page to say. The controller
+                // does not know or care which method that is.
+                $payment = $gateway->charge($order);
+            } catch (PaymentGatewayException $e) {
+                // A provider being down must not cost someone the page holding
+                // their order number. Say so plainly and leave the contact buttons.
+                Log::error('Payment gateway unavailable on the order page', [
+                    'order_number' => $order->order_number,
+                    'gateway'      => $e->gateway,
+                    'error'        => $e->getMessage(),
+                ]);
+
+                $payment = [
+                    'type'    => 'unavailable',
+                    'gateway' => $e->gateway,
+                    'name'    => $gateway->name(),
+                    'message' => $e->userMessage(),
+                ];
+            }
         }
 
         $checkoutCtrl = new CheckoutController(app(\App\Services\Cart\CartService::class), $gateways);
@@ -170,6 +205,27 @@ class OrderController extends Controller
             'payment'        => $payment,
             'paymentMethods' => $checkoutCtrl->availablePaymentMethods(),
         ]);
+    }
+
+    /**
+     * Buyer cancels their own unpaid order.
+     */
+    public function cancel(Order $order, PaymentActions $payments): RedirectResponse
+    {
+        if ($order->isPaid()) {
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_error', 'Pesanan yang sudah lunas tidak dapat dibatalkan.');
+        }
+
+        if ($order->isCancelled()) {
+            return redirect()->route('order.pending', $order->public_token)
+                ->with('payment_info', 'Pesanan ini sudah dibatalkan sebelumnya.');
+        }
+
+        $payments->cancel($order, 'Dibatalkan oleh pembeli.');
+
+        return redirect()->route('order.pending', $order->public_token)
+            ->with('payment_info', 'Pesanan berhasil dibatalkan.');
     }
 
     /**

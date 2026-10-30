@@ -74,6 +74,18 @@ class PaymentActions
     }
 
     /**
+     * Cancel an order (by buyer or auto-cancellation when expired).
+     */
+    public function cancel(Order $order, string $reason = 'Dibatalkan oleh pembeli.'): void
+    {
+        $order->forceFill([
+            'status'         => \App\Support\OrderStatus::DIBATALKAN,
+            'payment_status' => PaymentStatus::DIBATALKAN,
+            'payment_note'   => $reason,
+        ])->save();
+    }
+
+    /**
      * Store a buyer's receipt and put the order in the verification queue.
      *
      * Any previous file is deleted — a rejected receipt has served its purpose

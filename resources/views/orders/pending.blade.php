@@ -173,50 +173,28 @@
                             </p>
                         </div>
                     @elseif($order->isCancelled())
-                        <p>{{ __('receipt_ui.cancelled_message') }}</p>
+                        <div class="receipt-cancelled-box">
+                            <div class="receipt-cancelled-icon" aria-hidden="true">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                </svg>
+                            </div>
+                            <h3 class="receipt-cancelled-title">Pesanan Dibatalkan</h3>
+                            <p class="receipt-cancelled-desc">
+                                {{ $order->payment_note ?: __('receipt_ui.cancelled_message') }}
+                            </p>
+                            <p style="font-size:0.875rem; color:var(--color-muted); margin:0.5rem 0 0;">
+                                Jika Anda ingin memesan kembali atau membutuhkan bantuan, silakan hubungi tim kami atau buat pesanan baru.
+                            </p>
+                        </div>
                     @elseif($payment['type'] === 'unavailable')
                         {{-- The gateway threw; the buyer gets a sentence they can
                              act on instead of a 500. --}}
-                        <p>{{ $payment['message'] }} {!! __('receipt_ui.unavailable_contact', ['number' => $order->order_number]) !!}</p>
-                    @elseif($payment['type'] === 'channel_selection')
-                        <p style="margin-bottom:1rem;">
-                            Silakan pilih metode pembayaran untuk menyelesaikan pesanan sebesar <strong>{{ $payment['formatted_amount'] ?? $order->formattedTotal() }}</strong>:
-                        </p>
-
-                        <div class="coreapi-channels">
-                            @foreach($paymentMethods as $channelId => $channel)
-                                <form method="POST" action="{{ route('order.midtrans.charge', $order->public_token) }}" class="coreapi-channel-form">
-                                    @csrf
-                                    <input type="hidden" name="channel" value="{{ $channelId }}">
-                                    <button type="submit" class="coreapi-channel-card">
-                                        <div class="coreapi-channel-header">
-                                            <div style="display:flex; align-items:center; gap:0.5rem;">
-                                                @if(($channel['category'] ?? '') === 'qris')
-                                                    <span>📱</span>
-                                                @elseif(($channel['category'] ?? '') === 'ewallet')
-                                                    <span>📲</span>
-                                                @elseif(in_array(($channel['category'] ?? ''), ['va', 'bill'], true))
-                                                    <span>🏦</span>
-                                                @elseif(($channel['category'] ?? '') === 'cstore')
-                                                    <span>🏪</span>
-                                                @else
-                                                    <span>💳</span>
-                                                @endif
-                                                <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
-                                            </div>
-                                            @if(!empty($channel['badge']))
-                                                <span class="coreapi-badge">{{ $channel['badge'] }}</span>
-                                            @endif
-                                        </div>
-                                        <div class="coreapi-channel-desc">{{ $channel['description'] }}</div>
-                                        <div class="coreapi-channel-action">
-                                            <span>Pilih metode ini &rarr;</span>
-                                        </div>
-                                    </button>
-                                </form>
-                            @endforeach
+                        <div class="receipt-alert receipt-alert--warn" role="alert" style="margin-bottom:1.5rem;">
+                            <p style="margin:0;">{{ $payment['message'] }} {!! __('receipt_ui.unavailable_contact', ['number' => $order->order_number]) !!}</p>
                         </div>
-
                     @elseif($payment['type'] === 'core_api')
                         @php
                             $channel = $payment['channel'];
@@ -229,12 +207,6 @@
                                     <span class="coreapi-method-subtitle">Metode Pembayaran</span>
                                     <h3 class="coreapi-method-title">{{ $payment['channel_info']['name'] ?? ucfirst($channel) }}</h3>
                                 </div>
-                                <form method="POST" action="{{ route('order.midtrans.reset', $order->public_token) }}">
-                                    @csrf
-                                    <button type="submit" class="coreapi-btn-change" title="Ganti Metode Pembayaran">
-                                        Ganti Metode
-                                    </button>
-                                </form>
                             </div>
 
                             @if(in_array($channel, ['qris', 'paylabs_qris', 'gopay', 'shopeepay'], true) || !empty($payload['qr_url']) || !empty($payload['qr_string']))
@@ -436,14 +408,8 @@
                         </p>
                     @elseif($payment['type'] === 'manual_transfer' && $payment['configured'])
 
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <div style="margin-bottom:1rem;">
                             <span style="font-size:0.85rem; color:var(--color-muted);">Metode Pembayaran: <strong>Transfer Bank Manual</strong></span>
-                            <form method="POST" action="{{ route('order.midtrans.reset', $order->public_token) }}">
-                                @csrf
-                                <button type="submit" class="coreapi-btn-change" title="Ganti Metode Pembayaran">
-                                    Ganti Metode
-                                </button>
-                            </form>
                         </div>
 
                         <div class="pay-account">
@@ -514,48 +480,30 @@
                         <p>
                             {!! __('receipt_ui.manual_instructions_notice', ['number' => $order->order_number]) !!}
                         </p>
+                    @endif
 
-                        @if(count($paymentMethods) > 1)
-                            <p style="margin-top:1.5rem; margin-bottom:1rem;">
-                                Atau Anda dapat memilih metode pembayaran online di bawah ini:
-                            </p>
-
-                            <div class="coreapi-channels">
-                                @foreach($paymentMethods as $channelId => $channel)
-                                    @if($channelId !== \App\Services\Payment\ManualTransferGateway::KEY)
-                                        <form method="POST" action="{{ route('order.midtrans.charge', $order->public_token) }}" class="coreapi-channel-form">
-                                            @csrf
-                                            <input type="hidden" name="channel" value="{{ $channelId }}">
-                                            <button type="submit" class="coreapi-channel-card">
-                                                <div class="coreapi-channel-header">
-                                                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                                                        @if(($channel['category'] ?? '') === 'qris')
-                                                            <span>📱</span>
-                                                        @elseif(($channel['category'] ?? '') === 'ewallet')
-                                                            <span>📲</span>
-                                                        @elseif(in_array(($channel['category'] ?? ''), ['va', 'bill'], true))
-                                                            <span>🏦</span>
-                                                        @elseif(($channel['category'] ?? '') === 'cstore')
-                                                            <span>🏪</span>
-                                                        @else
-                                                            <span>💳</span>
-                                                        @endif
-                                                        <span class="coreapi-channel-name">{{ $channel['name'] }}</span>
-                                                    </div>
-                                                    @if(!empty($channel['badge']))
-                                                        <span class="coreapi-badge">{{ $channel['badge'] }}</span>
-                                                    @endif
-                                                </div>
-                                                <div class="coreapi-channel-desc">{{ $channel['description'] }}</div>
-                                                <div class="coreapi-channel-action">
-                                                    <span>Pilih metode ini &rarr;</span>
-                                                </div>
-                                            </button>
-                                        </form>
-                                    @endif
-                                @endforeach
+                    @if(! $order->isPaid() && ! $order->isCancelled())
+                        <div class="receipt-expiry-notice">
+                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                <span style="font-size:1.1rem;">⏳</span>
+                                <span style="font-size:0.875rem; color:#FBBF24;">Batas Waktu Pembayaran:</span>
                             </div>
-                        @endif
+                            <strong style="font-size:0.9rem; color:#F5F5F5; font-family:var(--font-mono, monospace);">
+                                {{ $order->expiresAt()->timezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') }} WIB
+                            </strong>
+                        </div>
+
+                        <div class="receipt-cancel-wrapper">
+                            <span style="font-size:0.825rem; color:var(--color-muted);">
+                                Ingin mengubah produk atau metode pembayaran?
+                            </span>
+                            <form method="POST" action="{{ route('order.cancel', $order->public_token) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini? Pesanan yang dibatalkan tidak dapat diproses kembali.');">
+                                @csrf
+                                <button type="submit" class="coreapi-btn-cancel">
+                                    ✕ Batalkan Pesanan
+                                </button>
+                            </form>
+                        </div>
                     @endif
 
                     <div class="receipt-actions">
@@ -708,6 +656,71 @@
 }
 .receipt-paid-desc {
     font-size: 0.95rem; color: #F5F5F5; line-height: 1.6; margin: 0 0 0.75rem !important;
+}
+
+.receipt-cancelled-box {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: 1rem;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    margin-bottom: 1.5rem;
+}
+.receipt-cancelled-icon {
+    width: 3.5rem; height: 3.5rem; margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.receipt-cancelled-title {
+    font-size: 1.25rem; font-weight: 800; color: #FCA5A5;
+    margin: 0 0 0.5rem;
+}
+.receipt-cancelled-desc {
+    font-size: 0.95rem; color: #E5E7EB; line-height: 1.6;
+    margin: 0 auto; max-width: 30rem;
+}
+
+.receipt-expiry-notice {
+    margin-top: 1.25rem;
+    padding: 0.875rem 1rem;
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.receipt-cancel-wrapper {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.coreapi-btn-cancel {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #FCA5A5;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.coreapi-btn-cancel:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #EF4444;
+    color: #F87171;
 }
 
 /* ── Payment ────────────────────────────────────────── */

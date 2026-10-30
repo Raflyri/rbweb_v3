@@ -230,17 +230,14 @@ class MidtransGateway implements PaymentGateway
             ];
         }
 
-        // Otherwise, ask the buyer to select a payment channel
-        return [
-            'type'             => 'channel_selection',
-            'gateway'          => self::KEY,
-            'name'             => 'Pembayaran Online',
-            'configured'       => true,
-            'amount'           => $amount,
-            'formatted_amount' => Order::formatRupiah($amount),
-            'reference'        => $order->order_number,
-            'channels'         => $this->enabledChannels(),
-        ];
+        // Auto-charge if midtrans_payment_type was selected at checkout
+        if (filled($order->midtrans_payment_type) && array_key_exists((string) $order->midtrans_payment_type, self::ALL_CHANNELS)) {
+            return $this->chargeChannel($order, (string) $order->midtrans_payment_type);
+        }
+
+        $enabled = $this->enabledChannels();
+        $defaultChannel = array_key_exists(self::CHANNEL_QRIS, $enabled) ? self::CHANNEL_QRIS : (array_key_first($enabled) ?: self::CHANNEL_QRIS);
+        return $this->chargeChannel($order, $defaultChannel);
     }
 
     /**

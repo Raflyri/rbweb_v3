@@ -132,6 +132,8 @@ class CheckoutController extends Controller
             'shipping_address'      => $hasPhysical ? ($data['shipping_address'] ?? null) : null,
             'notes'                 => $data['notes'] ?? null,
             'payment_method'        => $orderPaymentMethod,
+            'paylabs_payment_type'  => $isPaylabsChannel ? $paymentMethodInput : null,
+            'midtrans_payment_type' => $isMidtransChannel ? $paymentMethodInput : null,
         ]);
 
         // Insert items into order_items table using verified database prices
@@ -151,29 +153,39 @@ class CheckoutController extends Controller
             try {
                 $paylabs = new PaylabsGateway();
                 $paylabs->chargeChannel($order, $paymentMethodInput);
-            } catch (\Throwable $e) {
-                Log::warning('Auto-charge Paylabs channel failed on checkout, fallback to selection', [
+            } catch (PaymentGatewayException $e) {
+                Log::warning('Paylabs auto-charge failed on checkout', [
                     'order_number' => $order->order_number,
                     'channel'      => $paymentMethodInput,
                     'error'        => $e->getMessage(),
                 ]);
+                session()->flash('payment_error', $e->userMessage());
+            } catch (\Throwable $e) {
+                Log::error('Unexpected error charging Paylabs channel on checkout', [
+                    'order_number' => $order->order_number,
+                    'channel'      => $paymentMethodInput,
+                    'error'        => $e->getMessage(),
+                ]);
+                session()->flash('payment_error', 'Terjadi kendala saat menghubungi gateway Paylabs.');
             }
         } elseif ($isMidtransChannel && $this->gateways->midtransIsActive()) {
             try {
                 $midtrans = new MidtransGateway();
                 $midtrans->chargeChannel($order, $paymentMethodInput);
             } catch (PaymentGatewayException $e) {
-                Log::warning('Auto-charge channel failed on checkout, fallback to selection', [
+                Log::warning('Midtrans auto-charge failed on checkout', [
                     'order_number' => $order->order_number,
                     'channel'      => $paymentMethodInput,
                     'error'        => $e->getMessage(),
                 ]);
+                session()->flash('payment_error', $e->userMessage());
             } catch (\Throwable $e) {
-                Log::error('Unexpected error charging channel on checkout', [
+                Log::error('Unexpected error charging Midtrans channel on checkout', [
                     'order_number' => $order->order_number,
                     'channel'      => $paymentMethodInput,
                     'error'        => $e->getMessage(),
                 ]);
+                session()->flash('payment_error', 'Terjadi kendala saat menghubungi gateway pembayaran.');
             }
         }
 
