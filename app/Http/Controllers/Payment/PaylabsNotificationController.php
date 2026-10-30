@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\PaymentGatewayLog;
 use App\Models\PaymentNotificationLog;
 use App\Services\Payment\PaylabsGateway;
 use App\Services\Payment\PaymentActions;
@@ -200,22 +201,46 @@ class PaylabsNotificationController extends Controller
         try {
             $rawBody = $request->getContent();
             $payload = json_decode($rawBody, true) ?: [];
+            $orderId = $payload['merchantTradeNo'] ?? ($payload['order_id'] ?? null);
+            $platformTradeNo = $payload['platformTradeNo'] ?? ($payload['transaction_id'] ?? null);
 
+            // 1. Simpan ke PaymentGatewayLog (Evidence Lengkap Masuk & Keluar)
+            PaymentGatewayLog::record([
+                'order_id'         => $orderId,
+                'gateway'          => PaylabsGateway::KEY,
+                'direction'        => 'incoming',
+                'action'           => 'webhook_notification',
+                'method'           => 'POST',
+                'endpoint'         => '/payment/paylabs/notification',
+                'transaction_id'   => $platformTradeNo,
+                'amount'           => (float) ($payload['amount'] ?? 0),
+                'response_status'  => $respCode,
+                'status'           => $validSig ? 'success' : 'invalid_signature',
+                'error_message'    => $notes,
+                'request_headers'  => $request->headers->all(),
+                'request_payload'  => $payload ?: ['raw' => $rawBody],
+                'response_payload' => ['errCode' => '0', 'errCodeDes' => 'SUCCESS', 'response_code' => $respCode, 'notes' => $notes],
+                'ip_address'       => (string) $request->ip(),
+            ]);
+
+            // 2. Simpan ke PaymentNotificationLog (Tabel kompatibilitas notifikasi webhook)
             PaymentNotificationLog::create([
-                'order_number'   => $payload['merchantTradeNo'] ?? ($payload['order_id'] ?? '-'),
-                'transaction_id' => $payload['platformTradeNo'] ?? ($payload['transaction_id'] ?? null),
-                'payment_type'   => 'paylabs_' . ($payload['paymentType'] ?? 'gateway'),
-                'status'         => $payload['errCodeDes'] ?? ($payload['status'] ?? 'SUCCESS'),
-                'gross_amount'   => (float) ($payload['amount'] ?? 0),
-                'signature_valid'=> $validSig,
-                'is_test'        => $isTest,
-                'ip_address'     => (string) $request->ip(),
-                'response_code'  => $respCode,
-                'notes'          => '[Paylabs Webhook] ' . $notes,
-                'payload'        => $payload,
+                'order_id'             => $orderId,
+                'transaction_id'       => $platformTradeNo,
+                'payment_type'         => 'paylabs_' . ($payload['paymentType'] ?? 'gateway'),
+                'transaction_status'   => ($payload['status'] ?? '02') === '02' ? 'settlement' : 'pending',
+                'status_code'          => (string) ($payload['errCode'] ?? '0'),
+                'gross_amount'         => (float) ($payload['amount'] ?? 0),
+                'signature_key'        => (string) $request->header('X-SIGNATURE'),
+                'is_valid_signature'   => $validSig,
+                'is_test_notification' => $isTest,
+                'response_status'      => $respCode,
+                'response_message'     => '[Paylabs Webhook] ' . $notes,
+                'payload'              => $payload,
+                'ip_address'           => (string) $request->ip(),
             ]);
         } catch (\Throwable $e) {
-            Log::error('Failed to save Paylabs PaymentNotificationLog: ' . $e->getMessage());
+            Log::error('Failed to save Paylabs notification logs: ' . $e->getMessage());
         }
     }
 }

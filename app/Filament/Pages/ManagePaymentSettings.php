@@ -52,6 +52,12 @@ class ManagePaymentSettings extends SettingsPage
                 ->color('gray')
                 ->url(fn (): string => \App\Filament\Resources\PaymentNotificationLogs\PaymentNotificationLogResource::getUrl('index')),
 
+            Action::make('viewGatewayLogs')
+                ->label('Log Payload Gateway')
+                ->icon('heroicon-o-document-magnifying-glass')
+                ->color('warning')
+                ->url(fn (): string => \App\Filament\Resources\PaymentGatewayLogs\PaymentGatewayLogResource::getUrl('index')),
+
             Action::make('testMidtrans')
                 ->label('Uji Koneksi Midtrans')
                 ->icon('heroicon-o-signal')

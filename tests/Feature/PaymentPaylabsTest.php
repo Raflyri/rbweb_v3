@@ -255,3 +255,37 @@ it('renders QRIS QR code on pending order page for paylabs_qris channel', functi
     $response->assertSee('Simpan / Buka QR Code');
 });
 
+it('records incoming payload into PaymentGatewayLog upon receiving webhook', function () {
+    activatePaylabs();
+    $order = Order::factory()->create();
+
+    $payload = [
+        'merchantTradeNo' => $order->order_number,
+        'platformTradeNo' => 'PL-LOG-EVIDENCE-123',
+        'paymentType'     => 'QRIS',
+        'errCode'         => '0',
+        'status'          => '02',
+        'amount'          => number_format((float) $order->payableAmount(), 2, '.', ''),
+    ];
+    $rawBody = json_encode($payload);
+    $timestamp = '2026-03-30T12:00:00.000+07:00';
+    $sig = paylabsSign('POST', '/payment/paylabs/notification', $rawBody, $timestamp);
+
+    postJson('/payment/paylabs/notification', $payload, [
+        'X-TIMESTAMP'  => $timestamp,
+        'X-SIGNATURE'  => $sig,
+        'X-PARTNER-ID' => PAYLABS_TEST_MERCHANT_ID,
+        'X-REQUEST-ID' => 'REQ-EVIDENCE-1',
+    ])->assertStatus(200);
+
+    $log = \App\Models\PaymentGatewayLog::where('order_id', $order->order_number)->first();
+    expect($log)->not->toBeNull()
+        ->and($log->gateway)->toBe('paylabs')
+        ->and($log->direction)->toBe('incoming')
+        ->and($log->action)->toBe('webhook_notification')
+        ->and($log->transaction_id)->toBe('PL-LOG-EVIDENCE-123')
+        ->and($log->request_payload['platformTradeNo'])->toBe('PL-LOG-EVIDENCE-123')
+        ->and($log->status)->toBe('success')
+        ->and($log->generateEvidenceText())->toBeString();
+});
+

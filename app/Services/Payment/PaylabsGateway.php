@@ -5,6 +5,7 @@ namespace App\Services\Payment;
 use App\Contracts\PaymentGateway;
 use App\Exceptions\PaymentGatewayException;
 use App\Models\Order;
+use App\Models\PaymentGatewayLog;
 use App\Settings\PaymentSettings;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -366,6 +367,29 @@ class PaylabsGateway implements PaymentGateway
             ->timeout(12)
             ->post($this->getBaseUrl() . $endpoint);
 
+        $data = $res->json() ?: [];
+        $errCode = (string) ($data['errCode'] ?? '');
+        $errDes = (string) ($data['errCodeDes'] ?? ($errCode !== '0' ? 'Kode error Paylabs: ' . $errCode : 'Success'));
+
+        // Simpan log payload lengkap (outgoing request & incoming response) untuk audit & evidence
+        PaymentGatewayLog::record([
+            'order_id'         => $order->order_number,
+            'gateway'          => self::KEY,
+            'direction'        => 'outgoing',
+            'action'           => $isQris ? 'create_qris' : 'create_va',
+            'method'           => 'POST',
+            'endpoint'         => $this->getBaseUrl() . $endpoint,
+            'transaction_id'   => $data['platformTradeNo'] ?? null,
+            'amount'           => $amount,
+            'response_status'  => $res->status(),
+            'status'           => ($res->successful() && $errCode === '0') ? 'success' : 'failed',
+            'error_message'    => ($errCode !== '0') ? $errDes : null,
+            'request_headers'  => $headers,
+            'request_payload'  => $body,
+            'response_headers' => $res->headers(),
+            'response_payload' => $data ?: ['raw' => $res->body()],
+        ]);
+
         if (! $res->successful()) {
             Log::error('Paylabs API HTTP Error', [
                 'status' => $res->status(),
@@ -378,11 +402,7 @@ class PaylabsGateway implements PaymentGateway
             );
         }
 
-        $data = $res->json() ?: [];
-        $errCode = (string) ($data['errCode'] ?? '');
-
         if ($errCode !== '0') {
-            $errDes = (string) ($data['errCodeDes'] ?? 'Kode error Paylabs: ' . $errCode);
 
             Log::warning('Paylabs API charge rejected', [
                 'order_number' => $order->order_number,
@@ -521,8 +541,26 @@ class PaylabsGateway implements PaymentGateway
                 ->timeout(10)
                 ->post($this->getBaseUrl() . $endpoint);
 
+            $data = $res->json() ?: [];
+
+            PaymentGatewayLog::record([
+                'order_id'         => $orderNumber,
+                'gateway'          => self::KEY,
+                'direction'        => 'outgoing',
+                'action'           => 'query_status',
+                'method'           => 'POST',
+                'endpoint'         => $this->getBaseUrl() . $endpoint,
+                'transaction_id'   => $data['platformTradeNo'] ?? null,
+                'response_status'  => $res->status(),
+                'status'           => (($data['errCode'] ?? '') === '0') ? 'success' : 'failed',
+                'error_message'    => $data['errCodeDes'] ?? null,
+                'request_headers'  => $headers,
+                'request_payload'  => $body,
+                'response_headers' => $res->headers(),
+                'response_payload' => $data ?: ['raw' => $res->body()],
+            ]);
+
             if ($res->successful()) {
-                $data = $res->json();
                 if (($data['errCode'] ?? '') === '0') {
                     return $data;
                 }
@@ -605,13 +643,32 @@ class PaylabsGateway implements PaymentGateway
                 ->timeout(10)
                 ->post($this->getBaseUrl() . $endpoint);
 
+            $data = $res->json() ?: [];
+
+            PaymentGatewayLog::record([
+                'order_id'         => $orderNumber,
+                'gateway'          => self::KEY,
+                'direction'        => 'outgoing',
+                'action'           => 'cancel_qris',
+                'method'           => 'POST',
+                'endpoint'         => $this->getBaseUrl() . $endpoint,
+                'transaction_id'   => $platformTradeNo,
+                'response_status'  => $res->status(),
+                'status'           => (($data['errCode'] ?? '') === '0') ? 'success' : 'failed',
+                'error_message'    => $data['errCodeDes'] ?? null,
+                'request_headers'  => $headers,
+                'request_payload'  => $body,
+                'response_headers' => $res->headers(),
+                'response_payload' => $data ?: ['raw' => $res->body()],
+            ]);
+
             Log::info('Paylabs cancelQris response', [
                 'order_number' => $orderNumber,
                 'status'       => $res->status(),
-                'response'     => $res->json(),
+                'response'     => $data,
             ]);
 
-            return $res->json() ?: [];
+            return $data;
         } catch (\Throwable $e) {
             Log::warning('Paylabs cancelQris call failed', [
                 'order_number' => $orderNumber,

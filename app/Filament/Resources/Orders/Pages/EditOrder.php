@@ -23,6 +23,15 @@ class EditOrder extends EditRecord
                 ->url(fn (): string => route('order.pending', $this->record->public_token))
                 ->openUrlInNewTab(),
 
+            Action::make('gateway_logs')
+                ->label('Log Gateway')
+                ->icon('heroicon-o-document-magnifying-glass')
+                ->color('info')
+                ->url(fn (): string => \App\Filament\Resources\PaymentGatewayLogs\PaymentGatewayLogResource::getUrl('index', [
+                    'tableSearch' => $this->record->order_number,
+                ]))
+                ->openUrlInNewTab(),
+
             // Only super_admin, and only ever one at a time (see OrderPolicy):
             // deleting an order destroys the record of what was agreed.
             DeleteAction::make(),

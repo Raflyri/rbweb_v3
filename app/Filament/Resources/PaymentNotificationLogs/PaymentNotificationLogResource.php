@@ -29,11 +29,11 @@ class PaymentNotificationLogResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-bell-alert';
 
-    protected static ?string $navigationLabel = 'Notifikasi Midtrans';
+    protected static ?string $navigationLabel = 'Notifikasi Webhook';
 
     protected static ?string $modelLabel = 'Log Notifikasi Webhook';
 
-    protected static ?string $pluralModelLabel = 'Riwayat Notifikasi Midtrans';
+    protected static ?string $pluralModelLabel = 'Riwayat Notifikasi Webhook';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Katalog';
 
